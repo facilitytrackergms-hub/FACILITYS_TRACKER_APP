@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facilities Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="main-dashboard" class="view">
+        <h1>Facilities Tracker</h1>
+        <button id="btn-add-facility" onclick="openModal('facility-modal')">Add Facility</button>
+        <div id="facilities-container" class="button-grid">
+            </div>
+    </div>
+
+    <div id="facility-dashboard" class="view hidden">
+        <button class="btn-back" onclick="switchView('main-dashboard')">← Back to Tracker</button>
+        <h2 id="current-facility-title">Facility Name</h2>
+        
+        <div class="sub-nav-grid">
+            <button onclick="switchView('contact-dashboard')">Facility Contact</button>
+            <button onclick="alert('Maintenance View Placeholder')">Facility Maintenance</button>
+            <button onclick="switchView('notes-dashboard')">Facility Notes</button>
+        </div>
+    </div>
+
+    <div id="contact-dashboard" class="view hidden">
+        <button class="btn-back" onclick="switchView('facility-dashboard')">← Back to Facility</button>
+        <h2>Facility Contacts</h2>
+        <button id="btn-add-contact" onclick="openModal('contact-modal')">Add New Contact</button>
+        
+        <div id="contacts-container" class="cards-grid">
+            </div>
+    </div>
+
+    <div id="notes-dashboard" class="view hidden">
+        <button class="btn-back" onclick="switchView('facility-dashboard')">← Back to Facility</button>
+        <h2>Facility Notes</h2>
+        <button id="btn-add-note" onclick="openModal('note-modal')">Add New Note</button>
+        
+        <div id="notes-container" class="notes-list">
+            </div>
+    </div>
+
+
+    <div id="facility-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Add New Facility</h3>
+            <input type="text" id="input-facility-name" placeholder="Enter facility name">
+            <input type="text" id="input-facility-address" placeholder="Enter address for GPS navigation">
+            <div class="modal-actions">
+                <button onclick="closeModal('facility-modal')">Cancel</button>
+                <button class="btn-save" onclick="saveFacility()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="contact-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Add Contact Information</h3>
+            <input type="text" id="contact-name" placeholder="Contact Name">
+            <input type="tel" id="contact-phone" placeholder="Phone Number">
+            <input type="email" id="contact-email" placeholder="Email Address">
+            <input type="text" id="contact-role" placeholder="Role (e.g. E.D, Manager)">
+            <textarea id="contact-notes" placeholder="Notes regarding contact..."></textarea>
+            <div class="modal-actions">
+                <button onclick="closeModal('contact-modal')">Cancel</button>
+                <button class="btn-save" onclick="saveContact()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="note-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div id="note-step-text">
+                <h3>Add New Note</h3>
+                <textarea id="note-content" placeholder="Type note details here..."></textarea>
+                <div class="modal-actions">
+                    <button onclick="closeModal('note-modal')">Cancel</button>
+                    <button class="btn-save" onclick="checkNoteReminderPrompt()">Next</button>
+                </div>
+            </div>
+
+            <div id="note-step-reminder-prompt" class="hidden">
+                <h3>Set a Reminder?</h3>
+                <p>Do you want to add an active scheduling reminder for this note?</p>
+                <div class="modal-actions-centered">
+                    <button class="btn-no" onclick="saveNoteWithoutReminder()">No</button>
+                    <button class="btn-yes" onclick="showReminderOptions()">Yes</button>
+                </div>
+            </div>
+
+            <div id="note-step-reminder-config" class="hidden">
+                <h3>Configure Note Reminder</h3>
+                
+                <div class="form-group-row">
+                    <label for="reminder-all-day">All Day Event:</label>
+                    <input type="checkbox" id="reminder-all-day" onchange="toggleReminderTimeVisibility(this.checked)">
+                </div>
+
+                <div class="form-group" id="reminder-date-wrapper">
+                    <label>Select Date:</label>
+                    <input type="date" id="reminder-date">
+                </div>
+
+                <div class="form-group" id="reminder-datetime-wrapper">
+                    <label>Select Date & Time:</label>
+                    <input type="datetime-local" id="reminder-datetime">
+                </div>
+
+                <div class="modal-actions">
+                    <button onclick="backToReminderPrompt()">Back</button>
+                    <button class="btn-save" onclick="saveNoteWithReminder()">Save Note & Reminder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
