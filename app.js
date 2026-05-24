@@ -1,24 +1,32 @@
 /**
- * File Version Tag: app.js - May 24, 2026, 7:32 PM
- * Description: Core frontend operational router logic script with strict safety fallbacks
+ * File Version Tag: app.js - May 24, 2026, 7:42 PM
+ * Description: Core frontend operational script with dual Cloud-Sync and LocalStorage backup
  */
 
-// Firebase Configurations Setup Configuration Block
+// =========================================================================
+// 1. FIREBASE CONFIGURATION (ACTION REQUIRED)
+// =========================================================================
+// GO TO YOUR FIREBASE CONSOLE, COPY YOUR WEB APP CONFIG AND PASTE IT HERE:
 const firebaseConfig = {
+    apiKey: "YOUR_ACTUAL_API_KEY",
+    authDomain: "facilitys-tracker.firebaseapp.com",
     projectId: "facilitys-tracker",
+    storageBucket: "facilitys-tracker.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID",
     databaseId: "(default)"
-    // Paste your complete Firebase Config credentials string snippet here if using live cloud sync
 };
 
-// Initialize Database connection safely with a fallback flag
+// Initialize Database connection safely
 let db = null;
 try {
     if (typeof firebase !== 'undefined' && firebase.apps && !firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
+        console.log("Firebase connected successfully.");
     }
 } catch (e) {
-    console.warn("Firebase initialization skipped or unconfigured. Running in local fallback mode.", e);
+    console.warn("Firebase config is blank or incomplete. Using LocalStorage fallback storage.", e);
 }
 
 // Application State Tracking Variables
@@ -30,7 +38,6 @@ function switchView(viewId) {
     document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
     document.getElementById(viewId).classList.remove('hidden');
     
-    // Realtime UI updates when jumping context views
     if (viewId === 'main-dashboard') {
         loadFacilities();
     } else if (viewId === 'contact-dashboard') {
@@ -57,7 +64,7 @@ function closeModal(modalId) {
 }
 
 // ==========================================
-// 1. FACILITIES MANAGEMENT (FIXED & GUARANTEED CLOSING)
+// 2. FACILITIES MANAGEMENT (WITH REFRESH FIX)
 // ==========================================
 function saveFacility() {
     const nameInput = document.getElementById('input-facility-name');
@@ -68,39 +75,43 @@ function saveFacility() {
     
     if (!name) return alert("Facility name required.");
 
-    // --- CRITICAL FIX: FORCE MODAL TO CLOSE & ADD BUTTON IMMEDATELY ---
+    // Close modal and reset fields immediately
     closeModal('facility-modal');
-    
-    // Generate a safe local ID so the dashboard functions no matter what
-    const tempId = "fac_" + Date.now();
-
-    // Force creation onto your layout container screen
-    addFacilityButtonToDashboard(tempId, name, address);
-
-    // Reset input elements immediately
     nameInput.value = "";
     addressInput.value = "";
 
-    // Save to Firestore in background safely
+    const facilityId = "fac_" + Date.now();
+    const newFacility = {
+        id: facilityId,
+        facility_name: name,
+        facility_address: address,
+        createdAt: new Date().toISOString()
+    };
+
+    // --- SAVE TO LOCAL STORAGE IMMEDIATELY ---
+    let localFacilities = JSON.parse(localStorage.getItem('local_facilities')) || [];
+    localFacilities.push(newFacility);
+    localStorage.setItem('local_facilities', JSON.stringify(localFacilities));
+
+    // Show it on the dashboard right away
+    addFacilityButtonToDashboard(facilityId, name, address);
+
+    // --- SYNC TO FIRESTORE CLOUD ---
     if (db) {
-        db.collection("facilities").doc(tempId).set({
+        db.collection("facilities").doc(facilityId).set({
             facility_name: name,
             facility_address: address,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
-        .then(() => {
-            console.log("Saved to cloud storage successfully.");
-        })
-        .catch((error) => {
-            console.error("Cloud connection unavailable, retaining button locally:", error);
-        });
+        .then(() => console.log("Facility synced to cloud successfully."))
+        .catch(err => console.error("Cloud busy, backed up safely in local browser storage.", err));
     }
 }
 
 function addFacilityButtonToDashboard(id, name, address) {
     const container = document.getElementById('facilities-container');
     
-    // Prevent duplicate button profiles
+    // Prevent rendering duplicates
     const existingButtons = Array.from(container.querySelectorAll('button'));
     const isDuplicate = existingButtons.some(b => b.textContent === name);
     if (isDuplicate) return;
@@ -119,23 +130,30 @@ function addFacilityButtonToDashboard(id, name, address) {
 }
 
 function loadFacilities() {
-    if (!db) return;
-    
-    db.collection("facilities").orderBy("facility_name").get()
-    .then((querySnapshot) => {
-        const container = document.getElementById('facilities-container');
-        container.innerHTML = "";
-        
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            addFacilityButtonToDashboard(doc.id, data.facility_name, data.facility_address);
-        });
-    })
-    .catch(err => console.log("Working in standalone offline visual dashboard layer mode."));
+    const container = document.getElementById('facilities-container');
+    container.innerHTML = "";
+
+    // 1. Always load Local Storage buttons instantly so screen is never blank on refresh
+    const localFacilities = JSON.parse(localStorage.getItem('local_facilities')) || [];
+    localFacilities.forEach(fac => {
+        addFacilityButtonToDashboard(fac.id || fac.facility_id, fac.facility_name, fac.facility_address);
+    });
+
+    // 2. Fetch from cloud database in background to sync missing additions
+    if (db) {
+        db.collection("facilities").orderBy("facility_name").get()
+        .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                addFacilityButtonToDashboard(doc.id, data.facility_name, data.facility_address);
+            });
+        })
+        .catch(err => console.log("Offline mode: Running purely off backup local storage records."));
+    }
 }
 
 // ==========================================
-// 2. INTERACTIVE CONTACTS WITH COMM LINKS
+// 3. INTERACTIVE CONTACTS MANAGEMENT
 // ==========================================
 function saveContact() {
     const nameInput = document.getElementById('contact-name');
@@ -154,13 +172,22 @@ function saveContact() {
 
     closeModal('contact-modal');
     
-    addContactCardToScreen({
+    const contactData = {
+        facility_id: currentFacilityId,
         contact_name: name,
         contact_phone: phone,
         contact_email: email,
         contact_role: role,
         contact_notes: notes
-    });
+    };
+
+    // Save to LocalStorage Backup
+    let localContacts = JSON.parse(localStorage.getItem('local_contacts')) || [];
+    localContacts.push(contactData);
+    localStorage.setItem('local_contacts', JSON.stringify(localContacts));
+
+    // Show on screen instantly
+    addContactCardToScreen(contactData);
 
     nameInput.value = "";
     phoneInput.value = "";
@@ -169,14 +196,7 @@ function saveContact() {
     notesInput.value = "";
 
     if (db && currentFacilityId) {
-        db.collection("contact").add({
-            facility_id: currentFacilityId,
-            contact_name: name,
-            contact_phone: phone,
-            contact_email: email,
-            contact_role: role,
-            contact_notes: notes
-        });
+        db.collection("contact").add(contactData);
     }
 }
 
@@ -200,19 +220,26 @@ function addContactCardToScreen(data) {
 }
 
 function loadContacts() {
-    if (!db || !currentFacilityId) return;
-    
-    db.collection("contact").where("facility_id", "==", currentFacilityId).get().then((snapshot) => {
-        const container = document.getElementById('contacts-container');
-        container.innerHTML = "";
-        snapshot.forEach((doc) => {
-            addContactCardToScreen(doc.data());
-        });
+    const container = document.getElementById('contacts-container');
+    container.innerHTML = "";
+
+    // Load from Local Backup first
+    const localContacts = JSON.parse(localStorage.getItem('local_contacts')) || [];
+    localContacts.filter(c => c.facility_id === currentFacilityId).forEach(c => {
+        addContactCardToScreen(c);
     });
+
+    if (db && currentFacilityId) {
+        db.collection("contact").where("facility_id", "==", currentFacilityId).get().then((snapshot) => {
+            snapshot.forEach((doc) => {
+                addContactCardToScreen(doc.data());
+            });
+        });
+    }
 }
 
 // ==========================================
-// 3. MULTI-NOTES & CONDITIONAL POPUP SCHEDULER
+// 4. MULTI-NOTES & REMINDERS WORKFLOW
 // ==========================================
 function checkNoteReminderPrompt() {
     const noteText = document.getElementById('note-content').value.trim();
@@ -269,12 +296,20 @@ function saveNoteWithReminder() {
 function submitNoteToDatabase(text, hasReminder, reminderDetails) {
     closeModal('note-modal');
 
-    addNoteItemToScreen({
+    const noteData = {
+        facility_id: currentFacilityId,
         note_text: text,
         has_reminder: hasReminder,
         reminder_info: reminderDetails,
-        createdAt: null
-    });
+        createdAt: new Date().toISOString()
+    };
+
+    // Save to local machine storage array backup
+    let localNotes = JSON.parse(localStorage.getItem('local_notes')) || [];
+    localNotes.push(noteData);
+    localStorage.setItem('local_notes', JSON.stringify(localNotes));
+
+    addNoteItemToScreen(noteData);
 
     if (db && currentFacilityId) {
         db.collection("facility_notes").add({
@@ -298,7 +333,7 @@ function addNoteItemToScreen(data) {
         reminderHTML = `<div class="reminder-indicator">⏰ Reminder: ${info.time} (${info.type === 'all-day' ? 'All Day' : 'Timed Event'})</div>`;
     }
     
-    const timestamp = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString() : 'Just Now';
+    const timestamp = data.createdAt ? new Date(data.createdAt).toLocaleString() : 'Just Now';
     
     item.innerHTML = `
         <p style="margin:0; font-size:15px; line-height:1.5;">${data.note_text}</p>
@@ -310,18 +345,21 @@ function addNoteItemToScreen(data) {
 
 function loadNotes() {
     const container = document.getElementById('notes-container');
-    
-    // Check if an address exists on our current active dashboard button directly
     const currentBtn = document.querySelector(`button[data-id="${currentFacilityId}"]`);
     let gpsHTML = '';
     
     if (currentBtn && currentBtn.getAttribute('data-address')) {
         const address = currentBtn.getAttribute('data-address');
-        // --- FIX: FIXED INCORRECT URL PARAM STRING SYNTAX ---
         gpsHTML = `<div style="margin-bottom:15px;"><a href="https://maps.google.com/?q=${encodeURIComponent(address)}" target="_blank" class="action-link">📍 Navigate to Facility via GPS</a></div>`;
     }
     
     container.innerHTML = gpsHTML;
+
+    // Load from Local Backup first
+    const localNotes = JSON.parse(localStorage.getItem('local_notes')) || [];
+    localNotes.filter(n => n.facility_id === currentFacilityId).forEach(n => {
+        addNoteItemToScreen(n);
+    });
 
     if (!db || !currentFacilityId) return;
 
@@ -330,10 +368,14 @@ function loadNotes() {
       .get()
       .then((snapshot) => {
         snapshot.forEach((doc) => {
-            addNoteItemToScreen(doc.data());
+            const cloudData = doc.data();
+            if (cloudData.createdAt && cloudData.createdAt.seconds) {
+                cloudData.createdAt = new Date(cloudData.createdAt.seconds * 1000).toISOString();
+            }
+            addNoteItemToScreen(cloudData);
         });
     });
 }
 
-// Boot up layout triggers automatically
+// Boot up app on page load
 window.onload = () => { loadFacilities(); };
