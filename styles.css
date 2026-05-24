@@ -15,10 +15,12 @@ body {
 }
 
 .view {
+    position: relative; /* Added to pin version info layout cleanly */
     max-width: 800px;
     margin: 0 auto;
     background: white;
     padding: 30px;
+    padding-bottom: 60px; /* Space so text never overlaps version tag */
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
 }
@@ -58,7 +60,6 @@ button:hover { opacity: 0.9; }
     margin-top: 20px;
 }
 
-/* Dynamic Interactive Action Component Cards */
 .contact-card {
     border: 1px solid #e2e8f0;
     border-radius: 10px;
@@ -88,7 +89,6 @@ button:hover { opacity: 0.9; }
 }
 .action-link:hover { text-decoration: underline; }
 
-/* Notes Display and Metadata Formatting */
 .notes-list {
     display: flex;
     flex-direction: column;
@@ -112,7 +112,6 @@ button:hover { opacity: 0.9; }
     margin-top: 4px;
 }
 
-/* Overlay Window Display Infrastructure */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -145,3 +144,14 @@ button:hover { opacity: 0.9; }
 .btn-save { background-color: var(--success); }
 .btn-yes { background-color: var(--success); padding: 12px 30px; }
 .btn-no { background-color: var(--danger); padding: 12px 30px; }
+
+/* Dynamic Layout Bottom Core Version Stamp Style */
+.version-tag {
+    position: absolute;
+    bottom: 12px;
+    right: 20px;
+    font-size: 11px;
+    color: #94a3b8;
+    font-family: monospace;
+    user-select: none;
+}
