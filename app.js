@@ -1,18 +1,22 @@
-// Firebase Configuration Setup Block
+/**
+ * File Version Tag: app.js - May 24, 2026, 7:29 PM
+ * Description: Core frontend operational router logic script 
+ */
+
+// Firebase Configurations Setup Configuration Block
 const firebaseConfig = {
     projectId: "facilitys-tracker",
     databaseId: "(default)"
-    // Paste your complete Firebase Config credentials string snippet from console here if using live Firestore
 };
 
-// Initialize Database connection safely
+// Initialize Database connection interfaces safely
 try {
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
     var db = firebase.firestore();
 } catch (e) {
-    console.log("Firebase not fully configured yet, using local-first mode.");
+    console.log("Firebase not fully configured yet, running local simulation mode.");
 }
 
 // Application State Tracking Variables
@@ -51,7 +55,7 @@ function closeModal(modalId) {
 }
 
 // ==========================================
-// 1. FACILITIES MANAGEMENT (FIXED & INSTANT)
+// 1. FACILITIES MANAGEMENT (INSTANT BUTTON FIX)
 // ==========================================
 function saveFacility() {
     const nameInput = document.getElementById('input-facility-name');
@@ -62,21 +66,17 @@ function saveFacility() {
     
     if (!name) return alert("Facility name required.");
 
-    // --- FIX: INSTANT UI CLOSING & BUTTON CREATION ---
-    // 1. Close the modal immediately so the user knows it worked
+    // Close the modal instantly and clear input values
     closeModal('facility-modal');
-    
-    // 2. Clear the inputs right away
     nameInput.value = "";
     addressInput.value = "";
 
-    // 3. Create a temporary ID so the button works even if network is slow
+    // Generate quick runtime tracking identifier reference
     const tempId = "temp_" + Date.now();
 
-    // 4. Put the button straight onto the screen without waiting
+    // Create the dashboard view action element immediately
     addFacilityButtonToDashboard(tempId, name);
 
-    // 5. Send the data to Firestore in the background
     if (db) {
         db.collection("facilities").add({
             facility_name: name,
@@ -84,21 +84,19 @@ function saveFacility() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then((docRef) => {
-            console.log("Saved to database successfully with ID:", docRef.id);
-            // Refresh dashboard seamlessly to replace temp ID with database ID
+            console.log("Database entry synchronized with reference ID:", docRef.id);
             loadFacilities();
         })
         .catch((error) => {
-            console.error("Database error (stored locally for now):", error);
+            console.error("Database connection fallback notice:", error);
         });
     }
 }
 
-// Helper function that physically builds the button onto your dashboard HTML
 function addFacilityButtonToDashboard(id, name) {
     const container = document.getElementById('facilities-container');
     
-    // Prevent duplicate placeholder buttons on instant clicks
+    // Check duplication profiles to stop unnecessary stacked renderings
     const existingButtons = Array.from(container.querySelectorAll('button'));
     const isDuplicate = existingButtons.some(b => b.textContent === name);
     if (isDuplicate) return;
@@ -121,15 +119,12 @@ function loadFacilities() {
     db.collection("facilities").orderBy("facility_name").get()
     .then((querySnapshot) => {
         const container = document.getElementById('facilities-container');
-        container.innerHTML = ""; // Clear existing buttons
+        container.innerHTML = "";
         
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             addFacilityButtonToDashboard(doc.id, data.facility_name);
         });
-    })
-    .catch((err) => {
-        console.log("Could not load facilities from cloud, checking screen buttons.");
     });
 }
 
@@ -151,10 +146,8 @@ function saveContact() {
 
     if (!name) return alert("Contact Name is required.");
 
-    // Instant Close & UI reset
     closeModal('contact-modal');
     
-    // Add directly to screen view
     addContactCardToScreen({
         contact_name: name,
         contact_phone: phone,
@@ -258,7 +251,7 @@ function saveNoteWithReminder() {
         if (!scheduledTime) return alert("Please pick an event date.");
     } else {
         scheduledTime = document.getElementById('reminder-datetime').value;
-        if (!scheduledTime) return alert("Please select date and time.");
+        if (!scheduledTime) return alert("Please select date and time target.");
     }
 
     submitNoteToDatabase(noteText, true, {
@@ -333,5 +326,5 @@ function loadNotes() {
     });
 }
 
-// Boot up app dashboard setup state
+// Boot up setup state logic maps automatically
 window.onload = () => { loadFacilities(); };
