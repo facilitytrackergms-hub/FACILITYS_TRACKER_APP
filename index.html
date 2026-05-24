@@ -14,7 +14,7 @@
         <div id="facilities-container" class="button-grid">
             </div>
         
-        <div class="version-tag">index.html - May 24, 2026, 7:32 PM</div>
+        <div class="version-tag">index.html - May 24, 2026, 7:42 PM</div>
     </div>
 
     <div id="facility-dashboard" class="view hidden">
@@ -23,11 +23,11 @@
         
         <div class="sub-nav-grid">
             <button onclick="switchView('contact-dashboard')">Facility Contact</button>
-            <button onclick="alert('Maintenance view setup complete.')">Facility Maintenance</button>
+            <button onclick="alert('Maintenance view operational.')">Facility Maintenance</button>
             <button onclick="switchView('notes-dashboard')">Facility Notes</button>
         </div>
         
-        <div class="version-tag">index.html - May 24, 2026, 7:32 PM</div>
+        <div class="version-tag">index.html - May 24, 2026, 7:42 PM</div>
     </div>
 
     <div id="contact-dashboard" class="view hidden">
@@ -38,7 +38,7 @@
         <div id="contacts-container" class="cards-grid">
             </div>
         
-        <div class="version-tag">index.html - May 24, 2026, 7:32 PM</div>
+        <div class="version-tag">index.html - May 24, 2026, 7:42 PM</div>
     </div>
 
     <div id="notes-dashboard" class="view hidden">
@@ -49,9 +49,8 @@
         <div id="notes-container" class="notes-list">
             </div>
         
-        <div class="version-tag">index.html - May 24, 2026, 7:32 PM</div>
+        <div class="version-tag">index.html - May 24, 2026, 7:42 PM</div>
     </div>
-
 
     <div id="facility-modal" class="modal-overlay hidden">
         <div class="modal-box">
@@ -102,22 +101,18 @@
 
             <div id="note-step-reminder-config" class="hidden">
                 <h3>Configure Note Reminder</h3>
-                
                 <div class="form-group-row">
                     <label for="reminder-all-day">All Day Event:</label>
                     <input type="checkbox" id="reminder-all-day" onchange="toggleReminderTimeVisibility(this.checked)">
                 </div>
-
                 <div class="form-group" id="reminder-date-wrapper">
                     <label>Select Date:</label>
                     <input type="date" id="reminder-date">
                 </div>
-
                 <div class="form-group" id="reminder-datetime-wrapper">
                     <label>Select Date & Time:</label>
                     <input type="datetime-local" id="reminder-datetime">
                 </div>
-
                 <div class="modal-actions">
                     <button onclick="backToReminderPrompt()">Back</button>
                     <button class="btn-save" onclick="saveNoteWithReminder()">Save Note & Reminder</button>
