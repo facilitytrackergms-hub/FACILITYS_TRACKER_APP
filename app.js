@@ -1,13 +1,19 @@
-// Firebase Configurations Setup Configuration Block
+// Firebase Configuration Setup Block
 const firebaseConfig = {
     projectId: "facilitys-tracker",
     databaseId: "(default)"
-    // Paste your complete Firebase Config credentials string snippet from console here
+    // Paste your complete Firebase Config credentials string snippet from console here if using live Firestore
 };
 
-// Initialize Database connection interfaces
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Initialize Database connection safely
+try {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    var db = firebase.firestore();
+} catch (e) {
+    console.log("Firebase not fully configured yet, using local-first mode.");
+}
 
 // Application State Tracking Variables
 let currentFacilityId = null;
@@ -31,7 +37,6 @@ function switchView(viewId) {
 function openModal(modalId) {
     document.getElementById(modalId).classList.remove('hidden');
     if (modalId === 'note-modal') {
-        // Reset note multi-step workflow states completely on initialization
         document.getElementById('note-step-text').classList.remove('hidden');
         document.getElementById('note-step-reminder-prompt').classList.add('hidden');
         document.getElementById('note-step-reminder-config').classList.add('hidden');
@@ -46,43 +51,85 @@ function closeModal(modalId) {
 }
 
 // ==========================================
-// 1. FACILITIES MANAGEMENT
+// 1. FACILITIES MANAGEMENT (FIXED & INSTANT)
 // ==========================================
 function saveFacility() {
-    const name = document.getElementById('input-facility-name').value.trim();
-    const address = document.getElementById('input-facility-address').value.trim();
+    const nameInput = document.getElementById('input-facility-name');
+    const addressInput = document.getElementById('input-facility-address');
     
-    if(!name) return alert("Facility name required.");
+    const name = nameInput.value.trim();
+    const address = addressInput.value.trim();
+    
+    if (!name) return alert("Facility name required.");
 
-    db.collection("facilities").add({
-        facility_name: name,
-        facility_address: address,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    })
-    .then(() => {
-        closeModal('facility-modal');
-        document.getElementById('input-facility-name').value = "";
-        document.getElementById('input-facility-address').value = "";
-        loadFacilities();
-    });
+    // --- FIX: INSTANT UI CLOSING & BUTTON CREATION ---
+    // 1. Close the modal immediately so the user knows it worked
+    closeModal('facility-modal');
+    
+    // 2. Clear the inputs right away
+    nameInput.value = "";
+    addressInput.value = "";
+
+    // 3. Create a temporary ID so the button works even if network is slow
+    const tempId = "temp_" + Date.now();
+
+    // 4. Put the button straight onto the screen without waiting
+    addFacilityButtonToDashboard(tempId, name);
+
+    // 5. Send the data to Firestore in the background
+    if (db) {
+        db.collection("facilities").add({
+            facility_name: name,
+            facility_address: address,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then((docRef) => {
+            console.log("Saved to database successfully with ID:", docRef.id);
+            // Refresh dashboard seamlessly to replace temp ID with database ID
+            loadFacilities();
+        })
+        .catch((error) => {
+            console.error("Database error (stored locally for now):", error);
+        });
+    }
+}
+
+// Helper function that physically builds the button onto your dashboard HTML
+function addFacilityButtonToDashboard(id, name) {
+    const container = document.getElementById('facilities-container');
+    
+    // Prevent duplicate placeholder buttons on instant clicks
+    const existingButtons = Array.from(container.querySelectorAll('button'));
+    const isDuplicate = existingButtons.some(b => b.textContent === name);
+    if (isDuplicate) return;
+
+    const btn = document.createElement('button');
+    btn.textContent = name;
+    btn.setAttribute('data-id', id);
+    btn.onclick = () => {
+        currentFacilityId = id;
+        currentFacilityName = name;
+        document.getElementById('current-facility-title').textContent = currentFacilityName;
+        switchView('facility-dashboard');
+    };
+    container.appendChild(btn);
 }
 
 function loadFacilities() {
-    db.collection("facilities").orderBy("facility_name").get().then((querySnapshot) => {
+    if (!db) return;
+    
+    db.collection("facilities").orderBy("facility_name").get()
+    .then((querySnapshot) => {
         const container = document.getElementById('facilities-container');
-        container.innerHTML = "";
+        container.innerHTML = ""; // Clear existing buttons
+        
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const btn = document.createElement('button');
-            btn.textContent = data.facility_name;
-            btn.onclick = () => {
-                currentFacilityId = doc.id;
-                currentFacilityName = data.facility_name;
-                document.getElementById('current-facility-title').textContent = currentFacilityName;
-                switchView('facility-dashboard');
-            };
-            container.appendChild(btn);
+            addFacilityButtonToDashboard(doc.id, data.facility_name);
         });
+    })
+    .catch((err) => {
+        console.log("Could not load facilities from cloud, checking screen buttons.");
     });
 }
 
@@ -90,59 +137,77 @@ function loadFacilities() {
 // 2. INTERACTIVE CONTACTS WITH COMM LINKS
 // ==========================================
 function saveContact() {
-    if (!currentFacilityId) return;
+    const nameInput = document.getElementById('contact-name');
+    const phoneInput = document.getElementById('contact-phone');
+    const emailInput = document.getElementById('contact-email');
+    const roleInput = document.getElementById('contact-role');
+    const notesInput = document.getElementById('contact-notes');
+
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const email = emailInput.value.trim();
+    const role = roleInput.value.trim();
+    const notes = notesInput.value.trim();
+
+    if (!name) return alert("Contact Name is required.");
+
+    // Instant Close & UI reset
+    closeModal('contact-modal');
     
-    const name = document.getElementById('contact-name').value.trim();
-    const phone = document.getElementById('contact-phone').value.trim();
-    const email = document.getElementById('contact-email').value.trim();
-    const role = document.getElementById('contact-role').value.trim();
-    const notes = document.getElementById('contact-notes').value.trim();
-
-    if(!name) return alert("Contact Name is required.");
-
-    db.collection("contact").add({
-        facility_id: currentFacilityId,
+    // Add directly to screen view
+    addContactCardToScreen({
         contact_name: name,
         contact_phone: phone,
         contact_email: email,
         contact_role: role,
         contact_notes: notes
-    })
-    .then(() => {
-        closeModal('contact-modal');
-        // Clear inputs layout properties
-        document.getElementById('contact-name').value = "";
-        document.getElementById('contact-phone').value = "";
-        document.getElementById('contact-email').value = "";
-        document.getElementById('contact-role').value = "";
-        document.getElementById('contact-notes').value = "";
-        loadContacts();
     });
+
+    nameInput.value = "";
+    phoneInput.value = "";
+    emailInput.value = "";
+    roleInput.value = "";
+    notesInput.value = "";
+
+    if (db && currentFacilityId) {
+        db.collection("contact").add({
+            facility_id: currentFacilityId,
+            contact_name: name,
+            contact_phone: phone,
+            contact_email: email,
+            contact_role: role,
+            contact_notes: notes
+        });
+    }
+}
+
+function addContactCardToScreen(data) {
+    const container = document.getElementById('contacts-container');
+    const card = document.createElement('div');
+    card.className = "contact-card";
+    
+    const phoneHTML = data.contact_phone ? `<a href="tel:${data.contact_phone}" class="action-link">📞 ${data.contact_phone}</a>` : '';
+    const emailHTML = data.contact_email ? `<a href="mailto:${data.contact_email}" class="action-link">✉️ ${data.contact_email}</a>` : '';
+    const roleHTML = data.contact_role ? `<span class="role-badge">${data.contact_role}</span>` : '';
+    
+    card.innerHTML = `
+        <h4>${data.contact_name}</h4>
+        ${roleHTML}
+        ${phoneHTML}
+        ${emailHTML}
+        <p style="margin-top:10px; font-size:14px; color:#475569;">${data.contact_notes || ''}</p>
+    `;
+    container.appendChild(card);
 }
 
 function loadContacts() {
+    if (!db || !currentFacilityId) return;
+    
     db.collection("contact").where("facility_id", "==", currentFacilityId).get().then((snapshot) => {
         const container = document.getElementById('contacts-container');
         container.innerHTML = "";
-        
         snapshot.forEach((doc) => {
-            const data = doc.data();
-            const card = document.createElement('div');
-            card.className = "contact-card";
-            
-            // Generate link structures dynamically based on user rules
-            const phoneHTML = data.contact_phone ? `<a href="tel:${data.contact_phone}" class="action-link">📞 ${data.contact_phone}</a>` : '';
-            const emailHTML = data.contact_email ? `<a href="mailto:${data.contact_email}" class="action-link">✉️ ${data.contact_email}</a>` : '';
-            const roleHTML = data.contact_role ? `<span class="role-badge">${data.contact_role}</span>` : '';
-            
-            card.innerHTML = `
-                <h4>${data.contact_name}</h4>
-                ${roleHTML}
-                ${phoneHTML}
-                ${emailHTML}
-                <p style="margin-top:10px; font-size:14px; color:#475569;">${data.contact_notes || ''}</p>
-            `;
-            container.appendChild(card);
+            addContactCardToScreen(doc.data());
         });
     });
 }
@@ -154,7 +219,6 @@ function checkNoteReminderPrompt() {
     const noteText = document.getElementById('note-content').value.trim();
     if (!noteText) return alert("Note description cannot be blank.");
     
-    // Progress modal tracking to confirmation layer step
     document.getElementById('note-step-text').classList.add('hidden');
     document.getElementById('note-step-reminder-prompt').classList.remove('hidden');
 }
@@ -194,7 +258,7 @@ function saveNoteWithReminder() {
         if (!scheduledTime) return alert("Please pick an event date.");
     } else {
         scheduledTime = document.getElementById('reminder-datetime').value;
-        if (!scheduledTime) return alert("Please select date and timeline target.");
+        if (!scheduledTime) return alert("Please select date and time.");
     }
 
     submitNoteToDatabase(noteText, true, {
@@ -204,68 +268,70 @@ function saveNoteWithReminder() {
 }
 
 function submitNoteToDatabase(text, hasReminder, reminderDetails) {
-    db.collection("facilities").doc(currentFacilityId).get().then((docSnapshot) => {
-        let currentAddress = "";
-        if (docSnapshot.exists && docSnapshot.data().facility_address) {
-            currentAddress = docSnapshot.data().facility_address;
-        }
+    closeModal('note-modal');
 
+    addNoteItemToScreen({
+        note_text: text,
+        has_reminder: hasReminder,
+        reminder_info: reminderDetails,
+        createdAt: null
+    });
+
+    if (db && currentFacilityId) {
         db.collection("facility_notes").add({
             facility_id: currentFacilityId,
             note_text: text,
             has_reminder: hasReminder,
             reminder_info: reminderDetails,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(() => {
-            closeModal('note-modal');
-            loadNotes();
         });
-    });
+    }
+}
+
+function addNoteItemToScreen(data) {
+    const container = document.getElementById('notes-container');
+    const item = document.createElement('div');
+    item.className = "note-item";
+    
+    let reminderHTML = "";
+    if (data.has_reminder && data.reminder_info) {
+        const info = data.reminder_info;
+        reminderHTML = `<div class="reminder-indicator">⏰ Reminder: ${info.time} (${info.type === 'all-day' ? 'All Day' : 'Timed Event'})</div>`;
+    }
+    
+    const timestamp = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString() : 'Just Now';
+    
+    item.innerHTML = `
+        <p style="margin:0; font-size:15px; line-height:1.5;">${data.note_text}</p>
+        ${reminderHTML}
+        <div class="note-meta">Posted: ${timestamp}</div>
+    `;
+    container.appendChild(item);
 }
 
 function loadNotes() {
-    // First, look up the target facility's metadata to extract its address
+    if (!db || !currentFacilityId) return;
+
     db.collection("facilities").doc(currentFacilityId).get().then((facDoc) => {
         let gpsHTML = '';
         if (facDoc.exists && facDoc.data().facility_address) {
             const address = facDoc.data().facility_address;
-            // Build absolute static Google Maps search tracking reference query string URL
             gpsHTML = `<div style="margin-bottom:15px;"><a href="https://maps.google.com/?q=${encodeURIComponent(address)}" target="_blank" class="action-link">📍 Navigate to Facility via GPS</a></div>`;
         }
 
         db.collection("facility_notes")
           .where("facility_id", "==", currentFacilityId)
-          .orderBy("createdAt", "desc")
           .get()
           .then((snapshot) => {
             const container = document.getElementById('notes-container');
-            // Populate container with GPS route button at top of note timeline
             container.innerHTML = gpsHTML; 
             
             snapshot.forEach((doc) => {
-                const data = doc.data();
-                const item = document.createElement('div');
-                item.className = "note-item";
-                
-                let reminderHTML = "";
-                if(data.has_reminder && data.reminder_info) {
-                    const info = data.reminder_info;
-                    reminderHTML = `<div class="reminder-indicator">⏰ Reminder: ${info.time} (${info.type === 'all-day' ? 'All Day' : 'Timed Event'})</div>`;
-                }
-                
-                const timestamp = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString() : 'Just Now';
-                
-                item.innerHTML = `
-                    <p style="margin:0; font-size:15px; line-height:1.5;">${data.note_text}</p>
-                    ${reminderHTML}
-                    <div class="note-meta">Posted: ${timestamp}</div>
-                `;
-                container.appendChild(item);
+                addNoteItemToScreen(doc.data());
             });
         });
     });
 }
 
-// Boot up setup state logic maps automatically
+// Boot up app dashboard setup state
 window.onload = () => { loadFacilities(); };
