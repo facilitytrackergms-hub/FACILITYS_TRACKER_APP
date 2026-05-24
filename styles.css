@@ -15,12 +15,12 @@ body {
 }
 
 .view {
-    position: relative; /* Added to pin version info layout cleanly */
+    position: relative;
     max-width: 800px;
     margin: 0 auto;
     background: white;
     padding: 30px;
-    padding-bottom: 60px; /* Space so text never overlaps version tag */
+    padding-bottom: 60px;
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
 }
@@ -145,7 +145,6 @@ button:hover { opacity: 0.9; }
 .btn-yes { background-color: var(--success); padding: 12px 30px; }
 .btn-no { background-color: var(--danger); padding: 12px 30px; }
 
-/* Dynamic Layout Bottom Core Version Stamp Style */
 .version-tag {
     position: absolute;
     bottom: 12px;
