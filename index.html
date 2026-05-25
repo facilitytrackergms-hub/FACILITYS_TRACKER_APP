@@ -11,9 +11,7 @@
     <div id="main-dashboard" class="view">
         <h1>Facilities Tracker</h1>
         <button id="btn-add-facility" onclick="openModal('facility-modal')">Add Facility</button>
-        <div id="facilities-container" class="button-grid">
-            </div>
-        
+        <div id="facilities-container" class="button-grid"></div>
         <div class="version-tag">index.html - May 24, 2026, 7:42 PM</div>
     </div>
 
@@ -26,7 +24,6 @@
             <button onclick="alert('Maintenance view operational.')">Facility Maintenance</button>
             <button onclick="switchView('notes-dashboard')">Facility Notes</button>
         </div>
-        
         <div class="version-tag">index.html - May 24, 2026, 7:42 PM</div>
     </div>
 
@@ -34,10 +31,7 @@
         <button class="btn-back" onclick="switchView('facility-dashboard')">← Back to Facility</button>
         <h2>Facility Contacts</h2>
         <button id="btn-add-contact" onclick="openModal('contact-modal')">Add New Contact</button>
-        
-        <div id="contacts-container" class="cards-grid">
-            </div>
-        
+        <div id="contacts-container" class="cards-grid"></div>
         <div class="version-tag">index.html - May 24, 2026, 7:42 PM</div>
     </div>
 
@@ -45,10 +39,7 @@
         <button class="btn-back" onclick="switchView('facility-dashboard')">← Back to Facility</button>
         <h2>Facility Notes</h2>
         <button id="btn-add-note" onclick="openModal('note-modal')">Add New Note</button>
-        
-        <div id="notes-container" class="notes-list">
-            </div>
-        
+        <div id="notes-container" class="notes-list"></div>
         <div class="version-tag">index.html - May 24, 2026, 7:42 PM</div>
     </div>
 
@@ -121,8 +112,7 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
 </body>
 </html>
