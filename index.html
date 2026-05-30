@@ -1,67 +1,68 @@
-/* =================================================
-FILE: index.html
-UPDATED: 2026-05-30 21:00:00
-================================================= */
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facility Tracker</title>
-    <style>
-        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
-        .facility-card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; }
-        .facility-card img { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px; }
-        .facility-info { flex: 1; }
-        button { padding: 6px 12px; margin-top: 5px; cursor: pointer; border-radius: 5px; border: none; background: #1976d2; color: #fff; }
-    </style>
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    <title>Facility Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Facility Overview</h1>
+            <span id="status" class="text-sm text-gray-500">Connecting...</span>
+        </header>
 
-        const supabaseUrl = 'YOUR_SUPABASE_URL';
-        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        <div id="facility-list" class="grid gap-4">
+            <p class="text-center py-10 text-gray-500">Loading your data from Supabase...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import your existing client
+        import { supabase } from './supabaseClient (2).js';
 
         async function loadFacilities() {
-            const { data: facilities, error } = await supabase.from('facilities').select('*');
-            if (error) { console.error(error); return; }
+            const statusEl = document.getElementById('status');
+            const listEl = document.getElementById('facility-list');
 
-            const container = document.getElementById('facilities');
-            container.innerHTML = '';
+            try {
+                // Fetch facilities and count open issues
+                const { data, error } = await supabase
+                    .from('facilities')
+                    .select('*, facility_issues(id, open_issue)');
 
-            for (const facility of facilities) {
-                const { data: images } = await supabase.from('facility_images')
-                    .select('image_url')
-                    .eq('related_table', 'facility')
-                    .eq('related_id', facility.id)
-                    .limit(1);
-                const imageUrl = images.length ? images[0].image_url : 'https://via.placeholder.com/80';
+                if (error) throw error;
 
-                const card = document.createElement('div');
-                card.className = 'facility-card';
-                card.innerHTML = `
-                    <img src="${imageUrl}" alt="Facility Image">
-                    <div class="facility-info">
-                        <strong>${facility.name}</strong><br>
-                        ${facility.address}<br>
-                        ${facility.phone}<br>
-                        <button onclick="viewFacility('${facility.id}')">View</button>
-                    </div>
-                `;
-                container.appendChild(card);
+                statusEl.innerText = "Connected";
+                listEl.innerHTML = ''; // Clear loader
+
+                data.forEach(facility => {
+                    const openIssues = facility.facility_issues.filter(i => i.open_issue).length;
+                    
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center";
+                    card.innerHTML = `
+                        <div>
+                            <h2 class="font-bold text-lg text-blue-600">${facility.name}</h2>
+                            <p class="text-gray-500 text-sm">${facility.address || 'No address set'}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="${openIssues > 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'} px-3 py-1 rounded-full text-xs font-bold">
+                                ${openIssues} Open Issues
+                            </span>
+                        </div>
+                    `;
+                    listEl.appendChild(card);
+                });
+
+            } catch (err) {
+                statusEl.innerText = "Error";
+                listEl.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded">${err.message}</div>`;
             }
         }
 
-        function viewFacility(facilityId) {
-            window.location.href = `facility_view.html?id=${facilityId}`;
-        }
-
-        window.addEventListener('DOMContentLoaded', loadFacilities);
+        loadFacilities();
     </script>
-</head>
-<body>
-    <h1>Facilities</h1>
-    <div id="facilities"></div>
 </body>
 </html>
