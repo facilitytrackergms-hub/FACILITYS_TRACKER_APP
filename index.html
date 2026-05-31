@@ -3,37 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facility Manager Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Facility Management Hub</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f1f5f9;
+        }
+        #app {
+            width: 100%;
+            max-width: 420px;
+            height: 90vh;
+            min-height: 700px;
+            background-color: #e6f2ff;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border-radius: 16px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <nav class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-10">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-tight">Facility<span class="text-blue-300">OS</span></h1>
-            <div id="db-status" class="text-[10px] bg-blue-900 px-2 py-1 rounded font-bold">READY</div>
-        </div>
-    </nav>
+<body>
+    <div id="app"></div>
 
-    <main id="app">
-        <div class="flex items-center justify-center min-h-[50vh]">
-            <p class="text-gray-400 animate-pulse font-bold tracking-widest">INITIALIZING DASHBOARD...</p>
-        </div>
-    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <script type="module">
-        // Import the main render function from your grid file
-        import { renderFacilities } from './views/view_1_grid.js';
-
-        // Initialize the app on load
-        window.addEventListener('DOMContentLoaded', () => {
-            renderFacilities();
-        });
-
-        // Global Navigation Mock (referenced in your btn.onclick)
-        window.navigateTo = (view, data) => {
-            console.log(`Navigating to ${view} with data:`, data);
-            // Add navigation logic here if using a router
-        };
+    <script>
+        window.supabase = window.supabase || {};
     </script>
+
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
