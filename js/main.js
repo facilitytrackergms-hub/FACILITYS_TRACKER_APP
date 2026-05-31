@@ -5,7 +5,7 @@ UPDATED: 2026-05-30 11:05:00 PM
 
 // 1. Correct the Import Paths and Names
 // Note: We import the functions directly from your new 3-file structure
-import { renderFacilities } from '/FACILITYS_TRACKER_APP/views/view_1_grid.js';
+import { renderFacilities } from './views/view_1_grid.js';
 
 async function initApp() {
     const statusEl = document.getElementById('db-status');
