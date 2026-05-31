@@ -10,33 +10,30 @@
     <nav class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-10">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold tracking-tight">Facility<span class="text-blue-300">OS</span></h1>
-            <div id="db-status" class="text-[10px] bg-blue-900 px-2 py-1 rounded font-bold">CONNECTING...</div>
+            <div id="db-status" class="text-[10px] bg-blue-900 px-2 py-1 rounded font-bold">READY</div>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto p-6">
-        <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-8">
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Register New Facility</h2>
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="new-fac-name" placeholder="Enter facility name..." 
-                    class="flex-1 border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                <button id="save-fac-btn" 
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg">
-                    SAVE TO DATABASE
-                </button>
-            </div>
-        </section>
-
-        <div id="facility-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <p class="text-gray-400 animate-pulse">Loading facilities...</p>
+    <main id="app">
+        <div class="flex items-center justify-center min-h-[50vh]">
+            <p class="text-gray-400 animate-pulse font-bold tracking-widest">INITIALIZING DASHBOARD...</p>
         </div>
     </main>
 
-    <div id="modal-container" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div id="modal-body" class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
-            </div>
-    </div>
+    <script type="module">
+        // Import the main render function from your grid file
+        import { renderFacilities } from './views/view_1_grid.js';
 
-    <script type="module" src="app.js"></script>
+        // Initialize the app on load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderFacilities();
+        });
+
+        // Global Navigation Mock (referenced in your btn.onclick)
+        window.navigateTo = (view, data) => {
+            console.log(`Navigating to ${view} with data:`, data);
+            // Add navigation logic here if using a router
+        };
+    </script>
 </body>
 </html>
