@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient.js';
 // 1. THE DATABASE ENGINE
 async function loadFacilities() {
     const statusEl = document.getElementById('db-status');
+    
     try {
         // Fetching the columns from your 'facilities' table
         const { data, error } = await supabase
