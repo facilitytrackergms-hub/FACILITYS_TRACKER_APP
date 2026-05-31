@@ -1,28 +1,26 @@
 /* =================================================
 FILE: js/main.js
-UPDATED: 2026-05-30 10:50:00 PM
+UPDATED: 2026-05-30 11:05:00 PM
 ================================================= */
 
-// Import all 3 sections for View 1
-import { FacilityData } from '../views/view_1_facility/view_1_data.js';
-import { FacilityGrid } from '../views/view_1_facility/view_1_grid.js';
-import { FacilityModal } from '../views/view_1_facility/view_1_modal.js';
-
-// (Future views will be imported here)
-// import { StaffData } from '../views/view_2_staff/view_2_data.js';
+// 1. Correct the Import Paths and Names
+// Note: We import the functions directly from your new 3-file structure
+import { renderFacilities } from '../views/view_1_grid.js';
 
 async function initApp() {
-    const appContainer = document.getElementById('app');
     const statusEl = document.getElementById('db-status');
     
     try {
-        console.log("Initializing Facility View...");
+        console.log("Initializing Facility Dashboard...");
 
-        // 1. Let the Grid render the HTML and CSS
-        FacilityGrid.render(appContainer);
-
-        // 2. Explicitly initialize the Modal logic
-        FacilityModal.init();
+        /* 2. Execute the Main Render
+           The 'view_1_grid.js' file handles:
+           - Injecting the CSS
+           - Injecting the HTML into the #app div
+           - Calling setupModalLogic() internally
+           - Fetching the data from view_1_data.js
+        */
+        await renderFacilities();
 
         // 3. Update the UI Status
         if (statusEl) {
@@ -32,9 +30,17 @@ async function initApp() {
 
     } catch (err) {
         console.error("Critical App Load Failure:", err);
-        if (statusEl) statusEl.innerText = "DB ERROR";
+        if (statusEl) {
+            statusEl.innerText = "OFFLINE";
+            statusEl.className = "text-[10px] bg-red-600 px-2 py-1 rounded text-white font-bold";
+        }
     }
 }
+
+// 4. Global Navigation Mock (Required for button clicks in the grid)
+window.navigateTo = (view, data) => {
+    console.log(`Navigating to ${view}`, data);
+};
 
 // Start the engine
 initApp();
