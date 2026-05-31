@@ -1,16 +1,16 @@
 import { supabase } from './supabaseClient (2).js';
 
 export const DataService = {
-    async fetchAllFacilities() {
+    async fetchFacilities() {
         const { data, error } = await supabase
             .from('facilities')
-            .select('*, facility_issues(*), facility_projects(*)');
+            .select(`*, facility_issues(*), facility_projects(*)`);
         if (error) throw error;
         return data;
     },
 
-    async saveNewFacility(name) {
-        if (!name) return alert("Please enter a name");
+    async saveFacility(name) {
+        if (!name.trim()) throw new Error("Name is required");
         const { data, error } = await supabase
             .from('facilities')
             .insert([{ name: name }])
