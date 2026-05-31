@@ -3,30 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facility Management</title>
+    <title>Facility Manager Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50">
-    <nav class="bg-indigo-700 p-4 text-white shadow-lg">
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-10">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">FacilityPro</h1>
-            <div id="status" class="text-xs opacity-75">Checking Connection...</div>
+            <h1 class="text-xl font-bold tracking-tight">Facility<span class="text-blue-300">OS</span></h1>
+            <div id="db-status" class="text-[10px] bg-blue-900 px-2 py-1 rounded">CONNECTING...</div>
         </div>
     </nav>
 
     <main class="max-w-6xl mx-auto p-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm mb-8 flex gap-4">
-            <input type="text" id="fac-name" placeholder="New Facility Name..." class="flex-1 border p-2 rounded-lg">
-            <button id="save-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold">SAVE</button>
-        </div>
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-8">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Register New Facility</h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="new-fac-name" placeholder="Enter facility name..." 
+                    class="flex-1 border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <button id="save-fac-btn" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg">
+                    SAVE TO DATABASE
+                </button>
+            </div>
+        </section>
 
-        <div id="facility-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        <div id="facility-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
     </main>
 
-    <div id="modal-view" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4">
-        <div id="modal-content" class="bg-white rounded-2xl w-full max-w-md overflow-hidden"></div>
+    <div id="modal-container" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div id="modal-body" class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
+            </div>
     </div>
 
-    <script type="module" src="main.js"></script>
+    <script type="module" src="./main.js"></script>
 </body>
 </html>
