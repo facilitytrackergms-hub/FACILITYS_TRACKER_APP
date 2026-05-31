@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient.js';
+<script type="module" src="./js/main.js"></script>
 
 // 1. THE DATABASE ENGINE
 async function loadFacilities() {
