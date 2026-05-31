@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient (2).js';
+import { supabase } from './supabaseClient.js';
 
 export const DataService = {
     async fetchFacilities() {
