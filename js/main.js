@@ -1,8 +1,10 @@
 // main.js
-import { DataService } from './data.js';
-import { GridView } from './grid.js';
-import { ModalView } from './modal.js';
+// main.js
+import { DataService } from './view_1_data.js';
+import { GridView } from './view_1_grid.js';
+import { ModalView } from './view_1_modal.js';
 
+// ... the rest of your main.js code remains the same
 async function init() {
     const statusEl = document.getElementById('db-status');
     
