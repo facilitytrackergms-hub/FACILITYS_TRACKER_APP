@@ -5,25 +5,30 @@ export const ModalView = {
         
         body.innerHTML = `
             <div class="p-6 border-b flex justify-between items-center bg-gray-50">
-                <h2 class="text-xl font-bold text-gray-800">${facility.name}</h2>
-                <button id="close-modal" class="text-gray-400 hover:text-gray-900 text-2xl">&times;</button>
+                <h2 class="text-xl font-bold text-gray-800 uppercase">${facility.name}</h2>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-900 text-2xl transition-colors">&times;</button>
             </div>
             <div class="p-6 space-y-6">
                 <div>
-                    <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2">Location Details</h4>
-                    <p class="text-sm text-gray-600">${facility.address || 'Not set'}</p>
-                    <p class="text-sm text-gray-600">Phone: ${facility.phone || 'Not set'}</p>
+                    <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Location Details</h4>
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <p class="text-sm text-gray-600 font-medium">${facility.address || 'No address registered'}</p>
+                        <p class="text-sm text-blue-600 mt-1 font-bold">${facility.phone || 'No phone number'}</p>
+                    </div>
                 </div>
                 <div>
-                    <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2 text-red-500">Active Issues</h4>
-                    ${facility.facility_issues?.length ? 
-                        facility.facility_issues.map(i => `<div class="text-xs p-2 bg-red-50 rounded mb-1 border border-red-100">${i.issue}</div>`).join('') 
-                        : '<p class="text-xs text-gray-300">No issues reported.</p>'}
+                    <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Administrative Notes</h4>
+                    <p class="text-sm text-gray-500 italic">${facility.notes || 'No notes for this facility.'}</p>
                 </div>
             </div>
         `;
 
         container.classList.remove('hidden');
         document.getElementById('close-modal').onclick = () => container.classList.add('hidden');
+        
+        // Also close if clicking outside the white box
+        container.onclick = (e) => {
+            if (e.target === container) container.classList.add('hidden');
+        };
     }
 };
