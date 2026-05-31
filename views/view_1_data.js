@@ -1,47 +1,45 @@
 import { supabase } from './supabaseClient.js';
 
-export const DataService import { supabase } from './supabaseClient.js';
-
 export const DataService = {
+    // 1. FETCH: Gets all data to show in your Grid and Modal
     async fetchFacilities() {
-        // We pull the specific columns from your 'facilities' table
         const { data, error } = await supabase
             .from('facilities')
-            .select('id, name, address, phone, notes, status');
+            .select(`
+                id, 
+                name, 
+                address, 
+                phone, 
+                notes, 
+                status
+            `);
         
-        if (error) throw error;
+        if (error) {
+            console.error("Fetch Error:", error);
+            throw error;
+        }
         return data;
     },
 
+    // 2. SAVE: Takes the name from your input box and saves it
     async saveFacility(newName) {
-        // This takes the text from your input box and puts it in the 'name' column
+        if (!newName || !newName.trim()) {
+            alert("Please enter a facility name.");
+            return;
+        }
+
         const { data, error } = await supabase
             .from('facilities')
             .insert([{ 
-                name: newName,
-                status: 'Active' // Setting a default status
+                name: newName, 
+                status: 'Active' // Matches the 'status' column in your CSV
             }])
             .select();
 
-        if (error) throw error;
-        return data;
-    }
-};= {
-    async fetchFacilities() {
-        const { data, error } = await supabase
-            .from('facilities')
-            .select(`*, facility_issues(*), facility_projects(*)`);
-        if (error) throw error;
-        return data;
-    },
-
-    async saveFacility(name) {
-        if (!name.trim()) throw new Error("Name is required");
-        const { data, error } = await supabase
-            .from('facilities')
-            .insert([{ name: name }])
-            .select();
-        if (error) throw error;
+        if (error) {
+            console.error("Save Error:", error);
+            throw error;
+        }
         return data;
     }
 };
