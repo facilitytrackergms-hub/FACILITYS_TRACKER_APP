@@ -1,6 +1,7 @@
-import { insertFacility } from './view_1_data.js';
-import { renderImageManagerSection } from '../../js/imageManager.js';
-
+// Correct imageManager import
+import { renderImageManagerSection } from '../../js/imagemanager.js';
+import { openFacilityModal } from './view_1_modal.js';
+import { insertFacility, fetchFacilities } from './view_1_data.js';
 export function openFacilityModal({ onSave }) {
     const existingModal = document.getElementById('facilityModal');
     if (existingModal) existingModal.remove();
