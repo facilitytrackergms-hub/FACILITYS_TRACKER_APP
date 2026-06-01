@@ -1,19 +1,23 @@
 /* =================================================
 FILE: view_1_grid.js
-VIEW: Facilities Dashboard
-UPDATED: 2026-06-01 09:25 AM
+VIEW: Facilities Dashboard (Debug Version)
+UPDATED: 2026-06-01 11:20 AM
 ================================================= */
-
 import { fetchFacilities } from './view_1_data.js';
 
 export async function renderFacilityGrid(containerId, onFacilityClick) {
     const container = document.getElementById(containerId);
-    if (!container) return;
+    if (!container) { 
+        console.error(`Container with ID '${containerId}' not found.`); 
+        return; 
+    }
 
     const facilities = await fetchFacilities();
+    console.log('Fetched facilities:', facilities);
+
     container.innerHTML = '';
 
-    if (!facilities.length) {
+    if (!facilities || facilities.length === 0) {
         container.innerHTML = '<div style="color:#666; font-style:italic;">No facilities found.</div>';
         return;
     }
@@ -24,6 +28,7 @@ export async function renderFacilityGrid(containerId, onFacilityClick) {
         btn.textContent = facility.name;
         btn.onclick = () => onFacilityClick(facility);
         container.appendChild(btn);
+        console.log(`Added button for facility: ${facility.name}`);
     });
 
     // Version Tag
@@ -33,6 +38,6 @@ export async function renderFacilityGrid(containerId, onFacilityClick) {
     versionDiv.style.color = '#666';
     versionDiv.style.borderTop = '1px solid #ccc';
     versionDiv.style.paddingTop = '10px';
-    versionDiv.innerText = 'File: view_1_grid.js | View: Facilities Grid | Updated: 2026-06-01 09:25 AM';
+    versionDiv.innerText = 'File: view_1_grid.js | View: Facilities Grid | Updated: 2026-06-01 11:20 AM';
     container.appendChild(versionDiv);
 }
