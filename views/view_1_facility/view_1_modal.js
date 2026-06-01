@@ -1,5 +1,9 @@
+/* =================================================
+FILE: view_1_modal.js
+================================================= */
+
 import { insertFacility } from './view_1_data.js';
-import { renderImageManagerSection } from '../../js/imageManager.js';
+import { renderImageManagerSection } from '../../js/imagemanager.js';
 
 export function openFacilityModal({ onSave }) {
     const existingModal = document.getElementById('facilityModal');
@@ -28,10 +32,8 @@ export function openFacilityModal({ onSave }) {
 
     document.body.appendChild(modal);
 
-    // Close button
     document.getElementById('closeFacilityBtn').onclick = () => modal.remove();
 
-    // Save facility
     document.getElementById('saveFacilityBtn').onclick = async () => {
         const name = document.getElementById('facilityName').value.trim();
         const address = document.getElementById('facilityAddress').value.trim();
@@ -42,7 +44,6 @@ export function openFacilityModal({ onSave }) {
         const newFacility = await insertFacility({ name, address, phone });
         if (!newFacility) return alert('Error saving facility.');
 
-        // Optional: initialize image manager after saving
         const imgContainer = document.getElementById('facilityImageContainer');
         renderImageManagerSection(imgContainer, 'facility', newFacility.id, { title: 'Facility Image' });
 
