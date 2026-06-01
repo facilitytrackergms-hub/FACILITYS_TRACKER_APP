@@ -1,3 +1,8 @@
+/* =================================================
+FILE: view_2_modal.js
+UPDATED: 2026-06-01
+================================================= */
+
 export function openControlModal({ title, contentHTML }) {
     const existing = document.getElementById('controlModal');
     if (existing) existing.remove();
