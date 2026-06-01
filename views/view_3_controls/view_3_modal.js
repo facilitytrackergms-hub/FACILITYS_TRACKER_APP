@@ -1,104 +1,58 @@
 /* =================================================
-FILE: controls_v3_modal.js
-UPDATED: 2026-05-30 05:40 AM
+FILE: view_3_modal.js
+UPDATED: 2026-06-01
 ================================================= */
-import { getContacts, getContactIssues, getContactImages, insertContact } from './controls_v3_data.js';
 
-export async function loadContactsGridData(facility) {
-    const contactsGrid = document.getElementById('contactsGrid');
-    contactsGrid.innerHTML = '<div style="grid-column: 1/-1; padding:40px; color:#666;">Refreshing List...</div>';
+import { insertContact } from './view_3_data.js';
+import { renderImageManagerSection } from '../../js/imagemanager.js';
 
-    try {
-        const { data: contacts } = await getContacts(facility.id);
-        const { data: openIssues } = await getContactIssues(facility.id);
-        const { data: allImages } = await getContactImages();
+export function openContactModal({ facility, onSave }) {
+    const existing = document.getElementById('contactModal');
+    if (existing) existing.remove();
 
-        const imageMap = {};
-        if (allImages) {
-            allImages.forEach(img => {
-                if (!imageMap[img.related_id] || new Date(img.created_at) > new Date(imageMap[img.related_id].created_at)) {
-                    imageMap[img.related_id] = img;
-                }
-            });
-        }
+    const modal = document.createElement('div');
+    modal.id = 'contactModal';
+    modal.style.cssText = `
+        position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+        background:rgba(0,0,0,0.5); z-index:1000;
+    `;
 
-        const issuesCountMap = {};
-        if (openIssues) {
-            openIssues.forEach(issue => {
-                if (issue.initiated_by) {
-                    const key = issue.initiated_by.toLowerCase().trim();
-                    issuesCountMap[key] = (issuesCountMap[key] || 0) + 1;
-                }
-            });
-        }
+    modal.innerHTML = `
+        <div style="background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:center;">
+            <h2>Add New Contact</h2>
+            <input id="contactName" placeholder="Name" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;">
+            <input id="contactRole" placeholder="Role" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;">
+            <input id="contactPhone" placeholder="Phone" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;">
+            <input id="contactEmail" placeholder="Email" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;">
+            <input id="contactNotes" placeholder="Notes" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;">
+            <div style="margin-top:12px;">
+                <button id="saveContactBtn" style="padding:12px 20px; background:#f5c400; border:none; border-radius:8px; cursor:pointer; margin-right:8px;">Save Contact</button>
+                <button id="closeContactBtn" style="padding:12px 20px; background:#6b7280; border:none; border-radius:8px; cursor:pointer;">Close</button>
+            </div>
+            <div id="contactImageContainer" style="margin-top:12px;"></div>
+        </div>
+    `;
 
-        contactsGrid.innerHTML = '';
-        if (contacts && contacts.length > 0) {
-            contacts.forEach(contact => {
-                const btn = document.createElement('button');
-                btn.style.cssText = "padding:16px; border-radius:12px; background:#f5c400; border:none; cursor:pointer; font-weight:bold; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; transition: transform 0.1s;";
+    document.body.appendChild(modal);
 
-                const nameDisplay = contact.Name || 'Unnamed';
-                const roleDisplay = contact.Role || '';
-                const pendingCount = issuesCountMap[nameDisplay.toLowerCase().trim()] || 0;
-                const contactImg = imageMap[contact.id];
+    document.getElementById('closeContactBtn').onclick = () => modal.remove();
 
-                const avatarHtml = contactImg && contactImg.image_url
-                    ? `<img src="${contactImg.image_url}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.15);" alt="">`
-                    : `<div style="width:50px; height:50px; border-radius:50%; background:#00264d; color:white; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.15);">${nameDisplay.charAt(0).toUpperCase()}</div>`;
+    document.getElementById('saveContactBtn').onclick = async () => {
+        const name = document.getElementById('contactName').value.trim();
+        const role = document.getElementById('contactRole').value.trim();
+        const phone = document.getElementById('contactPhone').value.trim();
+        const email = document.getElementById('contactEmail').value.trim();
+        const notes = document.getElementById('contactNotes').value.trim();
 
-                btn.innerHTML = `
-                    ${avatarHtml}
-                    <div style="text-align:center; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                        <span style="color:#00264d; display:block;">${nameDisplay}</span>
-                        <span style="font-size:12px; font-weight:normal; color:#1e293b; display:block;">${roleDisplay}</span>
-                    </div>
-                    ${pendingCount ? `<span style="position:absolute; top:6px; right:6px; background:#dc2626; color:white; font-size:10px; padding:2px 6px; border-radius:8px;">${pendingCount}</span>` : ''}
-                `;
-                btn.onclick = () => openContactDetail(contact, facility);
-                contactsGrid.appendChild(btn);
-            });
-        } else {
-            contactsGrid.innerHTML = `<div style="grid-column:1/-1; color:#94a3b8; font-style:italic; padding:40px; background:white; border-radius:12px;">No contacts found for this facility.</div>`;
-        }
-    } catch (err) {
-        console.error("Error loading contacts:", err);
-        contactsGrid.innerHTML = `<div style="grid-column:1/-1; color:red; padding:20px;">Failed to load contacts.</div>`;
-    }
-}
+        if (!name) return alert('Contact name is required.');
 
-// Modal buttons for adding manual contacts and back navigation
-export function setupContactModals(facility) {
-    document.getElementById('addManualContactBtn').onclick = () => {
-        document.getElementById('modalTitle').innerText = "New Contact Profile";
-        ['manualContactName','manualContactRole','manualContactPhone','manualContactEmail','manualContactNotes'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('manualContactSaveBtn').innerText = "SAVE DETAILS";
-        document.getElementById('manualContactModal').style.display = 'flex';
+        const newContact = await insertContact({ name, role, phone, email, notes, facility_id: facility.id });
+        if (!newContact) return alert('Error saving contact.');
+
+        const imgContainer = document.getElementById('contactImageContainer');
+        renderImageManagerSection(imgContainer, 'contact', newContact.id, { title: 'Contact Image' });
+
+        modal.remove();
+        if (onSave) onSave();
     };
-
-    document.getElementById('manualContactSaveBtn').onclick = async () => {
-        const name = document.getElementById('manualContactName').value;
-        if (!name) return alert('Name is required');
-
-        const contactData = {
-            Name: name,
-            Role: document.getElementById('manualContactRole').value,
-            Phone: document.getElementById('manualContactPhone').value,
-            Email: document.getElementById('manualContactEmail').value,
-            Notes: document.getElementById('manualContactNotes').value,
-            facility_id: facility.id
-        };
-
-        const { error } = await insertContact(contactData);
-        if (error) {
-            alert("Error saving contact: " + error.message);
-        } else {
-            document.getElementById('manualContactModal').style.display = 'none';
-            await loadContactsGridData(facility);
-        }
-    };
-
-    document.getElementById('manualContactCloseBtn').onclick = () => document.getElementById('manualContactModal').style.display = 'none';
-
-    document.getElementById('backBtn').onclick = () => window.navigateTo('facilityControls', facility);
 }
