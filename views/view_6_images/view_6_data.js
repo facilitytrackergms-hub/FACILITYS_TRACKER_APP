@@ -1,13 +1,28 @@
 /* =================================================
-FILE: controls_v6_data.js
-UPDATED: 2026-05-30 06:10 AM
+FILE: view_6_data.js
+UPDATED: 2026-06-01
 ================================================= */
-import { supabase } from '../js/supabaseClient.js';
 
-export async function getFacilityImages(facilityId) {
-    // Supabase logic could include filtering / fetching images if needed
-    return supabase.from('facility_images')
+import { supabase } from '../../js/supabaseClient.js';
+
+// Fetch all images for a given facility
+export async function fetchFacilityImages(facilityId) {
+    const { data, error } = await supabase
+        .from('facility_images')
         .select('*')
+        .eq('related_id', facilityId)
         .eq('related_table', 'facility')
-        .eq('related_id', facilityId);
+        .order('id', { ascending: true });
+    if (error) console.error(error);
+    return data || [];
+}
+
+// Insert new image
+export async function insertFacilityImage({ url, facilityId }) {
+    const { data, error } = await supabase
+        .from('facility_images')
+        .insert([{ image_url: url, related_table: 'facility', related_id: facilityId }])
+        .select();
+    if (error) console.error(error);
+    return data?.[0] || null;
 }
