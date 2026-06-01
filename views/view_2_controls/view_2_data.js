@@ -1,6 +1,11 @@
+/* =================================================
+FILE: view_2_data.js
+UPDATED: 2026-06-01
+================================================= */
+
 import { supabase } from '../../js/supabaseClient.js';
 
-// Fetch contacts for facility
+// Fetch contacts for the selected facility
 export async function fetchFacilityContacts(facilityId) {
     const { data, error } = await supabase
         .from('contacts')
@@ -11,7 +16,7 @@ export async function fetchFacilityContacts(facilityId) {
     return data || [];
 }
 
-// Fetch projects for facility
+// Fetch projects for the selected facility
 export async function fetchFacilityProjects(facilityId) {
     const { data, error } = await supabase
         .from('facility_projects')
