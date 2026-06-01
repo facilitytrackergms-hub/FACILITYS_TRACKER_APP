@@ -1,33 +1,34 @@
-/* =================================================
-FILE: main.js
-UPDATED: 2026-06-01 10:10:00 AM
-================================================= */
-import { renderFacilityGrid } from '../views/view_1_facility/view_1_grid.js';
+// main.js - Navigation and App Entry
+
+import { renderFacilitiesDashboard } from '../views/view_1_facility/view_1_grid.js';
 import { renderFacilityControls } from '../views/view_2_controls/view_2_grid.js';
 
-// Global current user for modal actions
-window.currentUserId = '5fc37b27-edfd-4740-b533-20a618ffc5af';
-
-// Simple router simulation
-window.navigateTo = function(target) {
-    const app = document.getElementById('app');
-    if (!app) return;
-
-    if (target === 'dashboard') {
-        // Use the correct View 1 grid function with proper relative path
-        renderFacilityGrid('app', facility => window.navigateTo({ type: 'facility', id: facility.id }));
-    } else if (target.type === 'facility') {
-        renderFacilityControls(target.id);
-    } else if (target.type === 'project') {
-        alert('Project selected: ' + target.id);
-    } else if (target.type === 'issue') {
-        alert('Issue selected: ' + target.id);
-    } else {
-        app.innerHTML = '<p>Unknown view</p>';
+window.navigateTo = (viewName, payload = {}) => {
+    switch (viewName) {
+        case 'view1_facilities':
+            renderFacilitiesDashboard();
+            break;
+        case 'view2_controls':
+            if (!payload.facility) {
+                alert('Facility context missing!');
+                return;
+            }
+            renderFacilityControls(payload.facility);
+            break;
+        // Future views:
+        // case 'view3_contacts': renderContactsDashboard(payload.facility); break;
+        // case 'view4_projects': renderPendingProjects(payload.facility); break;
+        // case 'view5_issues': renderIndividualConcerns(payload.facility); break;
+        // case 'view6_images': renderFacilityImages(payload.facility); break;
+        // case 'view7_followups': renderIssueFollowups(payload.issue); break;
+        // case 'view8_reports': renderReports(payload.facility); break;
+        default:
+            console.warn('Unknown view:', viewName);
+            break;
     }
 };
 
-// Initial load
+// Entry point
 document.addEventListener('DOMContentLoaded', () => {
-    window.navigateTo('dashboard');
+    window.navigateTo('view1_facilities');
 });
