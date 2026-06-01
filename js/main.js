@@ -1,46 +1,32 @@
 /* =================================================
-FILE: js/main.js
-UPDATED: 2026-05-30 11:05:00 PM
+FILE: main.js
+UPDATED: 2026-05-31 08:30:00 PM
 ================================================= */
+import { renderFacilities } from './views/view_1_facility/view_1_grid.js';
+import { renderFacilityControls } from './views/view_2_controls/view_2_grid.js';
 
-// 1. Correct the Import Paths and Names
-// Note: We import the functions directly from your new 3-file structure
-import { renderFacilities } from '../views/view_1_facility/view_1_grid.js';
+// Global current user for modal actions
+window.currentUserId = '5fc37b27-edfd-4740-b533-20a618ffc5af';
 
-async function initApp() {
-    const statusEl = document.getElementById('db-status');
-    
-    try {
-        console.log("Initializing Facility Dashboard...");
+// Simple router simulation
+window.navigateTo = function(target) {
+    const app = document.getElementById('app');
+    if (!app) return;
 
-        /* 2. Execute the Main Render
-           The 'view_1_grid.js' file handles:
-           - Injecting the CSS
-           - Injecting the HTML into the #app div
-           - Calling setupModalLogic() internally
-           - Fetching the data from view_1_data.js
-        */
-        await renderFacilities();
-
-        // 3. Update the UI Status
-        if (statusEl) {
-            statusEl.innerText = "ONLINE";
-            statusEl.className = "text-[10px] bg-green-600 px-2 py-1 rounded text-white font-bold";
-        }
-
-    } catch (err) {
-        console.error("Critical App Load Failure:", err);
-        if (statusEl) {
-            statusEl.innerText = "OFFLINE";
-            statusEl.className = "text-[10px] bg-red-600 px-2 py-1 rounded text-white font-bold";
-        }
+    if (target === 'dashboard') {
+        renderFacilities();
+    } else if (target.type === 'facility') {
+        renderFacilityControls(target.id);
+    } else if (target.type === 'project') {
+        alert('Project selected: ' + target.id);
+    } else if (target.type === 'issue') {
+        alert('Issue selected: ' + target.id);
+    } else {
+        app.innerHTML = '<p>Unknown view</p>';
     }
-}
-
-// 4. Global Navigation Mock (Required for button clicks in the grid)
-window.navigateTo = (view, data) => {
-    console.log(`Navigating to ${view}`, data);
 };
 
-// Start the engine
-initApp();
+// Initial load
+document.addEventListener('DOMContentLoaded', () => {
+    window.navigateTo('dashboard');
+});
