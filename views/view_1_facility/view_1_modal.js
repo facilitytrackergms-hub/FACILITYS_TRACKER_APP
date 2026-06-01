@@ -35,3 +35,4 @@ export function openFacilityModal(containerId) {
         renderFacilities(containerId);
     };
 }
+
