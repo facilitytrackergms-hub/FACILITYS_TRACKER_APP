@@ -1,28 +1,18 @@
-/* =================================================
-FILE: view_2_data.js
-UPDATED: 2026-06-01
-================================================= */
-
-import { supabase } from '../../js/supabaseClient.js';
-
-// Fetch contacts for the selected facility
-export async function fetchFacilityContacts(facilityId) {
-    const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('facility_id', facilityId)
-        .order('name', { ascending: true });
-    if (error) console.error(error);
-    return data || [];
-}
-
-// Fetch projects for the selected facility
-export async function fetchFacilityProjects(facilityId) {
+export async function insertProject(projectObj) {
     const { data, error } = await supabase
         .from('facility_projects')
-        .select('*')
-        .eq('facility_id', facilityId)
-        .order('created_at', { ascending: false });
-    if (error) console.error(error);
-    return data || [];
+        .insert([{
+            project_name_text: projectObj.project_name,
+            project_title_text: projectObj.project_title,
+            created_by_text: projectObj.created_by_text || '',
+
+            facility_id: projectObj.facility_id,
+            active_status: projectObj.active_status ?? true,
+            created_by: projectObj.created_by || null,
+            notes: projectObj.notes || ''
+        }])
+        .select();
+
+    if (error) console.error("Project insert error:", error);
+    return data && data[0] ? data[0] : null;
 }
