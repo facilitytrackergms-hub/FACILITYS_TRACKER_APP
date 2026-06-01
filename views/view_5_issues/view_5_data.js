@@ -1,42 +1,27 @@
 /* =================================================
-FILE: controls_v5_data.js
-UPDATED: 2026-05-30 06:00 AM
+FILE: view_5_data.js
+UPDATED: 2026-06-01
 ================================================= */
-import { insertFacilityIssue } from './controls_v5_data.js';
 
-export async function getFacilityContacts(facility_id) {
-    return supabase
-        .from('contacts')
-        .select('*')
-        .eq('facility_id', facility_id);
-}
+import { supabase } from '../../js/supabaseClient.js';
 
-export async function getFacilityIssues(facility_id) {
-    return supabase
+// Fetch all issues for a given facility
+export async function fetchIssues(facilityId) {
+    const { data, error } = await supabase
         .from('facility_issues')
         .select('*')
-        .eq('facility_id', facility_id)
+        .eq('related_facility', facilityId)
         .order('created_at', { ascending: false });
+    if (error) console.error(error);
+    return data || [];
 }
 
-export async function insertFacilityIssue(issueData) {
-    return supabase
+// Insert a new issue
+export async function insertIssue({ issue, tool_required, initiated_by, related_facility, notes }) {
+    const { data, error } = await supabase
         .from('facility_issues')
-        .insert([issueData])
+        .insert([{ issue, tool_required, initiated_by, related_facility, notes, open_issue: true }])
         .select();
-}
-
-export async function updateFacilityIssue(issueId, issueData) {
-    return supabase
-        .from('facility_issues')
-        .update(issueData)
-        .eq('id', issueId)
-        .select();
-}
-
-export async function insertContact(contactData) {
-    return supabase
-        .from('contacts')
-        .insert([contactData])
-        .select();
+    if (error) console.error(error);
+    return data?.[0] || null;
 }
