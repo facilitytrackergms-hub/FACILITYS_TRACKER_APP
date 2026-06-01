@@ -1,19 +1,27 @@
 /* =================================================
-FILE: controls_v4_data.js
-UPDATED: 2026-05-30 05:50 AM
+FILE: view_4_data.js
+UPDATED: 2026-06-01
 ================================================= */
-import { supabase } from '../js/supabaseClient.js';
 
-export async function getProjects(facility_id) {
-    return supabase
+import { supabase } from '../../js/supabaseClient.js';
+
+// Fetch all projects for a given facility
+export async function fetchProjects(facilityId) {
+    const { data, error } = await supabase
         .from('facility_projects')
         .select('*')
-        .eq('facility_id', facility_id)
+        .eq('facility_id', facilityId)
         .order('created_at', { ascending: false });
+    if (error) console.error(error);
+    return data || [];
 }
 
-export async function insertProject(projectData) {
-    return supabase
+// Insert a new project
+export async function insertProject({ project_name, budget, notes, facility_id }) {
+    const { data, error } = await supabase
         .from('facility_projects')
-        .insert([projectData]);
+        .insert([{ project_name, budget, notes, facility_id }])
+        .select();
+    if (error) console.error(error);
+    return data?.[0] || null;
 }
