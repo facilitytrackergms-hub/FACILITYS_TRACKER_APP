@@ -2,7 +2,7 @@
 FILE: controls_v5_data.js
 UPDATED: 2026-05-30 06:00 AM
 ================================================= */
-import { supabase } from '../../js/supabaseClient.js';
+import { insertFacilityIssue } from './controls_v5_data.js';
 
 export async function getFacilityContacts(facility_id) {
     return supabase
