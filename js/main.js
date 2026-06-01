@@ -1,8 +1,8 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-05-31 08:30:00 PM
+UPDATED: 2026-06-01 09:45:00 AM
 ================================================= */
-import { renderFacilities } from './views/view_1_facility/view_1_grid.js';
+import { renderFacilityGrid } from './views/view_1_facility/view_1_grid.js';
 import { renderFacilityControls } from './views/view_2_controls/view_2_grid.js';
 
 // Global current user for modal actions
@@ -14,7 +14,8 @@ window.navigateTo = function(target) {
     if (!app) return;
 
     if (target === 'dashboard') {
-        renderFacilities();
+        // Use the correct View 1 grid function
+        renderFacilityGrid('app', facility => window.navigateTo({ type: 'facility', id: facility.id }));
     } else if (target.type === 'facility') {
         renderFacilityControls(target.id);
     } else if (target.type === 'project') {
