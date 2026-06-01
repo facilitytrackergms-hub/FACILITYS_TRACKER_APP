@@ -7,7 +7,7 @@ import { renderPendingProjects } from '../views/view_4_projects/view_4_grid.js';
 import { renderIndividualConcerns } from '../views/view_5_issues/view_5_grid.js';
 import { renderFacilityImages } from '../views/view_6_images/view_6_grid.js';
 import { renderIssueFollowups } from '../views/view_7_followups/view_7_grid.js';
-import { renderReports } from '../views/view_8_report/view_8_grid.js';
+import { renderReportsDashboard } from '../views/view_8_report/view_8_grid.js';
 
 window.navigateTo = (viewName, payload = {}) => {
     switch (viewName) {
