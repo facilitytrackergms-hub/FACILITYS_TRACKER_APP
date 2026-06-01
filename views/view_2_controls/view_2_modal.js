@@ -1,6 +1,6 @@
 /* =================================================
 FILE: view_2_modal.js
-UPDATED: 2026-05-31 08:00:00 PM
+UPDATED: 2026-06-01 10:50:00 AM
 ================================================= */
 import { insertProject, insertIssue, insertFollowup } from './view_2_data.js';
 import { renderFacilityControls } from './view_2_grid.js';
