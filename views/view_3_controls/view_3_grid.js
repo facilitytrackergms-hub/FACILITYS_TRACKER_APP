@@ -1,35 +1,50 @@
 /* =================================================
-FILE: controls_v3_grid.js
-UPDATED: 2026-05-30 05:40 AM
+FILE: view_3_grid.js
+UPDATED: 2026-06-01
 ================================================= */
-import { getContacts, getContactIssues, getContactImages } from './controls_v3_data.js';
-import { openContactDetail } from './controls_v3_modal.js';
 
-export async function renderContacts(data) {
+import { fetchContacts } from './view_3_data.js';
+import { openContactModal } from './view_3_modal.js';
+import { renderImageManagerSection } from '../../js/imagemanager.js';
+
+export async function renderContactsDashboard({ facility }) {
     const app = document.getElementById('app');
     if (!app) return;
 
-    const facility = data?.facility ? data.facility : data;
+    const contacts = await fetchContacts(facility.id);
 
     app.innerHTML = `
-        <div style="padding:20px; font-family:Arial; min-height:100vh; text-align:center; background:#f3f4f6;">
-            <h1 style="font-size:22px; margin-bottom:5px; color:#00264d; text-transform:uppercase;">${facility?.Name || 'FACILITY'} CONTACTS</h1>
-            <p style="color:#6b7280; margin-bottom:20px;">Manage contacts and personnel profiles</p>
-
-            <div style="margin-bottom:25px; display:flex; gap:10px; justify-content:center;">
-                <button id="addManualContactBtn" style="padding:14px 20px; border:none; border-radius:8px; background:#28a745; color:white; font-weight:bold; cursor:pointer;">+ ADD NEW CONTACT</button>
-                <button id="backBtn" style="padding:14px 20px; border:none; border-radius:8px; background:#00264d; color:white; font-weight:bold; cursor:pointer;">BACK TO CONTROLS</button>
-            </div>
-
-            <div id="contactsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:15px;">
-                <div style="grid-column:1/-1; padding:40px; color:#666;">Loading Contacts...</div>
-            </div>
-
-            <div style="margin-top:50px; font-size:10px; color:#94a3b8; border-top:1px solid #e5e7eb; padding-top:10px;">
-                File: controls_v3_grid.js | Updated: 2026-05-30 05:40 AM
-            </div>
+        <div style="padding:20px; font-family:Arial; text-align:center;">
+            <h1>${facility.name} Contacts</h1>
+            <button id="addContactBtn" style="padding:14px 28px; background:#f5c400; color:black; border:none; border-radius:8px; cursor:pointer; margin-bottom:16px;">
+                Add Contact
+            </button>
+            <div id="contactsGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; max-width:600px; margin:0 auto;"></div>
+            <button id="backBtn" style="padding:12px 20px; margin-top:20px; background:#6b7280; color:white; border:none; border-radius:8px; cursor:pointer;">
+                Back to Controls
+            </button>
         </div>
     `;
 
-    await loadContactsGridData(facility);
+    const grid = document.getElementById('contactsGrid');
+
+    contacts.forEach(c => {
+        const btn = document.createElement('button');
+        btn.textContent = c.name;
+        btn.style.cssText = `
+            padding:12px; background:#00264d; color:white; border:none; border-radius:8px; cursor:pointer;
+        `;
+        btn.onclick = () => {
+            alert(`Contact details: ${c.name}, ${c.role}, ${c.phone}`);
+        };
+        grid.appendChild(btn);
+    });
+
+    document.getElementById('addContactBtn').onclick = () => {
+        openContactModal({ facility, onSave: () => renderContactsDashboard({ facility }) });
+    };
+
+    document.getElementById('backBtn').onclick = () => {
+        if (window.navigateTo) window.navigateTo('view2_controls', { facility });
+    };
 }
