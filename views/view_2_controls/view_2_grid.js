@@ -1,9 +1,13 @@
+/* =================================================
+FILE: view_2_grid.js
+UPDATED: 2026-06-01
+================================================= */
+
 import { fetchFacilityContacts, fetchFacilityProjects } from './view_2_data.js';
-import { renderContactsDashboard } from '../view_3_contacts/view_3_grid.js';
+import { renderContactsDashboard } from '../view_3_controls/view_3_grid.js';
 import { renderPendingProjects } from '../view_4_projects/view_4_grid.js';
 import { renderFacilityImages } from '../view_6_images/view_6_grid.js';
 import { renderIndividualConcerns } from '../view_5_issues/view_5_grid.js';
-
 
 export function renderFacilityControls(facility) {
     const app = document.getElementById('app');
@@ -33,26 +37,18 @@ export function renderFacilityControls(facility) {
         </div>
     `;
 
-    document.getElementById('individualConcernsBtn').onclick = async () => {
-        if (window.navigateTo) window.navigateTo('view5_issues', { facility });
-        else renderIndividualConcerns({ facility });
+    document.getElementById('individualConcernsBtn').onclick = () => {
+        renderIndividualConcerns({ facility });
     };
-
-    document.getElementById('manageContactsBtn').onclick = async () => {
-        if (window.navigateTo) window.navigateTo('view3_contacts', { facility });
-        else renderContactsDashboard({ facility });
+    document.getElementById('manageContactsBtn').onclick = () => {
+        renderContactsDashboard({ facility });
     };
-
-    document.getElementById('pendingProjectsBtn').onclick = async () => {
-        if (window.navigateTo) window.navigateTo('view4_projects', { facility });
-        else renderPendingProjects({ facility });
+    document.getElementById('pendingProjectsBtn').onclick = () => {
+        renderPendingProjects({ facility });
     };
-
-    document.getElementById('imageGalleryBtn').onclick = async () => {
-        if (window.navigateTo) window.navigateTo('view6_images', { facility });
-        else renderFacilityImages({ facility });
+    document.getElementById('imageGalleryBtn').onclick = () => {
+        renderFacilityImages({ facility });
     };
-
     document.getElementById('backBtn').onclick = () => {
         if (window.navigateTo) window.navigateTo('view1_facilities');
     };
