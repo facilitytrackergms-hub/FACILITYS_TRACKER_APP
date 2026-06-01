@@ -1,7 +1,11 @@
 // main.js - Navigation and App Entry
 
-import { renderFacilitiesDashboard } from '../views/view_1_facility/view_1_grid.js';
-import { renderFacilityControls } from '../views/view_2_controls/view_2_grid.js';
+case 'view3_contacts': renderContactsDashboard(payload.facility); break;
+case 'view4_projects': renderPendingProjects(payload.facility); break;
+case 'view5_issues': renderIndividualConcerns(payload.facility); break;
+case 'view6_images': renderFacilityImages(payload.facility); break;
+case 'view7_followups': renderIssueFollowups(payload.issue); break;
+case 'view8_reports': renderReports(payload.facility); break;
 
 window.navigateTo = (viewName, payload = {}) => {
     switch (viewName) {
