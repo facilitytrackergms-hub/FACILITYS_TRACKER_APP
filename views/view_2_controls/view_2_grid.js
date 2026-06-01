@@ -4,6 +4,7 @@ import { renderPendingProjects } from '../view_4_projects/view_4_grid.js';
 import { renderFacilityImages } from '../view_6_images/view_6_grid.js';
 import { renderIndividualConcerns } from '../view_5_issues/view_5_grid.js';
 
+
 export function renderFacilityControls(facility) {
     const app = document.getElementById('app');
     if (!app) return;
