@@ -1,43 +1,52 @@
-/* =================================================
-FILE: view_1_modal.js
-UPDATED: 2026-06-01 01:20 PM
-STRICT HEADER RULE:
-Do not ever remove or change this header section.
-Always keep the header at the top of current files and new files.
-================================================= */
 import { insertFacility } from './view_1_data.js';
-import { renderFacilities } from './view_1_grid.js';
+import { renderImageManagerSection } from '../../js/imageManager.js';
 
-export function openFacilityModal(containerId) {
+export function openFacilityModal({ onSave }) {
+    const existingModal = document.getElementById('facilityModal');
+    if (existingModal) existingModal.remove();
+
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
+    modal.id = 'facilityModal';
+    modal.style.cssText = `
+        position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+        background:rgba(0,0,0,0.5); z-index:1000;
+    `;
+
     modal.innerHTML = `
-        <div class='modal-content'>
-            <h3 id='modalTitle'>Add New Facility</h3>
-            <input type='text' id='name' placeholder='Facility Name'>
-            <input type='text' id='address' placeholder='Address'>
-            <input type='text' id='phone' placeholder='Phone'>
-            <button id='saveBtn' class='facility-btn new-btn'>Save Facility</button>
-            <button id='closeModal' class='facility-btn' style='background:#666;'>Close</button>
+        <div style="background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:center;">
+            <h2>Add New Facility</h2>
+            <input id="facilityName" placeholder="Facility Name" style="width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc;">
+            <input id="facilityAddress" placeholder="Address" style="width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc;">
+            <input id="facilityPhone" placeholder="Phone" style="width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc;">
+            <div style="margin-top:15px;">
+                <button id="saveFacilityBtn" style="padding:12px 20px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; margin-right:8px;">Save Facility</button>
+                <button id="closeFacilityBtn" style="padding:12px 20px; background:#6b7280; color:white; border:none; border-radius:8px; cursor:pointer;">Close</button>
+            </div>
+            <div id="facilityImageContainer" style="margin-top:15px;"></div>
         </div>
     `;
+
     document.body.appendChild(modal);
 
-    document.getElementById('saveBtn').onclick = async () => {
-        const name = document.getElementById('name').value.trim();
-        const address = document.getElementById('address').value.trim();
-        const phone = document.getElementById('phone').value.trim();
+    // Close button
+    document.getElementById('closeFacilityBtn').onclick = () => modal.remove();
 
-        if (!name || !address || !phone) return alert('All fields required');
+    // Save facility
+    document.getElementById('saveFacilityBtn').onclick = async () => {
+        const name = document.getElementById('facilityName').value.trim();
+        const address = document.getElementById('facilityAddress').value.trim();
+        const phone = document.getElementById('facilityPhone').value.trim();
 
-        await insertFacility({ name, address, phone });
-        modal.style.display = 'none';
-        document.body.removeChild(modal);
-        renderFacilities(containerId);
-    };
+        if (!name) return alert('Facility name is required.');
 
-    document.getElementById('closeModal').onclick = () => {
-        modal.style.display = 'none';
-        document.body.removeChild(modal);
+        const newFacility = await insertFacility({ name, address, phone });
+        if (!newFacility) return alert('Error saving facility.');
+
+        // Optional: initialize image manager after saving
+        const imgContainer = document.getElementById('facilityImageContainer');
+        renderImageManagerSection(imgContainer, 'facility', newFacility.id, { title: 'Facility Image' });
+
+        modal.remove();
+        if (onSave) onSave();
     };
 }
