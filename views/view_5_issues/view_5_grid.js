@@ -16,7 +16,7 @@ export async function renderIndividualConcerns({ facility }) {
     app.innerHTML = `
         <div style="padding:20px; font-family:Arial; text-align:center;">
             <h1>${facility.name} Issues</h1>
-            <button id="addIssueBtn" style="padding:14px 28px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; margin-bottom:16px;">
+            <button id="addIssueBtn" style="padding:14px 28px; background:#f59e0b; color:white; border:none; border-radius:8px; cursor:pointer; margin-bottom:16px;">
                 Add Issue
             </button>
             <div id="issuesGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; max-width:600px; margin:0 auto;"></div>
