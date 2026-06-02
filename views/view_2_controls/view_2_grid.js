@@ -2,54 +2,40 @@
 FILE: view_2_grid.js
 UPDATED: 2026-06-01
 ================================================= */
+import { fetchControls } from './view_2_data.js';
+import { openControlModal } from './view_2_modal.js';
 
-import { fetchFacilityContacts, fetchFacilityProjects } from './view_2_data.js';
-import { renderContactsDashboard } from '../view_3_controls/view_3_grid.js';
-import { renderPendingProjects } from '../view_4_projects/view_4_grid.js';
-import { renderFacilityImages } from '../view_6_images/view_6_grid.js';
-import { renderIndividualConcerns } from '../view_5_issues/view_5_grid.js';
-
-export function renderFacilityControls(facility) {
+export async function renderControls() {
     const app = document.getElementById('app');
     if (!app) return;
 
-    app.innerHTML = `
-        <div style="padding:20px; font-family:Arial; text-align:center;">
-            <h1 style="margin-bottom:20px; font-size:22px;">${facility.name} Controls</h1>
+    app.innerHTML = '<p>Loading controls...</p>';
+    const controls = await fetchControls();
 
-            <div style="display:flex; flex-direction:column; gap:12px; max-width:400px; margin:0 auto;">
-                <button id="individualConcernsBtn" style="padding:14px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                    INDIVIDUAL CONCERNS
-                </button>
-                <button id="manageContactsBtn" style="padding:14px; background:#f5c400; color:black; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                    MANAGE CONTACTS
-                </button>
-                <button id="pendingProjectsBtn" style="padding:14px; background:#00264d; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                    PENDING PROJECTS
-                </button>
-                <button id="imageGalleryBtn" style="padding:14px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                    IMAGE GALLERY
-                </button>
-                <button id="backBtn" style="padding:14px; background:#6b7280; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                    BACK TO DASHBOARD
-                </button>
-            </div>
-        </div>
-    `;
+    if (!controls || controls.length === 0) {
+        app.innerHTML = '<p>No controls found.</p>';
+        return;
+    }
 
-    document.getElementById('individualConcernsBtn').onclick = () => {
-        renderIndividualConcerns({ facility });
-    };
-    document.getElementById('manageContactsBtn').onclick = () => {
-        renderContactsDashboard({ facility });
-    };
-    document.getElementById('pendingProjectsBtn').onclick = () => {
-        renderPendingProjects({ facility });
-    };
-    document.getElementById('imageGalleryBtn').onclick = () => {
-        renderFacilityImages({ facility });
-    };
-    document.getElementById('backBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view1_facilities');
-    };
+    app.innerHTML = '<div id="controlsContainer" style="display:flex; flex-wrap:wrap; gap:12px;"></div>';
+    const container = document.getElementById('controlsContainer');
+
+    controls.forEach(ctrl => {
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid #ccc; padding:12px; border-radius:8px; width:200px; cursor:pointer;';
+
+        card.innerHTML = `
+            <h3>${ctrl.control_name_text}</h3>
+            <p>${ctrl.description_text}</p>
+            <p>Assigned to: ${ctrl.assigned_to_text}</p>
+        `;
+        card.onclick = () => openControlModal(ctrl, true);
+        container.appendChild(card);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.innerText = "Add Control";
+    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
+    addBtn.onclick = () => openControlModal(null, false);
+    app.appendChild(addBtn);
 }
