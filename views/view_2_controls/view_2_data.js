@@ -1,18 +1,53 @@
-export async function insertProject(projectObj) {
-    const { data, error } = await supabase
-        .from('facility_projects')
-        .insert([{
-            project_name_text: projectObj.project_name,
-            project_title_text: projectObj.project_title,
-            created_by_text: projectObj.created_by_text || '',
+/* =================================================
+FILE: view_2_data.js
+UPDATED: 2026-06-01
+================================================= */
+import { supabase } from '../../js/supabaseClient.js';
 
-            facility_id: projectObj.facility_id,
-            active_status: projectObj.active_status ?? true,
-            created_by: projectObj.created_by || null,
-            notes: projectObj.notes || ''
+export async function fetchControls() {
+    const { data, error } = await supabase
+        .from('controls')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error("Error fetching controls:", error);
+        return [];
+    }
+    return data;
+}
+
+export async function insertControl(controlObj) {
+    const { data, error } = await supabase
+        .from('controls')
+        .insert([{
+            control_name_text: controlObj.name,
+            description_text: controlObj.description,
+            assigned_to_text: controlObj.assigned_to
         }])
         .select();
 
-    if (error) console.error("Project insert error:", error);
-    return data && data[0] ? data[0] : null;
+    if (error) {
+        console.error("Error inserting control:", error);
+        return null;
+    }
+    return data[0];
+}
+
+export async function updateControl(id, controlObj) {
+    const { data, error } = await supabase
+        .from('controls')
+        .update({
+            control_name_text: controlObj.name,
+            description_text: controlObj.description,
+            assigned_to_text: controlObj.assigned_to
+        })
+        .eq('id', id)
+        .select();
+
+    if (error) {
+        console.error("Error updating control:", error);
+        return null;
+    }
+    return data[0];
 }
