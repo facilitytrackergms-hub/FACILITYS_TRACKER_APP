@@ -1,32 +1,41 @@
-export async function renderImages(relatedType, relatedId) {
-    if (!relatedType || !relatedId) return console.error("relatedType and relatedId required");
+/* =================================================
+FILE: views/view_6_images/view_6_grid.js
+UPDATED: 2026-06-02 06:00:00 PM
+
+STRICT HEADER RULE:
+Do not ever remove or change this header section.
+Always keep the header at the top of current files and new files.
+================================================= */
+import { setupGalleryEvents } from './view_6_modal.js';
+
+export async function renderFacilityImages(data) {
     const app = document.getElementById('app');
     if (!app) return;
 
-    app.innerHTML = '<p>Loading images...</p>';
-    const images = await fetchImages(relatedType, relatedId);
+    // Unpack unified payload container or fallback safely
+    const facility = data?.facility ? data.facility : data;
 
-    app.innerHTML = '<div id="imagesContainer" style="display:flex; flex-wrap:wrap; gap:12px;"></div>';
-    const container = document.getElementById('imagesContainer');
+    app.innerHTML = `
+        <div style="padding:20px; font-family:Arial; background:#f3f4f6; min-height:100vh; text-align:center;">
+            <h1 style="color:#00264d; margin-top:0; margin-bottom:8px; font-size:28px; font-weight:900;">
+                FACILITY GALLERY
+            </h1>
 
-    if (!images || images.length === 0) {
-        container.innerHTML = '<p>No images found.</p>';
-    } else {
-        images.forEach(img => {
-            const card = document.createElement('div');
-            card.style.cssText = 'border:1px solid #ccc; padding:8px; border-radius:8px; width:180px; cursor:pointer; text-align:center;';
-            card.innerHTML = `
-                <img src="${img.image_url}" alt="${img.caption || ''}" style="width:100%; border-radius:6px;"/>
-                <p style="margin:4px 0; font-size:0.9em;">${img.caption || ''}</p>
-            `;
-            card.onclick = () => openImageModal(img, relatedType, relatedId);
-            container.appendChild(card);
-        });
-    }
+            <div style="font-size:18px; font-weight:bold; color:#64748b; margin-bottom:20px;">
+                ${facility?.name || facility?.Name || ''}
+            </div>
 
-    const addBtn = document.createElement('button');
-    addBtn.innerText = "Add Image";
-    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
-    addBtn.onclick = () => openImageModal(null, relatedType, relatedId);
-    app.appendChild(addBtn);
+            <div id="galleryImageManager" style="background:white; border-radius:18px; padding:15px; box-shadow:0 4px 14px rgba(0,0,0,0.08); max-width:700px; margin:0 auto;"></div>
+
+            <button id="backBtn" style="margin-top:25px; width:100%; max-width:320px; padding:14px; background:#6b7280; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+                BACK TO CONTROLS
+            </button>
+
+            <div style="margin-top:40px; font-size:10px; color:#94a3b8; border-top:1px solid #e5e7eb; padding-top:10px;">
+                File: views/view_6_images/view_6_grid.js | Updated: 2026-06-02 06:00:00 PM
+            </div>
+        </div>
+    `;
+
+    setupGalleryEvents(facility);
 }
