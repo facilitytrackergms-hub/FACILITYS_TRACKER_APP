@@ -30,14 +30,12 @@ export async function renderFacilities() {
                 border-radius:8px; padding:16px; cursor:pointer; font-size:1em;
             `;
             card.onclick = () => {
-                // Navigate to controls view for this facility
-                window.navigateTo('controls', { facilityId: fac.id });
+                window.navigateTo('controls', { facilityId: fac.id, facilityName: fac.name });
             };
             container.appendChild(card);
         });
     }
 
-    // "Create New Facility" button navigates to controls view in create mode
     document.getElementById('addFacilityBtn').onclick = () => {
         window.navigateTo('controls', { facilityId: null, createNew: true });
     };
