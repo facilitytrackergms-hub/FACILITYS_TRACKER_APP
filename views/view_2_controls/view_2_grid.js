@@ -2,40 +2,54 @@
 FILE: view_2_grid.js
 UPDATED: 2026-06-01
 ================================================= */
-import { fetchControls } from './view_2_data.js';
-import { openControlModal } from './view_2_modal.js';
-
-export async function renderControls() {
+export async function renderControls(context = {}) {
     const app = document.getElementById('app');
     if (!app) return;
 
-    app.innerHTML = '<p>Loading controls...</p>';
-    const controls = await fetchControls();
+    app.innerHTML = '';
 
-    if (!controls || controls.length === 0) {
-        app.innerHTML = '<p>No controls found.</p>';
+    // Create mode for new facility
+    if (context.createNew) {
+        app.innerHTML = `
+            <h2 style="text-align:center;">Create Facility</h2>
+            <input id="facilityName" placeholder="Name" style="width:100%; margin:6px 0; padding:10px; border-radius:6px; border:1px solid #ccc;" />
+            <input id="facilityAddress" placeholder="Address" style="width:100%; margin:6px 0; padding:10px; border-radius:6px; border:1px solid #ccc;" />
+            <input id="facilityPhone" placeholder="Phone" style="width:100%; margin:6px 0; padding:10px; border-radius:6px; border:1px solid #ccc;" />
+            <button id="saveFacilityBtn" style="margin-top:12px; padding:12px; background:#16a34a; color:white; border:none; border-radius:6px; font-weight:bold;">Save Facility</button>
+        `;
+
+        document.getElementById('saveFacilityBtn').onclick = async () => {
+            const name = document.getElementById('facilityName').value.trim();
+            const address = document.getElementById('facilityAddress').value.trim();
+            const phone = document.getElementById('facilityPhone').value.trim();
+
+            if (!name) return alert('Facility name required.');
+
+            const { data, error } = await supabase
+                .from('facilities')
+                .insert([{ name, address, phone }])
+                .select();
+
+            if (error) return alert('Error creating facility.');
+
+            window.navigateTo('controls', { facilityId: data[0].id, facilityName: data[0].name });
+        };
         return;
     }
 
-    app.innerHTML = '<div id="controlsContainer" style="display:flex; flex-wrap:wrap; gap:12px;"></div>';
-    const container = document.getElementById('controlsContainer');
+    // Normal controls view
+    app.innerHTML = `
+        <h2 style="text-align:center;">${context.facilityName || 'FACILITY'} CONTROLS</h2>
+        <div id="controlsContainer" style="display:flex; flex-direction:column; gap:12px; padding:12px;">
+            <button style="background:#16a34a; color:white; padding:12px; border:none; border-radius:6px; font-weight:bold;">Individual Concerns</button>
+            <button style="background:#facc15; color:black; padding:12px; border:none; border-radius:6px; font-weight:bold;">Manage Contacts</button>
+            <button style="background:#0c4a6e; color:white; padding:12px; border:none; border-radius:6px; font-weight:bold;">Pending Projects</button>
+            <button style="background:#16a34a; color:white; padding:12px; border:none; border-radius:6px; font-weight:bold;">Image Gallery</button>
+            <button style="background:#6b7280; color:white; padding:12px; border:none; border-radius:6px; font-weight:bold;">Back to Dashboard</button>
+        </div>
+    `;
 
-    controls.forEach(ctrl => {
-        const card = document.createElement('div');
-        card.style.cssText = 'border:1px solid #ccc; padding:12px; border-radius:8px; width:200px; cursor:pointer;';
-
-        card.innerHTML = `
-            <h3>${ctrl.control_name_text}</h3>
-            <p>${ctrl.description_text}</p>
-            <p>Assigned to: ${ctrl.assigned_to_text}</p>
-        `;
-        card.onclick = () => openControlModal(ctrl, true);
-        container.appendChild(card);
-    });
-
-    const addBtn = document.createElement('button');
-    addBtn.innerText = "Add Control";
-    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
-    addBtn.onclick = () => openControlModal(null, false);
-    app.appendChild(addBtn);
+    // Back to dashboard button
+    const buttons = app.querySelectorAll('button');
+    buttons[buttons.length - 1].onclick = () => window.navigateTo('facility');
 }
