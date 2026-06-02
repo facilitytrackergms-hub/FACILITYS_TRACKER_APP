@@ -1,6 +1,6 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-02 07:46:00 PM
+UPDATED: 2026-06-02 07:50:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -17,7 +17,7 @@ window.navigateTo = async (view, context = {}) => {
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
 
     try {
-        // Correctly stepping out of /js/ folder to root using '../'
+        // Use "../" to back out of the "js" folder into the root directory
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility') {
             const { renderFacilities } = await import('../views/view_1_facility/view_1_grid.js');
             await renderFacilities(context);
@@ -60,7 +60,6 @@ window.navigateTo = async (view, context = {}) => {
     }
 };
 
-// Automatically load the default view on page load
 window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
     window.navigateTo('view_1_facility');
