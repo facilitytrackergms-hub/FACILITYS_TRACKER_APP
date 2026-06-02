@@ -1,6 +1,6 @@
 /* =================================================
-FILE: js/imagemanager.js
-UPDATED: 2026-06-02 06:20:00 PM
+FILE: js/imageManager.js
+UPDATED: 2026-06-02 07:44:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -31,7 +31,7 @@ export function renderImageManagerSection(container, type, id, options = {}) {
     list.style.display = 'flex';
     list.style.flexWrap = 'wrap';
     list.style.gap = '10px';
-    list.innerHTML = '<span style="color:#6b7280; font-size:12px; italic">Loading photos...</span>';
+    list.innerHTML = '<span style="color:#6b7280; font-size:12px; font-style:italic;">Loading photos...</span>';
     section.appendChild(list);
 
     // Add Image button
@@ -49,7 +49,6 @@ export function renderImageManagerSection(container, type, id, options = {}) {
 
     // Fetch and display existing images from the database
     async function loadImages() {
-        // Safe mapping to lowercase tables to prevent edge-case structural errors
         const { data, error } = await supabase
             .from('facility_images')
             .select('*')
@@ -132,7 +131,6 @@ export function renderImageManagerSection(container, type, id, options = {}) {
             created_at: new Date().toISOString()
         };
 
-        // Populate foreign key correctly depending on component source type context
         if (type === 'issue') payload.issue_id = id;
         else if (type === 'followup') payload.followup_id = id;
         else payload.facility_id = id;
