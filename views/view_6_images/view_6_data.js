@@ -1,48 +1,11 @@
 /* =================================================
-FILE: view_6_data.js
-UPDATED: 2026-06-01
+FILE: views/view_6_images/view_6_data.js
+UPDATED: 2026-06-02 06:00:00 PM
+
+STRICT HEADER RULE:
+Do not ever remove or change this header section.
+Always keep the header at the top of current files and new files.
 ================================================= */
-import { supabase } from '../../js/supabaseClient.js';
-
-export async function fetchImages(relatedType, relatedId) {
-    const { data, error } = await supabase
-        .from('facility_images')
-        .select('*')
-        .eq('related_type', relatedType)
-        .eq('related_id', relatedId)
-        .order('created_at', { ascending: true });
-
-    if (error) {
-        console.error("Error fetching images:", error);
-        return [];
-    }
-    return data;
-}
-
-export async function insertImage(imageObj) {
-    const { data, error } = await supabase
-        .from('facility_images')
-        .insert([{
-            related_type: imageObj.related_type,
-            related_id: imageObj.related_id,
-            image_url: imageObj.image_url,
-            caption: imageObj.caption || ''
-        }])
-        .select();
-
-    if (error) {
-        console.error("Error inserting image:", error);
-        return null;
-    }
-    return data[0];
-}
-
-export async function deleteImage(id) {
-    const { data, error } = await supabase
-        .from('facility_images')
-        .delete()
-        .eq('id', id);
-
-    if (error) console.error("Error deleting image:", error);
-    return data;
-}
+// This file is reserved for standalone data fetching operations if needed.
+// Image management is handled inline by the shared imageManager module component.
+export const DATA_VERSION = "view_6_data_v1";
