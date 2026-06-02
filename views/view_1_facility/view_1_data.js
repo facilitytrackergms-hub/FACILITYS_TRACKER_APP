@@ -1,30 +1,40 @@
-/* =================================================
-FILE: view_1_data.js
-UPDATED: 2026-06-01
-================================================= */
+import { supabase } from '../js/supabaseClient.js';
 
-import { supabase } from '../../js/supabaseClient.js';
-import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@9.0.0/dist/esm-browser/index.js';
-
+// Fetch all facilities
 export async function fetchFacilities() {
     const { data, error } = await supabase
         .from('facilities')
-        .select('*')
-        .eq('status', 'active')
-        .order('name', { ascending: true });
-    if (error) console.error(error);
+        .select('*');
+    if (error) { console.error(error); return []; }
     return data || [];
 }
 
-export async function insertFacility({ name, address, phone }) {
-    const id = uuidv4(); // generate a new UUID
+// Insert a new facility
+export async function insertFacility(facilityObj) {
     const { data, error } = await supabase
         .from('facilities')
-        .insert([{ id, name, address, phone, status: 'active' }])
+        .insert([{
+            name: facilityObj.name,
+            address: facilityObj.address,
+            phone: facilityObj.phone
+        }])
         .select();
-    if (error) {
-        console.error(error);
-        return null;
-    }
-    return data?.[0] || null;
+    if (error) { console.error(error); return null; }
+    return data && data[0] ? data[0] : null;
+}
+
+// Update a facility
+export async function updateFacility(facilityObj) {
+    const { data, error } = await supabase
+        .from('facilities')
+        .update({
+            name: facilityObj.name,
+            address: facilityObj.address,
+            phone: facilityObj.phone,
+            updated_at: new Date()
+        })
+        .eq('id', facilityObj.id)
+        .select();
+    if (error) { console.error(error); return null; }
+    return data && data[0] ? data[0] : null;
 }
