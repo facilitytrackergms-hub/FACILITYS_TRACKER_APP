@@ -2,57 +2,39 @@
 FILE: view_6_grid.js
 UPDATED: 2026-06-01
 ================================================= */
+import { fetchImages } from './view_6_data.js';
+import { openImageModal } from './view_6_modal.js';
 
-import { fetchFacilityImages, insertFacilityImage } from './view_6_data.js';
-import { renderImageManagerSection } from '../../js/imagemanager.js';
-
-export async function renderFacilityImages({ facility }) {
+export async function renderImages(relatedType, relatedId) {
     const app = document.getElementById('app');
     if (!app) return;
 
-    app.innerHTML = `
-        <div style="padding:20px; font-family:Arial; text-align:center;">
-            <h1>${facility.name} Image Gallery</h1>
-            <div id="imageGrid" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:20px;"></div>
-            <button id="addImageBtn" style="padding:12px 20px; margin-top:20px; background:#10b981; color:white; border:none; border-radius:8px; cursor:pointer;">
-                Add Image
-            </button>
-            <button id="backBtn" style="padding:12px 20px; margin-top:20px; background:#6b7280; color:white; border:none; border-radius:8px; cursor:pointer;">
-                Back to Controls
-            </button>
-        </div>
-    `;
+    app.innerHTML = '<p>Loading images...</p>';
+    const images = await fetchImages(relatedType, relatedId);
 
-    const grid = document.getElementById('imageGrid');
-    const images = await fetchFacilityImages(facility.id);
+    if (!images || images.length === 0) {
+        app.innerHTML = '<p>No images found.</p>';
+        return;
+    }
+
+    app.innerHTML = '<div id="imagesContainer" style="display:flex; flex-wrap:wrap; gap:12px;"></div>';
+    const container = document.getElementById('imagesContainer');
 
     images.forEach(img => {
-        const imgEl = document.createElement('img');
-        imgEl.src = img.image_url;
-        imgEl.alt = 'Facility Image';
-        imgEl.style.width = '120px';
-        imgEl.style.height = '120px';
-        imgEl.style.objectFit = 'cover';
-        imgEl.style.borderRadius = '8px';
-        imgEl.style.border = '1px solid #ccc';
-        imgEl.style.cursor = 'pointer';
-        imgEl.onclick = () => {
-            if (confirm('Remove this image?')) {
-                imgEl.remove();
-            }
-        };
-        grid.appendChild(imgEl);
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid #ccc; padding:8px; border-radius:8px; width:180px; cursor:pointer; text-align:center;';
+
+        card.innerHTML = `
+            <img src="${img.image_url}" alt="${img.caption || ''}" style="width:100%; border-radius:6px;"/>
+            <p style="margin:4px 0; font-size:0.9em;">${img.caption || ''}</p>
+        `;
+        card.onclick = () => openImageModal(img, relatedType, relatedId);
+        container.appendChild(card);
     });
 
-    document.getElementById('addImageBtn').onclick = async () => {
-        const url = prompt('Enter Image URL:');
-        if (!url) return;
-        const newImage = await insertFacilityImage({ url, facilityId: facility.id });
-        if (!newImage) return alert('Failed to add image.');
-        renderFacilityImages({ facility }); // refresh
-    };
-
-    document.getElementById('backBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view2_controls', { facility });
-    };
+    const addBtn = document.createElement('button');
+    addBtn.innerText = "Add Image";
+    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
+    addBtn.onclick = () => openImageModal(null, relatedType, relatedId);
+    app.appendChild(addBtn);
 }
