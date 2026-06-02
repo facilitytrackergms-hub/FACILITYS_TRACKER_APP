@@ -5,6 +5,8 @@ UPDATED: 2026-06-01
 import { insertFollowup, updateFollowup } from './view_7_data.js';
 
 export function openFollowupModal(followup, issueId, isEdit) {
+    if (!issueId) return console.error("issueId is required for followups");
+
     let existing = document.getElementById('followupModal');
     if (existing) existing.remove();
 
