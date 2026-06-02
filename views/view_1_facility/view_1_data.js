@@ -1,15 +1,22 @@
-import { supabase } from '../js/supabaseClient.js';
+/* =================================================
+FILE: view_1_data.js
+UPDATED: 2026-06-01
+================================================= */
+import { supabase } from '../../js/supabaseClient.js';
 
-// Fetch all facilities
 export async function fetchFacilities() {
     const { data, error } = await supabase
         .from('facilities')
-        .select('*');
-    if (error) { console.error(error); return []; }
-    return data || [];
+        .select('*')
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error("Error fetching facilities:", error);
+        return [];
+    }
+    return data;
 }
 
-// Insert a new facility
 export async function insertFacility(facilityObj) {
     const { data, error } = await supabase
         .from('facilities')
@@ -19,22 +26,28 @@ export async function insertFacility(facilityObj) {
             phone: facilityObj.phone
         }])
         .select();
-    if (error) { console.error(error); return null; }
-    return data && data[0] ? data[0] : null;
+
+    if (error) {
+        console.error("Error inserting facility:", error);
+        return null;
+    }
+    return data[0];
 }
 
-// Update a facility
-export async function updateFacility(facilityObj) {
+export async function updateFacility(id, facilityObj) {
     const { data, error } = await supabase
         .from('facilities')
         .update({
             name: facilityObj.name,
             address: facilityObj.address,
-            phone: facilityObj.phone,
-            updated_at: new Date()
+            phone: facilityObj.phone
         })
-        .eq('id', facilityObj.id)
+        .eq('id', id)
         .select();
-    if (error) { console.error(error); return null; }
-    return data && data[0] ? data[0] : null;
+
+    if (error) {
+        console.error("Error updating facility:", error);
+        return null;
+    }
+    return data[0];
 }
