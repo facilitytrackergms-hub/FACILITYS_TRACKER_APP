@@ -3,7 +3,7 @@ FILE: main.js
 UPDATED: 2026-06-01
 ================================================= */
 
-window.navigateTo = async (view, context = null) => {
+window.navigateTo = async (view, context = {}) => {
     const app = document.getElementById('app');
     if (!app) {
         console.error("App container not found.");
@@ -35,11 +35,12 @@ window.navigateTo = async (view, context = null) => {
         }
         else if (view === 'images') {
             const { renderImages } = await import('./views/view_6_images/view_6_grid.js');
-            await renderImages();
+            await renderImages(context.relatedType, context.relatedId);
         }
         else if (view === 'followups') {
             const { renderFollowups } = await import('./views/view_7_followups/view_7_grid.js');
-            await renderFollowups();
+            if (!context.issueId) return console.error("issueId required for followups");
+            await renderFollowups(context.issueId);
         }
         else if (view === 'reports') {
             const { renderReports } = await import('./views/view_8_report/view_8_grid.js');
