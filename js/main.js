@@ -1,6 +1,10 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-01
+UPDATED: 2026-06-02 02:00:00 PM
+
+STRICT HEADER RULE:
+Do not ever remove or change this header section.
+Always keep the header at the top of current files and new files.
 ================================================= */
 
 window.navigateTo = async (view, context = {}) => {
@@ -10,7 +14,7 @@ window.navigateTo = async (view, context = {}) => {
         return;
     }
 
-    app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
+    app.innerHTML = '<p style=\"text-align:center; padding:50px;\">Loading...</p>';
 
     try {
         if (view === 'facility') {
@@ -47,16 +51,16 @@ window.navigateTo = async (view, context = {}) => {
             await renderReports();
         }
         else {
-            console.warn(`Unknown view "${view}"`);
+            console.warn(`Unknown view \"${view}\"`);
         }
     } catch (err) {
         console.error("Navigation error:", err);
-        app.innerHTML = `<p style="color:red;">Error loading view: ${view}</p>`;
+        app.innerHTML = `<p style=\"color:red;\">Error loading view: ${view}</p>`;
     }
 };
 
 // Automatically load the default view on page load
 window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
-    window.navigateTo('facility'); // default view
+    window.navigateTo('facility');
 });
