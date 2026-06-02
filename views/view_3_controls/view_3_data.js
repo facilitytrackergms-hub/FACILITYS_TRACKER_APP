@@ -2,26 +2,52 @@
 FILE: view_3_data.js
 UPDATED: 2026-06-01
 ================================================= */
-
 import { supabase } from '../../js/supabaseClient.js';
 
-// Fetch all contacts for a given facility
-export async function fetchContacts(facilityId) {
+export async function fetchContacts() {
     const { data, error } = await supabase
         .from('contacts')
         .select('*')
-        .eq('facility_id', facilityId)
-        .order('name', { ascending: true });
-    if (error) console.error(error);
-    return data || [];
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error("Error fetching contacts:", error);
+        return [];
+    }
+    return data;
 }
 
-// Insert a new contact
-export async function insertContact({ name, role, phone, email, notes, facility_id }) {
+export async function insertContact(contactObj) {
     const { data, error } = await supabase
         .from('contacts')
-        .insert([{ name, role, phone, email, notes, facility_id }])
+        .insert([{
+            name_text: contactObj.name,
+            role_text: contactObj.role,
+            facility_id: contactObj.facility_id || null
+        }])
         .select();
-    if (error) console.error(error);
-    return data?.[0] || null;
+
+    if (error) {
+        console.error("Error inserting contact:", error);
+        return null;
+    }
+    return data[0];
+}
+
+export async function updateContact(id, contactObj) {
+    const { data, error } = await supabase
+        .from('contacts')
+        .update({
+            name_text: contactObj.name,
+            role_text: contactObj.role,
+            facility_id: contactObj.facility_id || null
+        })
+        .eq('id', id)
+        .select();
+
+    if (error) {
+        console.error("Error updating contact:", error);
+        return null;
+    }
+    return data[0];
 }
