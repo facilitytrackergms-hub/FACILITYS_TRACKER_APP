@@ -1,61 +1,71 @@
 /* =================================================
-FILE: views/view_4_projects/view_4_modal.js
-UPDATED: 2026-06-02 05:50:00 PM
+FILE: views/view_5_issues/view_5_data.js
+UPDATED: 2026-06-02 05:55:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { insertFacilityProject } from './view_4_data.js';
+import { supabase } from '../../js/supabaseClient.js';
 
-export function setupProjectsEvents(facility, renderPendingProjectsFn) {
-    const formModal = document.getElementById('projectTrackFormModal');
+export async function fetchFacilityIssues(facilityId) {
+    const { data, error } = await supabase
+        .from('facility_issues')
+        .select('*')
+        .eq('facility_id', facilityId)
+        .order('created_at', { ascending: false });
 
-    document.getElementById('projectTrackCreateBtn').onclick = () => {
-        document.getElementById('projectTrackTitleInput').value = '';
-        document.getElementById('projectTrackBudgetInput').value = '';
-        document.getElementById('projectTrackNotesInput').value = '';
-        formModal.style.display = 'flex';
-    };
+    if (error) {
+        console.error("Database Error fetching issues:", error);
+        return [];
+    }
+    return data || [];
+}
 
-    document.getElementById('projectTrackCloseBtn').onclick = () => {
-        formModal.style.display = 'none';
-    };
+export async function fetchFacilityContacts(facilityId) {
+    const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('facility_id', facilityId);
 
-    document.getElementById('projectTrackSaveBtn').onclick = async () => {
-        const titleVal = document.getElementById('projectTrackTitleInput').value.trim();
-        if (!titleVal) {
-            alert("Please supply a project scope title descriptor.");
-            return;
-        }
+    if (error) {
+        console.error("Database Error fetching contacts:", error);
+        return [];
+    }
+    return data || [];
+}
 
-        const payload = {
-            project_title: titleVal,
-            project_name: titleVal,
-            budget: document.getElementById('projectTrackBudgetInput').value.trim(),
-            notes: document.getElementById('projectTrackNotesInput').value.trim(),
-            facility_id: facility.id,
-            facilityid: facility.id,
-            active_status: true,
-            created_at: new Date().toISOString()
-        };
+export async function insertFacilityContact(contactPayload) {
+    const { data, error } = await supabase
+        .from('contacts')
+        .insert([contactPayload])
+        .select();
 
-        try {
-            await insertFacilityProject(payload);
-            formModal.style.display = 'none';
-            await renderPendingProjectsFn(facility);
-        } catch (error) {
-            if (error.code === '23505') {
-                alert("Database Constraint Error: This facility is restricted to a single project row in the database schema.");
-            } else {
-                alert(`Could not append project details: ${error.message}`);
-            }
-        }
-    };
+    if (error) {
+        console.error("Database Error inserting contact:", error);
+        return null;
+    }
+    return data && data[0] ? data[0] : null;
+}
 
-    document.getElementById('projectTrackBackBtn').onclick = () => {
-        if (window.navigateTo) {
-            window.navigateTo('view_2_controls', facility);
-        }
-    };
+export async function saveFacilityIssue(payload, id = null) {
+    let result;
+    if (!id) {
+        result = await supabase
+            .from('facility_issues')
+            .insert([payload])
+            .select();
+    } else {
+        result = await supabase
+            .from('facility_issues')
+            .update(payload)
+            .eq('id', id)
+            .select();
+    }
+
+    if (result.error) {
+        console.error("Database Error saving issue:", result.error);
+        return { error: result.error, data: null };
+    }
+    return { error: null, data: result.data && result.data[0] ? result.data[0] : null };
 }
