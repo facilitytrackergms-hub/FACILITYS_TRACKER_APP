@@ -2,49 +2,43 @@
 FILE: view_4_grid.js
 UPDATED: 2026-06-01
 ================================================= */
-
 import { fetchProjects } from './view_4_data.js';
 import { openProjectModal } from './view_4_modal.js';
-import { renderImageManagerSection } from '../../js/imagemanager.js';
 
-export async function renderPendingProjects({ facility }) {
+export async function renderProjects() {
     const app = document.getElementById('app');
     if (!app) return;
 
-    const projects = await fetchProjects(facility.id);
+    app.innerHTML = '<p>Loading projects...</p>';
+    const projects = await fetchProjects();
 
-    app.innerHTML = `
-        <div style="padding:20px; font-family:Arial; text-align:center;">
-            <h1>${facility.name} Projects</h1>
-            <button id="addProjectBtn" style="padding:14px 28px; background:#00264d; color:white; border:none; border-radius:8px; cursor:pointer; margin-bottom:16px;">
-                Add Project
-            </button>
-            <div id="projectsGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; max-width:600px; margin:0 auto;"></div>
-            <button id="backBtn" style="padding:12px 20px; margin-top:20px; background:#6b7280; color:white; border:none; border-radius:8px; cursor:pointer;">
-                Back to Controls
-            </button>
-        </div>
-    `;
+    if (!projects || projects.length === 0) {
+        app.innerHTML = '<p>No projects found.</p>';
+        return;
+    }
 
-    const grid = document.getElementById('projectsGrid');
+    app.innerHTML = '<div id="projectsContainer" style="display:flex; flex-wrap:wrap; gap:12px;"></div>';
+    const container = document.getElementById('projectsContainer');
 
-    projects.forEach(p => {
-        const btn = document.createElement('button');
-        btn.textContent = p.project_name;
-        btn.style.cssText = `
-            padding:12px; background:#10b981; color:white; border:none; border-radius:8px; cursor:pointer;
+    projects.forEach(project => {
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid #ccc; padding:12px; border-radius:8px; width:220px; cursor:pointer;';
+
+        card.innerHTML = `
+            <h3>${project.project_name_text}</h3>
+            <p>${project.project_title_text}</p>
+            <p>Created by: ${project.created_by_text}</p>
+            <p>Facility ID: ${project.facility_id || 'N/A'}</p>
+            <p>Status: ${project.active_status ? 'Active' : 'Inactive'}</p>
         `;
-        btn.onclick = () => {
-            alert(`Project: ${p.project_name}\nBudget: ${p.budget}\nNotes: ${p.notes}`);
-        };
-        grid.appendChild(btn);
+
+        card.onclick = () => openProjectModal(project, true);
+        container.appendChild(card);
     });
 
-    document.getElementById('addProjectBtn').onclick = () => {
-        openProjectModal({ facility, onSave: () => renderPendingProjects({ facility }) });
-    };
-
-    document.getElementById('backBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view2_controls', { facility });
-    };
+    const addBtn = document.createElement('button');
+    addBtn.innerText = "Add Project";
+    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
+    addBtn.onclick = () => openProjectModal(null, false);
+    app.appendChild(addBtn);
 }
