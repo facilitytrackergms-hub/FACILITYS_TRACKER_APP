@@ -1,85 +1,166 @@
 /* =================================================
-FILE: view_5_modal.js
-UPDATED: 2026-06-01
+FILE: views/view_5_issues/view_5_modal.js
+UPDATED: 2026-06-02 05:55:00 PM
+
+STRICT HEADER RULE:
+Do not ever remove or change this header section.
+Always keep the header at the top of current files and new files.
 ================================================= */
-import { insertIssue, updateIssue } from './view_5_data.js';
+import { fetchFacilityContacts, insertFacilityContact, saveFacilityIssue } from './view_5_data.js';
+import { renderImageManagerSection } from '../../js/imageManager.js';
 
-export function openIssueModal(issue, isEdit) {
-    let existing = document.getElementById('issueModal');
-    if (existing) existing.remove();
+export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, prefillData) {
+    const modal = document.getElementById('issueModal');
+    const alertModal = document.getElementById('customAlertModal');
+    let activeContactsList = [];
 
-    const modal = document.createElement('div');
-    modal.id = 'issueModal';
-    modal.style.cssText = `
-        position:fixed; inset:0; display:flex; justify-content:center; align-items:center;
-        background:rgba(0,0,0,0.5); z-index:1000;
-    `;
+    async function loadContactsCache() {
+        activeContactsList = await fetchFacilityContacts(facility.id);
+    }
+    loadContactsCache();
 
-    modal.innerHTML = `
-        <div style="background:white; padding:24px; border-radius:12px; width:100%; max-width:450px; text-align:center;">
-            <h2>${isEdit ? 'Edit Issue' : 'Add Issue'}</h2>
-            <input id="issueTitle" placeholder="Issue Title" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${issue?.issue_title || ''}">
-            <input id="issueTool" placeholder="Tool Required" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${issue?.tool_required_text || ''}">
-            <input id="issueInitiated" placeholder="Initiated By" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${issue?.initiated_by_text || ''}">
-            <input id="issueFacility" placeholder="Facility ID (UUID)" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${issue?.related_facility || ''}">
-            <input id="issueProject" placeholder="Project ID (UUID)" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${issue?.related_project || ''}">
-            <textarea id="issueNotes" placeholder="Notes" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;">${issue?.notes || ''}</textarea>
-            <div style="margin-top:12px;">
-                <label>
-                    <input type="checkbox" id="issueOpen" ${issue?.open_issue !== false ? 'checked' : ''}>
-                    Open
-                </label>
-            </div>
-            <div style="margin-top:12px;">
-                <button id="saveIssueBtn" style="padding:12px 20px; background:#f59e0b; color:white; border:none; border-radius:8px; cursor:pointer; margin-right:8px;">
-                    ${isEdit ? 'Update' : 'Save'}
-                </button>
-                <button id="closeIssueBtn" style="padding:12px 20px; background:#6b7280; color:white; border:none; border-radius:8px; cursor:pointer;">
-                    Close
-                </button>
-            </div>
-        </div>
-    `;
+    function showCustomAlert(title, message, icon = 'ℹ️') {
+        document.getElementById('alertIcon').innerText = icon;
+        document.getElementById('alertTitle').innerText = title;
+        document.getElementById('alertMessage').innerText = message;
+        alertModal.style.display = 'flex';
+        return new Promise((resolve) => {
+            document.getElementById('alertCloseBtn').onclick = () => {
+                alertModal.style.display = 'none';
+                resolve();
+            };
+        });
+    }
 
-    document.body.appendChild(modal);
+    function openBlankModal(initialReporterName = '') {
+        document.getElementById('issueId').value = '';
+        document.getElementById('issueDescription').value = '';
+        document.getElementById('issueInitiatedBy').value = initialReporterName;
+        document.getElementById('issueStatus').value = 'Open';
+        document.getElementById('issuePriority').value = 'Medium';
+        
+        document.getElementById('issueModalTitle').innerText = "File New Issue Report";
+        document.getElementById('saveIssueBtn').innerText = "SUBMIT ISSUE REPORT";
+        document.getElementById('issue-image-section').style.display = 'none';
+        document.getElementById('issueFollowupsBtn').style.display = 'none';
+        
+        modal.style.display = 'block';
+    }
 
-    document.getElementById('closeIssueBtn').onclick = () => modal.remove();
+    window.openSelectedIssueInModal = function(issue) {
+        document.getElementById('issueId').value = issue.id || '';
+        document.getElementById('issueDescription').value = issue.description || '';
+        document.getElementById('issueInitiatedBy').value = issue.initiated_by || '';
+        document.getElementById('issueStatus').value = issue.status || 'Open';
+        document.getElementById('issuePriority').value = issue.priority || 'Medium';
+
+        document.getElementById('issueModalTitle').innerText = "Modify Issue Entry Fields";
+        document.getElementById('saveIssueBtn').innerText = "UPDATE INFO";
+        
+        const followupsBtn = document.getElementById('issueFollowupsBtn');
+        followupsBtn.style.display = 'block';
+        followupsBtn.onclick = () => {
+            modal.style.display = 'none';
+            if (window.navigateTo) {
+                window.navigateTo('view_7_followups', { facility, issue });
+            }
+        };
+
+        const imageContainer = document.getElementById('issue-image-container');
+        document.getElementById('issue-image-section').style.display = 'block';
+        imageContainer.innerHTML = '';
+        
+        renderImageManagerSection(imageContainer, 'issue', issue.id, { facility, title: 'Issue Photos' });
+        
+        modal.style.display = 'block';
+    };
+
+    document.getElementById('createNewIssueBtn').onclick = () => openBlankModal();
+
+    document.getElementById('closeIssueModal').onclick = () => {
+        modal.style.display = 'none';
+        renderFacilityIssuesFn(facility);
+    };
+
+    document.getElementById('backToControlsBtn').onclick = () => {
+        if (window.navigateTo) {
+            window.navigateTo('view_2_controls', facility);
+        }
+    };
 
     document.getElementById('saveIssueBtn').onclick = async () => {
-        const issueTitle = document.getElementById('issueTitle').value.trim();
-        const tool = document.getElementById('issueTool').value.trim();
-        const initiatedBy = document.getElementById('issueInitiated').value.trim();
-        const facilityId = document.getElementById('issueFacility').value.trim();
-        const projectId = document.getElementById('issueProject').value.trim();
-        const notes = document.getElementById('issueNotes').value.trim();
-        const openStatus = document.getElementById('issueOpen').checked;
+        const id = document.getElementById('issueId').value;
+        const desc = document.getElementById('issueDescription').value.trim();
+        const initiatedByName = document.getElementById('issueInitiatedBy').value.trim();
+        const status = document.getElementById('issueStatus').value;
+        const priority = document.getElementById('issuePriority').value;
 
-        if (!issueTitle) return alert('Issue title is required.');
-        if (!facilityId) return alert('Facility ID is required.');
-
-        if (isEdit && issue?.id) {
-            await updateIssue(issue.id, {
-                issue_title: issueTitle,
-                tool_required_text: tool,
-                initiated_by_text: initiatedBy,
-                related_facility: facilityId,
-                related_project: projectId || null,
-                notes,
-                open_issue: openStatus
-            });
-        } else {
-            await insertIssue({
-                issue_title: issueTitle,
-                tool_required_text: tool,
-                initiated_by_text: initiatedBy,
-                related_facility: facilityId,
-                related_project: projectId || null,
-                notes
-            });
+        if (!desc) {
+            await showCustomAlert("Validation Required", "Please enter an issue description summary text.", "⚠️");
+            return;
         }
 
-        modal.remove();
-        const { renderIssues } = await import('./view_5_grid.js');
-        renderIssues();
+        const payload = {
+            facility_id: facility.id,
+            description: desc,
+            initiated_by: initiatedByName || 'Staff',
+            status: status,
+            priority: priority,
+            updated_at: new Date().toISOString()
+        };
+
+        if (!id) {
+            payload.created_at = new Date().toISOString();
+        }
+
+        if (initiatedByName) {
+            const match = activeContactsList.some(c => c.name && c.name.toLowerCase() === initiatedByName.toLowerCase());
+            if (!match) {
+                const confirmAdd = confirm(`The contact "${initiatedByName}" was not found in your directory list. Create a new entry row for them now?`);
+                if (confirmAdd) {
+                    await insertFacilityContact({
+                        facility_id: facility.id,
+                        name: initiatedByName,
+                        role: 'Staff Participant Log'
+                    });
+                    await loadContactsCache();
+                }
+            }
+        }
+
+        const result = await saveFacilityIssue(payload, id || null);
+        
+        if (result.error) {
+            await showCustomAlert("Error Saving", "Could not synchronize structural fields into cloud data table storage.", "❌");
+            return;
+        }
+
+        const savedItem = result.data;
+        if (savedItem) {
+            document.getElementById('issueId').value = savedItem.id;
+            document.getElementById('saveIssueBtn').innerText = "UPDATE INFO";
+            
+            const followupsBtn = document.getElementById('issueFollowupsBtn');
+            followupsBtn.style.display = 'block';
+            followupsBtn.onclick = () => {
+                modal.style.display = 'none';
+                if (window.navigateTo) {
+                    window.navigateTo('view_7_followups', { facility, issue: savedItem });
+                }
+            };
+
+            const imageSection = document.getElementById('issue-image-section');
+            const imageContainer = document.getElementById('issue-image-container');
+            imageSection.style.display = 'block';
+            imageContainer.innerHTML = '';
+            
+            renderImageManagerSection(imageContainer, 'issue', savedItem.id, { facility, title: 'Issue Photos' });
+            await showCustomAlert("Success Logged", "Issue tracked dataset fields saved successfully!", "✅");
+        }
     };
+
+    // Auto-open parsing trigger for contact-forwarded intents
+    if (autoOpen && prefillData) {
+        openBlankModal(prefillData.initiated_by);
+    }
 }
