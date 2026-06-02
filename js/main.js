@@ -58,5 +58,5 @@ window.navigateTo = async (view, context = {}) => {
 // Automatically load the default view on page load
 window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
-    window.navigateTo('facility'); // load the first view automatically
+    window.navigateTo('facility'); // default view
 });
