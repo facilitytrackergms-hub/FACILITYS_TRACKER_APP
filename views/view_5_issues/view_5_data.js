@@ -1,63 +1,71 @@
 /* =================================================
-FILE: view_5_data.js
-UPDATED: 2026-06-01
+FILE: views/view_5_issues/view_5_data.js
+UPDATED: 2026-06-02 05:55:00 PM
+
+STRICT HEADER RULE:
+Do not ever remove or change this header section.
+Always keep the header at the top of current files and new files.
 ================================================= */
 import { supabase } from '../../js/supabaseClient.js';
 
-export async function fetchIssues() {
+export async function fetchFacilityIssues(facilityId) {
     const { data, error } = await supabase
         .from('facility_issues')
         .select('*')
-        .order('created_at', { ascending: true });
+        .eq('facility_id', facilityId)
+        .order('created_at', { ascending: false });
 
     if (error) {
-        console.error("Error fetching issues:", error);
+        console.error("Database Error fetching issues:", error);
         return [];
     }
-    return data;
+    return data || [];
 }
 
-export async function insertIssue(issueObj) {
+export async function fetchFacilityContacts(facilityId) {
     const { data, error } = await supabase
-        .from('facility_issues')
-        .insert([{
-            issue_title: issueObj.issue_title,
-            tool_required_text: issueObj.tool_required_text,
-            initiated_by_text: issueObj.initiated_by_text,
-            notes: issueObj.notes,
-            related_facility: issueObj.related_facility,
-            related_project: issueObj.related_project || null,
-            reported_by: issueObj.reported_by || null,
-            open_issue: true
-        }])
+        .from('contacts')
+        .select('*')
+        .eq('facility_id', facilityId);
+
+    if (error) {
+        console.error("Database Error fetching contacts:", error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function insertFacilityContact(contactPayload) {
+    const { data, error } = await supabase
+        .from('contacts')
+        .insert([contactPayload])
         .select();
 
     if (error) {
-        console.error("Error inserting issue:", error);
+        console.error("Database Error inserting contact:", error);
         return null;
     }
-    return data[0];
+    return data && data[0] ? data[0] : null;
 }
 
-export async function updateIssue(id, issueObj) {
-    const { data, error } = await supabase
-        .from('facility_issues')
-        .update({
-            issue_title: issueObj.issue_title,
-            tool_required_text: issueObj.tool_required_text,
-            initiated_by_text: issueObj.initiated_by_text,
-            notes: issueObj.notes,
-            related_facility: issueObj.related_facility,
-            related_project: issueObj.related_project || null,
-            reported_by: issueObj.reported_by || null,
-            open_issue: issueObj.open_issue
-        })
-        .eq('id', id)
-        .select();
-
-    if (error) {
-        console.error("Error updating issue:", error);
-        return null;
+export async function saveFacilityIssue(payload, id = null) {
+    let result;
+    if (!id) {
+        result = await supabase
+            .from('facility_issues')
+            .insert([payload])
+            .select();
+    } else {
+        result = await supabase
+            .from('facility_issues')
+            .update(payload)
+            .eq('id', id)
+            .select();
     }
-    return data[0];
+
+    if (result.error) {
+        console.error("Database Error saving issue:", result.error);
+        return { error: result.error, data: null };
+    }
+    return { error: null, data: result.data && result.data[0] ? result.data[0] : null };
 }
