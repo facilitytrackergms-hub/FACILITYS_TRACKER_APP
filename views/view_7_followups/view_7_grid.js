@@ -2,49 +2,40 @@
 FILE: view_7_grid.js
 UPDATED: 2026-06-01
 ================================================= */
-
-import { fetchIssueFollowups } from './view_7_data.js';
+import { fetchFollowups } from './view_7_data.js';
 import { openFollowupModal } from './view_7_modal.js';
-import { renderImageManagerSection } from '../../js/imagemanager.js';
 
-export async function renderIssueFollowups({ issue }) {
+export async function renderFollowups(issueId) {
     const app = document.getElementById('app');
     if (!app) return;
 
-    const followups = await fetchIssueFollowups(issue.id);
+    app.innerHTML = '<p>Loading follow-ups...</p>';
+    const followups = await fetchFollowups(issueId);
 
-    app.innerHTML = `
-        <div style="padding:20px; font-family:Arial; text-align:center;">
-            <h1>Follow-Ups for Issue: ${issue.issue}</h1>
-            <button id="addFollowupBtn" style="padding:14px 28px; background:#f59e0b; color:white; border:none; border-radius:8px; cursor:pointer; margin-bottom:16px;">
-                Add Follow-Up
-            </button>
-            <div id="followupsGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; max-width:600px; margin:0 auto;"></div>
-            <button id="backBtn" style="padding:12px 20px; margin-top:20px; background:#6b7280; color:white; border:none; border-radius:8px; cursor:pointer;">
-                Back to Issues
-            </button>
-        </div>
-    `;
+    if (!followups || followups.length === 0) {
+        app.innerHTML = '<p>No follow-ups found for this issue.</p>';
+        return;
+    }
 
-    const grid = document.getElementById('followupsGrid');
+    app.innerHTML = '<div id="followupsContainer" style="display:flex; flex-direction:column; gap:12px;"></div>';
+    const container = document.getElementById('followupsContainer');
 
-    followups.forEach(f => {
-        const btn = document.createElement('button');
-        btn.textContent = f.note;
-        btn.style.cssText = `
-            padding:12px; background:#10b981; color:white; border:none; border-radius:8px; cursor:pointer;
+    followups.forEach(fu => {
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid #ccc; padding:12px; border-radius:8px; cursor:pointer;';
+
+        card.innerHTML = `
+            <h4>${fu.followup_title}</h4>
+            <p>${fu.followup_notes_text || ''}</p>
+            <p>By: ${fu.initiated_by_text || 'N/A'}</p>
         `;
-        btn.onclick = () => {
-            alert(`Follow-Up: ${f.note}\nType: ${f.followup_type}\nBy: ${f.created_by}`);
-        };
-        grid.appendChild(btn);
+        card.onclick = () => openFollowupModal(fu, issueId, true);
+        container.appendChild(card);
     });
 
-    document.getElementById('addFollowupBtn').onclick = () => {
-        openFollowupModal({ issue, onSave: () => renderIssueFollowups({ issue }) });
-    };
-
-    document.getElementById('backBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view5_issues', { facility: issue.related_facility });
-    };
+    const addBtn = document.createElement('button');
+    addBtn.innerText = "Add Follow-up";
+    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
+    addBtn.onclick = () => openFollowupModal(null, issueId, false);
+    app.appendChild(addBtn);
 }
