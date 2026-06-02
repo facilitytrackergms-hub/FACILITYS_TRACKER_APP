@@ -5,6 +5,8 @@ UPDATED: 2026-06-01
 import { insertImage, deleteImage } from './view_6_data.js';
 
 export function openImageModal(image, relatedType, relatedId) {
+    if (!relatedType || !relatedId) return console.error("relatedType and relatedId are required");
+
     let existing = document.getElementById('imageModal');
     if (existing) existing.remove();
 
