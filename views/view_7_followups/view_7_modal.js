@@ -1,65 +1,96 @@
 /* =================================================
-FILE: view_7_modal.js
-UPDATED: 2026-06-01
+FILE: views/view_7_followups/view_7_modal.js
+UPDATED: 2026-06-02 06:05:00 PM
+
+STRICT HEADER RULE:
+Do not ever remove or change this header section.
+Always keep the header at the top of current files and new files.
 ================================================= */
-import { insertFollowup, updateFollowup } from './view_7_data.js';
+import { saveIssueFollowup } from './view_7_data.js';
+import { renderImageManagerSection } from '../../js/imageManager.js';
 
-export function openFollowupModal(followup, issueId, isEdit) {
-    if (!issueId) return console.error("issueId is required for followups");
+export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
+    const modal = document.getElementById('followupModal');
 
-    let existing = document.getElementById('followupModal');
-    if (existing) existing.remove();
+    function openBlankFollowupModal() {
+        document.getElementById('followupId').value = '';
+        document.getElementById('actionTypeInput').value = 'Comment';
+        document.getElementById('actionByInput').value = '';
+        document.getElementById('descriptionInput').value = '';
+        
+        document.getElementById('followupModalTitle').innerText = "Log Action Event";
+        document.getElementById('followup-image-section').style.display = 'none';
+        modal.style.display = 'block';
+    }
 
-    const modal = document.createElement('div');
-    modal.id = 'followupModal';
-    modal.style.cssText = `
-        position:fixed; inset:0; display:flex; justify-content:center; align-items:center;
-        background:rgba(0,0,0,0.5); z-index:1000;
-    `;
+    window.openSelectedFollowupInModal = function(followup) {
+        document.getElementById('followupId').value = followup.id || '';
+        document.getElementById('actionTypeInput').value = followup.action_type || 'Comment';
+        document.getElementById('actionByInput').value = followup.action_by || '';
+        document.getElementById('descriptionInput').value = followup.description || '';
 
-    modal.innerHTML = `
-        <div style="background:white; padding:24px; border-radius:12px; width:100%; max-width:400px; text-align:center;">
-            <h2>${isEdit ? 'Edit Follow-up' : 'Add Follow-up'}</h2>
-            <input id="followupTitle" placeholder="Follow-up Title" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${followup?.followup_title || ''}">
-            <textarea id="followupNotes" placeholder="Notes" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;">${followup?.followup_notes_text || ''}</textarea>
-            <input id="followupInitiated" placeholder="Initiated By" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${followup?.initiated_by_text || ''}">
-            <div style="margin-top:12px;">
-                <button id="saveFollowupBtn" style="padding:12px 20px; background:#f59e0b; color:white; border:none; border-radius:8px; cursor:pointer; margin-right:8px;">
-                    ${isEdit ? 'Update' : 'Save'}
-                </button>
-                <button id="closeFollowupBtn" style="padding:12px 20px; background:#6b7280; color:white; border:none; border-radius:8px; cursor:pointer;">Close</button>
-            </div>
-        </div>
-    `;
+        document.getElementById('followupModalTitle').innerText = "Modify Follow-up Entry";
+        
+        const imageSection = document.getElementById('followup-image-section');
+        const imageContainer = document.getElementById('followup-image-container');
+        imageSection.style.display = 'block';
+        imageContainer.innerHTML = '';
+        
+        renderImageManagerSection(imageContainer, 'followup', followup.id, { facility, title: 'Follow-up Photos' });
+        modal.style.display = 'block';
+    };
 
-    document.body.appendChild(modal);
+    document.getElementById('addFollowupBtn').onclick = openBlankFollowupModal;
 
-    document.getElementById('closeFollowupBtn').onclick = () => modal.remove();
+    document.getElementById('closeFollowupModal').onclick = () => {
+        modal.style.display = 'none';
+        renderIssueFollowupsFn(facility, issue);
+    };
+
+    document.getElementById('backBtn').onclick = () => {
+        if (window.navigateTo) {
+            window.navigateTo('view_5_issues', { facility });
+        }
+    };
 
     document.getElementById('saveFollowupBtn').onclick = async () => {
-        const title = document.getElementById('followupTitle').value.trim();
-        const notes = document.getElementById('followupNotes').value.trim();
-        const initiatedBy = document.getElementById('followupInitiated').value.trim();
+        const id = document.getElementById('followupId').value;
+        const type = document.getElementById('actionTypeInput').value;
+        const desc = document.getElementById('descriptionInput').value.trim();
+        const by = document.getElementById('actionByInput').value.trim();
 
-        if (!title) return alert('Follow-up title is required.');
-
-        if (isEdit && followup?.id) {
-            await updateFollowup(followup.id, {
-                followup_title: title,
-                followup_notes_text: notes,
-                initiated_by_text: initiatedBy
-            });
-        } else {
-            await insertFollowup({
-                followup_title: title,
-                followup_notes_text: notes,
-                initiated_by_text: initiatedBy,
-                related_issue: issueId
-            });
+        if (!desc) {
+            alert("Description text summary fields are required.");
+            return;
         }
 
-        modal.remove();
-        const { renderFollowups } = await import('./view_7_grid.js');
-        renderFollowups(issueId);
+        const payload = {
+            issue_id: issue.id,
+            action_type: type,
+            description: desc,
+            action_by: by || 'Staff',
+            timestamp: new Date().toISOString()
+        };
+
+        const result = await saveIssueFollowup(payload, id || null);
+        
+        if (result.error) {
+            alert("Could not sync followup metrics parameters.");
+            return;
+        }
+
+        const savedItem = result.data;
+        if (savedItem) {
+            document.getElementById('followupId').value = savedItem.id;
+            document.getElementById('followupModalTitle').innerText = "Modify Follow-up Entry";
+            
+            const imageSection = document.getElementById('followup-image-section');
+            const imageContainer = document.getElementById('followup-image-container');
+            imageSection.style.display = 'block';
+            imageContainer.innerHTML = '';
+            
+            renderImageManagerSection(imageContainer, 'followup', savedItem.id, { facility, title: 'Follow-up Photos' });
+            alert("Followup activity recorded successfully!");
+        }
     };
 }
