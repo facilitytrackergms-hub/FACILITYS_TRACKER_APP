@@ -1,41 +1,56 @@
 /* =================================================
-FILE: view_3_grid.js
+FILE: view_3_modal.js
 UPDATED: 2026-06-01
 ================================================= */
-import { fetchContacts } from './view_3_data.js';
-import { openContactModal } from './view_3_modal.js';
+import { insertContact, updateContact } from './view_3_data.js';
 
-export async function renderContacts() {
-    const app = document.getElementById('app');
-    if (!app) return;
+export function openContactModal(contact, isEdit) {
+    let existing = document.getElementById('contactModal');
+    if (existing) existing.remove();
 
-    app.innerHTML = '<p>Loading contacts...</p>';
-    const contacts = await fetchContacts();
+    const modal = document.createElement('div');
+    modal.id = 'contactModal';
+    modal.style.cssText = `
+        position:fixed; inset:0; display:flex; justify-content:center; align-items:center;
+        background:rgba(0,0,0,0.5); z-index:1000;
+    `;
 
-    if (!contacts || contacts.length === 0) {
-        app.innerHTML = '<p>No contacts found.</p>';
-        return;
-    }
+    modal.innerHTML = `
+        <div style="background:white; padding:24px; border-radius:12px; width:100%; max-width:400px; text-align:center;">
+            <h2>${isEdit ? 'Edit Contact' : 'Add Contact'}</h2>
+            <input id="contactName" placeholder="Name" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${contact?.name_text || ''}">
+            <input id="contactRole" placeholder="Role" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${contact?.role_text || ''}">
+            <input id="contactFacility" placeholder="Facility ID (UUID)" style="width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #ccc;" value="${contact?.facility_id || ''}">
+            <div style="margin-top:12px;">
+                <button id="saveContactBtn" style="padding:12px 20px; background:#f59e0b; color:white; border:none; border-radius:8px; cursor:pointer; margin-right:8px;">
+                    ${isEdit ? 'Update' : 'Save'}
+                </button>
+                <button id="closeContactBtn" style="padding:12px 20px; background:#6b7280; color:white; border:none; border-radius:8px; cursor:pointer;">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
 
-    app.innerHTML = '<div id="contactsContainer" style="display:flex; flex-wrap:wrap; gap:12px;"></div>';
-    const container = document.getElementById('contactsContainer');
+    document.body.appendChild(modal);
 
-    contacts.forEach(contact => {
-        const card = document.createElement('div');
-        card.style.cssText = 'border:1px solid #ccc; padding:12px; border-radius:8px; width:200px; cursor:pointer;';
+    document.getElementById('closeContactBtn').onclick = () => modal.remove();
 
-        card.innerHTML = `
-            <h3>${contact.name_text}</h3>
-            <p>Role: ${contact.role_text}</p>
-            <p>Facility ID: ${contact.facility_id || 'N/A'}</p>
-        `;
-        card.onclick = () => openContactModal(contact, true);
-        container.appendChild(card);
-    });
+    document.getElementById('saveContactBtn').onclick = async () => {
+        const name = document.getElementById('contactName').value.trim();
+        const role = document.getElementById('contactRole').value.trim();
+        const facilityId = document.getElementById('contactFacility').value.trim();
 
-    const addBtn = document.createElement('button');
-    addBtn.innerText = "Add Contact";
-    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
-    addBtn.onclick = () => openContactModal(null, false);
-    app.appendChild(addBtn);
+        if (!name) return alert('Contact name is required.');
+
+        if (isEdit && contact?.id) {
+            await updateContact(contact.id, { name, role, facility_id: facilityId });
+        } else {
+            await insertContact({ name, role, facility_id: facilityId });
+        }
+
+        modal.remove();
+        const { renderContacts } = await import('./view_3_grid.js');
+        renderContacts();
+    };
 }
