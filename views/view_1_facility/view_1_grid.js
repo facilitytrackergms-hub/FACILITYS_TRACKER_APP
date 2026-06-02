@@ -1,40 +1,42 @@
 /* =================================================
 FILE: view_1_grid.js
+UPDATED: 2026-06-01
 ================================================= */
-
 import { fetchFacilities } from './view_1_data.js';
 import { openFacilityModal } from './view_1_modal.js';
 
-export async function renderFacilitiesDashboard() {
+export async function renderFacilities() {
     const app = document.getElementById('app');
     if (!app) return;
 
+    app.innerHTML = '<p>Loading facilities...</p>';
     const facilities = await fetchFacilities();
 
-    app.innerHTML = `
-        <div style="padding:20px; font-family:Arial; text-align:center;">
-            <h1 style="margin-bottom:20px; font-size:24px;">FACILITIES DASHBOARD</h1>
-            <button id="addFacilityBtn" style="padding:16px 32px; background:#28a745; color:white; border:none; border-radius:8px; font-size:18px; cursor:pointer; margin-bottom:20px;">
-                Create New Facility
-            </button>
-            <div id="facilitiesGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; max-width:600px; margin:0 auto;"></div>
-        </div>
-    `;
+    if (!facilities || facilities.length === 0) {
+        app.innerHTML = '<p>No facilities found.</p>';
+        return;
+    }
 
-    const grid = document.getElementById('facilitiesGrid');
+    app.innerHTML = '<div id="facilitiesContainer" style="display:flex; flex-wrap:wrap; gap:12px;"></div>';
+    const container = document.getElementById('facilitiesContainer');
 
-    facilities.forEach(f => {
-        const btn = document.createElement('button');
-        btn.textContent = f.name;
-        btn.style.cssText = `
-            padding:16px; background:#00264d; color:white; border:none; border-radius:8px;
-            cursor:pointer; font-weight:bold;
+    facilities.forEach(fac => {
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid #ccc; padding:12px; border-radius:8px; width:200px; cursor:pointer;';
+
+        card.innerHTML = `
+            <h3>${fac.name}</h3>
+            <p>${fac.address}</p>
+            <p>${fac.phone}</p>
         `;
-        btn.onclick = () => {
-            if (window.navigateTo) window.navigateTo('view2_controls', { facility: f });
-        };
-        grid.appendChild(btn);
+        card.onclick = () => openFacilityModal(fac, true);
+        container.appendChild(card);
     });
 
-    document.getElementById('addFacilityBtn').onclick = () => openFacilityModal({ onSave: renderFacilitiesDashboard });
+    // Add "New Facility" button
+    const addBtn = document.createElement('button');
+    addBtn.innerText = "Add Facility";
+    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
+    addBtn.onclick = () => openFacilityModal(null, false);
+    app.appendChild(addBtn);
 }
