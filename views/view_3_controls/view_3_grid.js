@@ -2,49 +2,40 @@
 FILE: view_3_grid.js
 UPDATED: 2026-06-01
 ================================================= */
-
 import { fetchContacts } from './view_3_data.js';
 import { openContactModal } from './view_3_modal.js';
-import { renderImageManagerSection } from '../../js/imagemanager.js';
 
-export async function renderContactsDashboard({ facility }) {
+export async function renderContacts() {
     const app = document.getElementById('app');
     if (!app) return;
 
-    const contacts = await fetchContacts(facility.id);
+    app.innerHTML = '<p>Loading contacts...</p>';
+    const contacts = await fetchContacts();
 
-    app.innerHTML = `
-        <div style="padding:20px; font-family:Arial; text-align:center;">
-            <h1>${facility.name} Contacts</h1>
-            <button id="addContactBtn" style="padding:14px 28px; background:#f5c400; color:black; border:none; border-radius:8px; cursor:pointer; margin-bottom:16px;">
-                Add Contact
-            </button>
-            <div id="contactsGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; max-width:600px; margin:0 auto;"></div>
-            <button id="backBtn" style="padding:12px 20px; margin-top:20px; background:#6b7280; color:white; border:none; border-radius:8px; cursor:pointer;">
-                Back to Controls
-            </button>
-        </div>
-    `;
+    if (!contacts || contacts.length === 0) {
+        app.innerHTML = '<p>No contacts found.</p>';
+        return;
+    }
 
-    const grid = document.getElementById('contactsGrid');
+    app.innerHTML = '<div id="contactsContainer" style="display:flex; flex-wrap:wrap; gap:12px;"></div>';
+    const container = document.getElementById('contactsContainer');
 
-    contacts.forEach(c => {
-        const btn = document.createElement('button');
-        btn.textContent = c.name;
-        btn.style.cssText = `
-            padding:12px; background:#00264d; color:white; border:none; border-radius:8px; cursor:pointer;
+    contacts.forEach(contact => {
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid #ccc; padding:12px; border-radius:8px; width:200px; cursor:pointer;';
+
+        card.innerHTML = `
+            <h3>${contact.name_text}</h3>
+            <p>Role: ${contact.role_text}</p>
+            <p>Facility ID: ${contact.facility_id || 'N/A'}</p>
         `;
-        btn.onclick = () => {
-            alert(`Contact details: ${c.name}, ${c.role}, ${c.phone}`);
-        };
-        grid.appendChild(btn);
+        card.onclick = () => openContactModal(contact, true);
+        container.appendChild(card);
     });
 
-    document.getElementById('addContactBtn').onclick = () => {
-        openContactModal({ facility, onSave: () => renderContactsDashboard({ facility }) });
-    };
-
-    document.getElementById('backBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view2_controls', { facility });
-    };
+    const addBtn = document.createElement('button');
+    addBtn.innerText = "Add Contact";
+    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
+    addBtn.onclick = () => openContactModal(null, false);
+    app.appendChild(addBtn);
 }
