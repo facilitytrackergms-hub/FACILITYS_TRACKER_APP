@@ -54,3 +54,8 @@ window.navigateTo = async (view, context = {}) => {
         app.innerHTML = `<p style="color:red;">Error loading view: ${view}</p>`;
     }
 };
+// Automatically load the default view on page load
+window.addEventListener('DOMContentLoaded', () => {
+    console.log("App loaded, navigating to default view...");
+    window.navigateTo('facility'); // or any default view you want
+});
