@@ -1,57 +1,45 @@
 /* =================================================
-FILE: view_7_data.js
-UPDATED: 2026-06-01
+FILE: views/view_7_followups/view_7_data.js
+UPDATED: 2026-06-02 06:05:00 PM
+
+STRICT HEADER RULE:
+Do not ever remove or change this header section.
+Always keep the header at the top of current files and new files.
 ================================================= */
 import { supabase } from '../../js/supabaseClient.js';
 
-export async function fetchFollowups(issueId) {
+export async function fetchIssueFollowups(issueId) {
     const { data, error } = await supabase
-        .from('facility_issues_followup')
+        .from('issue_followups')
         .select('*')
-        .eq('related_issue', issueId)
-        .order('created_at', { ascending: true });
+        .eq('issue_id', issueId)
+        .order('timestamp', { ascending: true });
 
     if (error) {
-        console.error("Error fetching follow-ups:", error);
+        console.error("Database Error fetching follow-ups:", error);
         return [];
     }
-    return data;
+    return data || [];
 }
 
-export async function insertFollowup(followupObj) {
-    const { data, error } = await supabase
-        .from('facility_issues_followup')
-        .insert([{
-            followup_title: followupObj.followup_title,
-            followup_notes_text: followupObj.followup_notes_text,
-            initiated_by_text: followupObj.initiated_by_text,
-            related_issue: followupObj.related_issue,
-            created_by: followupObj.created_by || null
-        }])
-        .select();
-
-    if (error) {
-        console.error("Error inserting follow-up:", error);
-        return null;
+export async function saveIssueFollowup(payload, id = null) {
+    let result;
+    if (id) {
+        result = await supabase
+            .from('issue_followups')
+            .update(payload)
+            .eq('id', id)
+            .select();
+    } else {
+        result = await supabase
+            .from('issue_followups')
+            .insert([payload])
+            .select();
     }
-    return data[0];
-}
 
-export async function updateFollowup(id, followupObj) {
-    const { data, error } = await supabase
-        .from('facility_issues_followup')
-        .update({
-            followup_title: followupObj.followup_title,
-            followup_notes_text: followupObj.followup_notes_text,
-            initiated_by_text: followupObj.initiated_by_text,
-            created_by: followupObj.created_by || null
-        })
-        .eq('id', id)
-        .select();
-
-    if (error) {
-        console.error("Error updating follow-up:", error);
-        return null;
+    if (result.error) {
+        console.error("Database Error saving follow-up:", result.error);
+        return { error: result.error, data: null };
     }
-    return data[0];
+    return { error: null, data: result.data && result.data[0] ? result.data[0] : null };
 }
