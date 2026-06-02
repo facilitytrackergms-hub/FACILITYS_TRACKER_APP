@@ -1,6 +1,6 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-02 07:40:00 PM
+UPDATED: 2026-06-02 07:46:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -17,37 +17,37 @@ window.navigateTo = async (view, context = {}) => {
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
 
     try {
-        // Using absolute path roots matching GitHub Pages subfolder environments
+        // Correctly stepping out of /js/ folder to root using '../'
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility') {
-            const { renderFacilities } = await import('./views/view_1_facility/view_1_grid.js');
+            const { renderFacilities } = await import('../views/view_1_facility/view_1_grid.js');
             await renderFacilities(context);
         } 
         else if (view === 'view_2_controls') {
-            const { renderFacilityControls } = await import('./views/view_2_controls/view_2_grid.js');
+            const { renderFacilityControls } = await import('../views/view_2_controls/view_2_grid.js');
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_controls') {
-            const { renderFacilityContacts } = await import('./views/view_3_controls/view_3_grid.js');
+            const { renderFacilityContacts } = await import('../views/view_3_controls/view_3_grid.js');
             await renderFacilityContacts(context);
         }
         else if (view === 'view_4_projects') {
-            const { renderPendingProjects } = await import('./views/view_4_projects/view_4_grid.js');
+            const { renderPendingProjects } = await import('../views/view_4_projects/view_4_grid.js');
             await renderPendingProjects(context);
         }
         else if (view === 'view_5_issues') {
-            const { renderFacilityIssues } = await import('./views/view_5_issues/view_5_grid.js');
+            const { renderFacilityIssues } = await import('../views/view_5_issues/view_5_grid.js');
             await renderFacilityIssues(context);
         }
         else if (view === 'view_6_images') {
-            const { renderFacilityImages } = await import('./views/view_6_images/view_6_grid.js');
+            const { renderFacilityImages } = await import('../views/view_6_images/view_6_grid.js');
             await renderFacilityImages(context);
         }
         else if (view === 'view_7_followups') {
-            const { renderIssueFollowups } = await import('./views/view_7_followups/view_7_grid.js');
+            const { renderIssueFollowups } = await import('../views/view_7_followups/view_7_grid.js');
             await renderIssueFollowups(context);
         }
         else if (view === 'view_8_reports' || view === 'reports') {
-            const { renderReports } = await import('./views/view_8_reports/view_8_grid.js');
+            const { renderReports } = await import('../views/view_8_reports/view_8_grid.js');
             await renderReports(context);
         }
         else {
