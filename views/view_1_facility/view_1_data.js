@@ -1,53 +1,42 @@
 /* =================================================
-FILE: view_1_data.js
+FILE: view_1_grid.js
 UPDATED: 2026-06-01
 ================================================= */
-import { supabase } from '../../js/supabaseClient.js';
+import { fetchFacilities } from './view_1_data.js';
+import { openFacilityModal } from './view_1_modal.js';
 
-export async function fetchFacilities() {
-    const { data, error } = await supabase
-        .from('facilities')
-        .select('*')
-        .order('created_at', { ascending: true });
+export async function renderFacilities() {
+    const app = document.getElementById('app');
+    if (!app) return;
 
-    if (error) {
-        console.error("Error fetching facilities:", error);
-        return [];
+    app.innerHTML = '<p>Loading facilities...</p>';
+    const facilities = await fetchFacilities();
+
+    if (!facilities || facilities.length === 0) {
+        app.innerHTML = '<p>No facilities found.</p>';
+        return;
     }
-    return data;
-}
 
-export async function insertFacility(facilityObj) {
-    const { data, error } = await supabase
-        .from('facilities')
-        .insert([{
-            name: facilityObj.name,
-            address: facilityObj.address,
-            phone: facilityObj.phone
-        }])
-        .select();
+    app.innerHTML = '<div id="facilitiesContainer" style="display:flex; flex-wrap:wrap; gap:12px;"></div>';
+    const container = document.getElementById('facilitiesContainer');
 
-    if (error) {
-        console.error("Error inserting facility:", error);
-        return null;
-    }
-    return data[0];
-}
+    facilities.forEach(fac => {
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid #ccc; padding:12px; border-radius:8px; width:200px; cursor:pointer;';
 
-export async function updateFacility(id, facilityObj) {
-    const { data, error } = await supabase
-        .from('facilities')
-        .update({
-            name: facilityObj.name,
-            address: facilityObj.address,
-            phone: facilityObj.phone
-        })
-        .eq('id', id)
-        .select();
+        card.innerHTML = `
+            <h3>${fac.name}</h3>
+            <p>${fac.address}</p>
+            <p>${fac.phone}</p>
+        `;
+        card.onclick = () => openFacilityModal(fac, true);
+        container.appendChild(card);
+    });
 
-    if (error) {
-        console.error("Error updating facility:", error);
-        return null;
-    }
-    return data[0];
+    // Add "New Facility" button
+    const addBtn = document.createElement('button');
+    addBtn.innerText = "Add Facility";
+    addBtn.style.cssText = "margin-top:12px; padding:10px 16px; background:#f59e0b; color:white; border:none; border-radius:6px; cursor:pointer;";
+    addBtn.onclick = () => openFacilityModal(null, false);
+    app.appendChild(addBtn);
 }
