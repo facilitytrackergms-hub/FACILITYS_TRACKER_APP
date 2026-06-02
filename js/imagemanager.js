@@ -1,66 +1,157 @@
 /* =================================================
-FILE: main.js
-UPDATED: 2026-06-02 06:15:00 PM
+FILE: js/imagemanager.js
+UPDATED: 2026-06-02 06:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
+import { supabase } from './supabaseClient.js';
 
-window.navigateTo = async (view, context = {}) => {
-    const app = document.getElementById('app');
-    if (!app) {
-        console.error("App container not found.");
-        return;
+export function renderImageManagerSection(container, type, id, options = {}) {
+    container.innerHTML = '';
+
+    const title = options.title || 'Images';
+    const section = document.createElement('div');
+    section.style.display = 'flex';
+    section.style.flexDirection = 'column';
+    section.style.gap = '10px';
+
+    // Title
+    const heading = document.createElement('h4');
+    heading.textContent = title;
+    heading.style.margin = '0 0 10px 0';
+    heading.style.color = '#00264d';
+    heading.style.fontSize = '14px';
+    section.appendChild(heading);
+
+    // Image list container
+    const list = document.createElement('div');
+    list.id = `${type}-image-list-${id}`;
+    list.style.display = 'flex';
+    list.style.flexWrap = 'wrap';
+    list.style.gap = '10px';
+    list.innerHTML = '<span style="color:#6b7280; font-size:12px; italic">Loading photos...</span>';
+    section.appendChild(list);
+
+    // Add Image button
+    const addBtn = document.createElement('button');
+    addBtn.textContent = '➕ Add Asset Photo Link';
+    addBtn.style.padding = '10px';
+    addBtn.style.cursor = 'pointer';
+    addBtn.style.background = '#28a745';
+    addBtn.style.color = '#fff';
+    addBtn.style.border = 'none';
+    addBtn.style.borderRadius = '6px';
+    addBtn.style.fontWeight = 'bold';
+    addBtn.style.fontSize = '12px';
+    addBtn.style.textTransform = 'uppercase';
+
+    // Fetch and display existing images from the database
+    async function loadImages() {
+        // Safe mapping to lowercase tables to prevent edge-case structural errors
+        const { data, error } = await supabase
+            .from('facility_images')
+            .select('*')
+            .eq(type === 'issue' ? 'issue_id' : type === 'followup' ? 'followup_id' : 'facility_id', id);
+
+        list.innerHTML = '';
+        if (error) {
+            console.error("Error pulling media records:", error);
+            list.innerHTML = '<span style="color:#dc2625; font-size:12px;">Error loading images</span>';
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            list.innerHTML = '<span style="color:#9ca3af; font-size:12px; font-style:italic;">No image media attached.</span>';
+            return;
+        }
+
+        data.forEach(imgRecord => {
+            const imgUrl = imgRecord.image_url || imgRecord.url;
+            if (!imgUrl) return;
+
+            const imgWrapper = document.createElement('div');
+            imgWrapper.style.position = 'relative';
+            imgWrapper.style.width = '80px';
+            imgWrapper.style.height = '80px';
+
+            const img = document.createElement('img');
+            img.src = imgUrl;
+            img.alt = 'Asset file attachment';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.style.border = '1px solid #d1d5db';
+            img.style.borderRadius = '6px';
+
+            // Delete asset button configuration overlay
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '×';
+            delBtn.style.position = 'absolute';
+            delBtn.style.top = '-4px';
+            delBtn.style.right = '-4px';
+            delBtn.style.background = '#dc2625';
+            delBtn.style.color = 'white';
+            delBtn.style.border = 'none';
+            delBtn.style.borderRadius = '50%';
+            delBtn.style.width = '18px';
+            delBtn.style.height = '18px';
+            delBtn.style.cursor = 'pointer';
+            delBtn.style.fontSize = '12px';
+            delBtn.style.lineHeight = '1';
+            delBtn.style.fontWeight = 'bold';
+
+            delBtn.onclick = async () => {
+                if (confirm("Permanently drop this attached image context row?")) {
+                    const { error: delErr } = await supabase
+                        .from('facility_images')
+                        .delete()
+                        .eq('id', imgRecord.id);
+                    
+                    if (delErr) {
+                        alert("Could not remove row attachment context.");
+                    } else {
+                        loadImages();
+                    }
+                }
+            };
+
+            imgWrapper.appendChild(img);
+            imgWrapper.appendChild(delBtn);
+            list.appendChild(imgWrapper);
+        });
     }
 
-    app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
+    addBtn.onclick = async () => {
+        const url = prompt('Provide complete public asset image reference URL link:');
+        if (!url || !url.trim()) return;
 
-    try {
-        if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility') {
-            const { renderFacilities } = await import('../views/view_1_facility/view_1_grid.js');
-            await renderFacilities(context);
-        } 
-        else if (view === 'view_2_controls') {
-            const { renderFacilityControls } = await import('../views/view_2_controls/view_2_grid.js');
-            await renderFacilityControls(context);
-        }
-        else if (view === 'view_3_controls') {
-            const { renderFacilityContacts } = await import('../views/view_3_controls/view_3_grid.js');
-            await renderFacilityContacts(context);
-        }
-        else if (view === 'view_4_projects') {
-            const { renderPendingProjects } = await import('../views/view_4_projects/view_4_grid.js');
-            await renderPendingProjects(context);
-        }
-        else if (view === 'view_5_issues') {
-            const { renderFacilityIssues } = await import('../views/view_5_issues/view_5_grid.js');
-            await renderFacilityIssues(context);
-        }
-        else if (view === 'view_6_images') {
-            const { renderFacilityImages } = await import('../views/view_6_images/view_6_grid.js');
-            await renderFacilityImages(context);
-        }
-        else if (view === 'view_7_followups') {
-            const { renderIssueFollowups } = await import('../views/view_7_followups/view_7_grid.js');
-            await renderIssueFollowups(context);
-        }
-        else if (view === 'view_8_reports' || view === 'reports') {
-            const { renderReports } = await import('../views/view_8_reports/view_8_grid.js');
-            await renderReports(context);
-        }
-        else {
-            console.warn(`Unknown view "${view}"`);
-            app.innerHTML = `<p style="text-align:center; padding:20px; color:#6b7280;">View not found.</p>`;
-        }
-    } catch (err) {
-        console.error("Navigation error:", err);
-        app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}</p>`;
-    }
-};
+        const payload = {
+            image_url: url.trim(),
+            created_at: new Date().toISOString()
+        };
 
-// Automatically load the default view on page load
-window.addEventListener('DOMContentLoaded', () => {
-    console.log("App loaded, navigating to default view...");
-    window.navigateTo('view_1_facility');
-});
+        // Populate foreign key correctly depending on component source type context
+        if (type === 'issue') payload.issue_id = id;
+        else if (type === 'followup') payload.followup_id = id;
+        else payload.facility_id = id;
+
+        const { error } = await supabase
+            .from('facility_images')
+            .insert([payload]);
+
+        if (error) {
+            console.error("Error appending image metadata payload row:", error);
+            alert("Could not update image database registry: " + error.message);
+        } else {
+            loadImages();
+        }
+    };
+
+    section.appendChild(addBtn);
+    container.appendChild(section);
+
+    // Initial contextual load
+    loadImages();
+}
