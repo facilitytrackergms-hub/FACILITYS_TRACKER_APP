@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_grid.js
-UPDATED: 2026-06-02 09:15:00 PM
+UPDATED: 2026-06-02 09:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -20,12 +20,14 @@ export async function renderFacilityControls(data) {
         ? `<img src="${facility.image_url}" style="width:100%; height:100%; object-fit:cover;" />` 
         : `<span style="font-size:11px; color:#64748b; font-weight:bold; text-align:center; padding:5px;">📷 Click to Add Photo</span>`;
 
-    // Make addresses look clean, and format phone numbers for mobile click-to-dial links
+    // Cleaned up syntax for phone numbers and click-to-dial mobile links
     const addressDisplay = facility?.address || 'No Address Listed';
-    const phoneDisplay = facility?.phone || 'No Phone Listed';
-    const phoneLink = facility?.phone 
-        ? `<a href="tel:${facility.phone.replace(/[^0-9+]/g, '')}" style="color:#00264d; text-decoration:none; font-weight:bold; border-bottom:1px dashed #00264d;">📞 ${facility.phone}</a>`
-        : `<span style="color:#94a3b8; font-style:italic;">No Phone Listed</span>`;
+    
+    let phoneLink = `<span style="color:#94a3b8; font-style:italic;">No Phone Listed</span>`;
+    if (facility?.phone) {
+        const cleanPhone = String(facility.phone).replace(/[^0-9+]/g, '');
+        phoneLink = `<a href="tel:${cleanPhone}" style="color:#00264d; text-decoration:none; font-weight:bold; border-bottom:1px dashed #00264d;">📞 ${facility.phone}</a>`;
+    }
 
     const styles = `
         <style>
@@ -92,7 +94,7 @@ export async function renderFacilityControls(data) {
             </div>
 
             <div class="footer-tag">
-                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-02 09:15:00 PM
+                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-02 09:20:00 PM
             </div>
         </div>
     `;
@@ -120,4 +122,12 @@ export async function renderFacilityControls(data) {
     async function loadBadges() {
         if (!facility?.id) return;
         const issues = await fetchFacilityIssues(facility.id);
-        const openIssues = issues.filter(i => i.status && i
+        const openIssues = issues.filter(i => i.status && i.status.toLowerCase() !== 'closed');
+        const badgeElement = document.getElementById('issuesTrackBadge');
+        if (badgeElement) {
+            badgeElement.style.display = openIssues.length > 0 ? 'inline-block' : 'none';
+            badgeElement.textContent = openIssues.length;
+        }
+    }
+    await loadBadges();
+}
