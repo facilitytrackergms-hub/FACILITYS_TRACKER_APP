@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 08:05:00 AM
+UPDATED: 2026-06-03 08:15:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -21,7 +21,7 @@ export async function renderFacilityContacts(data) {
             .contacts-card-wrapper { max-width:500px; margin:0 auto; background:white; border-radius:12px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
             .contacts-view-title { color:#00264d; font-size:24px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; }
             .contacts-view-subtitle { color:#6b7280; font-size:14px; margin-bottom:20px; }
-            .contacts-view-detail-box { text-align:left; background:#f9fafb; padding:20px; border-radius:8px; border:1px solid #e5e7eb; margin-bottom:20px; position:relative; }
+            .contacts-view-detail-box { text-align:left; background:#f9fafb; padding:20px; border-radius:8px; border:1px solid #e5e7eb; margin-bottom:0px; position:relative; }
             .contacts-view-label { font-size:12px; font-weight:bold; color:#9ca3af; text-transform:uppercase; margin-bottom:2px; }
             .contacts-view-value { font-size:16px; color:#1f2937; margin-bottom:15px; font-weight:500; }
             .contacts-view-btn { width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; text-transform:uppercase; box-sizing:border-box; }
@@ -72,11 +72,13 @@ export async function renderFacilityContacts(data) {
 
                 <div id="activeContactDetailCard" style="display:none;" class="contacts-view-detail-box"></div>
 
-                <button id="manualContactTriggerBtn" class="contacts-view-btn btn-emerald">➕ Add New Contact</button>
-                
-                <div id="contactsGridElement" class="contacts-grid-layout">Loading...</div>
+                <div id="directorySelectionLayout">
+                    <button id="manualContactTriggerBtn" class="contacts-view-btn btn-emerald">➕ Add New Contact</button>
+                    
+                    <div id="contactsGridElement" class="contacts-grid-layout">Loading...</div>
 
-                <button id="backBtn" class="contacts-view-btn btn-navy">⬅️ Back to Controls</button>
+                    <button id="backBtn" class="contacts-view-btn btn-navy">⬅️ Back to Controls</button>
+                </div>
             </div>
 
             <div id="manualContactModal" class="modal-mask">
@@ -152,6 +154,7 @@ export async function renderFacilityContacts(data) {
 
     function showContactDetailPanel(contact) {
         const panel = document.getElementById('activeContactDetailCard');
+        const directoryLayout = document.getElementById('directorySelectionLayout');
         if (!panel) return;
 
         const phoneLink = contact.phone && contact.phone !== 'N/A'
@@ -167,7 +170,6 @@ export async function renderFacilityContacts(data) {
         
         const issuesList = contact.contact_issues || [];
 
-        // Generate the HTML buttons for the scrollable log area
         let issuesLogHTML = '<span style="color:#9ca3af; font-size:12px; font-style:italic; display:block; padding:4px 0;">No active or past issues linked.</span>';
         
         if (issuesList.length > 0) {
@@ -211,25 +213,33 @@ export async function renderFacilityContacts(data) {
             </div>
 
             <div class="action-row">
-                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:32%; font-size:11px; padding:10px 2px;">✏️ Edit</button>
-                <button id="newIssueContactBtn" class="contacts-view-btn btn-blue" style="width:32%; font-size:11px; padding:10px 2px;">➕ New Issue</button>
-                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:32%; font-size:11px; padding:10px 2px;">🗑️ Delete</button>
+                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:23%; font-size:11px; padding:10px 2px;">✏️ Edit</button>
+                <button id="newIssueContactBtn" class="contacts-view-btn btn-blue" style="width:29%; font-size:11px; padding:10px 2px;">➕ New Issue</button>
+                <button id="closeContactDetailBtn" class="contacts-view-btn btn-gray" style="width:23%; font-size:11px; padding:10px 2px;">❌ Close</button>
+                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:23%; font-size:11px; padding:10px 2px;">🗑️ Delete</button>
             </div>
         `;
+        
+        // Hide directory menu layout items entirely to match clean full page specs
+        if (directoryLayout) directoryLayout.style.display = 'none';
         
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth' });
 
         document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
         
-        // Routes the user to log a fresh problem ticket automatically preset with this contact profile
         document.getElementById('newIssueContactBtn').onclick = () => {
             if (window.navigateTo) {
                 window.navigateTo('view_5_issues', { facility: facility, preselectedContact: contact });
             }
         };
+
+        // Added a "Close" button handler to return directly back to the clean directory grid view option choice
+        document.getElementById('closeContactDetailBtn').onclick = () => {
+            panel.style.display = 'none';
+            if (directoryLayout) directoryLayout.style.display = 'block';
+        };
         
-        // Setup individual click navigation handlers for each history row button entry
         panel.querySelectorAll('.history-issue-nav-btn').forEach(btn => {
             btn.onclick = () => {
                 const targetIssueId = btn.getAttribute('data-issue-id');
