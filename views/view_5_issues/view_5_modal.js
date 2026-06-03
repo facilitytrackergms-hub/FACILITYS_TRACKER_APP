@@ -1,12 +1,12 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-03 06:42:00 PM
+UPDATED: 2026-06-03 06:45:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchFacilityContacts, insertFacilityContact, saveFacilityIssue } from './view_5_data.js';
+import { fetchFacilityContacts, insertFacilityContact, saveFacilityIssue, deleteFacilityIssue } from './view_5_data.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
 
 export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, prefillData) {
@@ -18,6 +18,31 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
         activeContactsList = await fetchFacilityContacts(facility.id);
     }
     loadContactsCache();
+
+    // Inject phone-optimized styling overrides directly into the modal control area wrapper dynamically
+    const shell = document.querySelector('.issue-modal-shell');
+    if (shell) {
+        // Enforce a structured flex layout for form actions
+        shell.style.maxWidth = '480px';
+        shell.style.width = '95%';
+    }
+
+    // Refactor structural form footer actions button stack container into a responsive flex grid tray layout
+    const btnContainer = document.querySelector('#issueModal .issue-modal-shell > div:last-of-type');
+    if (btnContainer) {
+        btnContainer.id = 'modalButtonTrayWrapper';
+        btnContainer.removeAttribute('style');
+        btnContainer.style.cssText = 'display: flex; flex-direction: column; gap: 8px; margin-top: 20px;';
+        
+        btnContainer.innerHTML = `
+            <div style="display: flex; gap: 8px; width: 100%;">
+                <button id="saveIssueBtn" class="issue-btn issue-btn-navy" style="flex: 1; padding: 10px 5px; font-size: 12px; margin: 0;">Save Issue Report</button>
+                <button id="issueFollowupsBtn" class="issue-btn" style="flex: 1; padding: 10px 5px; font-size: 12px; background: #f5c400; color: #111; display: none; margin: 0;">💬 Follow-ups</button>
+                <button id="closeIssueModal" class="issue-btn" style="flex: 1; padding: 10px 5px; font-size: 12px; background: #6b7280; margin: 0;">Close Panel</button>
+            </div>
+            <button id="deleteIssueBtn" class="issue-btn" style="width: 100%; padding: 10px; font-size: 12px; background: #dc2626; color: white; display: none; margin-top: 4px; border: none; border-radius: 8px; font-weight: bold; text-transform: uppercase; cursor: pointer;">🗑️ Delete Entire Record</button>
+        `;
+    }
 
     function showCustomAlert(title, message, icon = 'ℹ️') {
         document.getElementById('alertIcon').innerText = icon;
@@ -47,9 +72,10 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
             timestampEl.innerText = '';
         }
 
-        document.getElementById('saveIssueBtn').innerText = "SUBMIT ISSUE REPORT";
+        document.getElementById('saveIssueBtn').innerText = "SUBMIT REPORT";
         document.getElementById('issue-image-section').style.display = 'none';
         document.getElementById('issueFollowupsBtn').style.display = 'none';
+        document.getElementById('deleteIssueBtn').style.display = 'none';
         
         modal.style.display = 'block';
     }
@@ -57,7 +83,6 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
     window.openSelectedIssueInModal = function(issue) {
         document.getElementById('issueId').value = issue.id || '';
         document.getElementById('issueDescription').value = issue.description || '';
-        // FIXED: Checked against database column reported_by primarily, falling back on initiated_by safely
         document.getElementById('issueInitiatedBy').value = issue.reported_by || issue.initiated_by || '';
         document.getElementById('issueStatus').value = issue.status || 'Open';
         document.getElementById('issuePriority').value = issue.severity || issue.priority || 'Medium';
@@ -83,6 +108,23 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
             modal.style.display = 'none';
             if (window.navigateTo) {
                 window.navigateTo('view_7_followups', { facility, issue: issue });
+            }
+        };
+
+        // Enable and wire up the mobile delete action code execution path
+        const deleteBtn = document.getElementById('deleteIssueBtn');
+        deleteBtn.style.display = 'block';
+        deleteBtn.onclick = async () => {
+            const confirmed = confirm("Are you absolutely sure you want to permanently delete this issue record? This cannot be undone.");
+            if (confirmed) {
+                const result = await deleteFacilityIssue(issue.id);
+                if (result.success) {
+                    modal.style.display = 'none';
+                    renderFacilityIssuesFn(facility);
+                    alert("Issue record successfully deleted.");
+                } else {
+                    await showCustomAlert("Delete Failed", "Could not remove record. Ensure child comment entries are cleared first.", "❌");
+                }
             }
         };
 
@@ -123,7 +165,6 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
         let targetContactId = null;
 
         if (initiatedByName) {
-            // Check cache to find if contact exists
             let matchedContact = activeContactsList.find(c => c.name && c.name.toLowerCase() === initiatedByName.toLowerCase());
             
             if (!matchedContact) {
@@ -157,7 +198,6 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
             payload.created_at = new Date().toISOString();
         }
 
-        // Send down issue info along with the contact mapping profile ID row reference code link
         const result = await saveFacilityIssue(payload, id || null, targetContactId);
         
         if (result.error) {
@@ -185,6 +225,8 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
                 }
             };
 
+            document.getElementById('deleteIssueBtn').style.display = 'block';
+
             const imageSection = document.getElementById('issue-image-section');
             const imageContainer = document.getElementById('issue-image-container');
             imageSection.style.display = 'block';
@@ -195,7 +237,6 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
         }
     };
 
-    // Auto-open parsing trigger for contact-forwarded intents
     if (autoOpen && prefillData) {
         openBlankModal(prefillData.initiated_by);
     }
