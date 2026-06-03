@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-03 06:40:00 PM
+UPDATED: 2026-06-03 07:40:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -23,6 +23,11 @@ export async function renderFacilityIssues(data) {
         prefillData = {
             initiated_by: data.preselectedContact.name || ''
         };
+    }
+
+    // Attach cached workflow form properties if passing backward from an intercepted contact creation wizard context
+    if (data?.cachedIssueForm) {
+        facility.cachedIssueForm = data.cachedIssueForm;
     }
 
     // If an issue was explicitly clicked from the contact view, open it automatically
@@ -162,7 +167,6 @@ export async function renderFacilityIssues(data) {
             if (statusStr === 'closed') badgeClass = 'status-closed';
             if (statusStr === 'pending') badgeClass = 'status-pending';
 
-            // FIXED: Standardized row data tracking property mapping to give reported_by definitive precedence
             card.innerHTML = `
                 <div class="issue-item-title">${issue.description || 'No description logged'}</div>
                 <div class="issue-item-meta">Priority: <strong>${issue.severity || issue.priority || 'Medium'}</strong> | By: ${issue.reported_by || issue.initiated_by || 'Staff'}</div>
