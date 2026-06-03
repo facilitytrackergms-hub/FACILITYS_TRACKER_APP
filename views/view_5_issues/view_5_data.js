@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_data.js
-UPDATED: 2026-06-02 08:05:00 PM
+UPDATED: 2026-06-02 08:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -15,13 +15,22 @@ export async function fetchFacilityIssues(facilityId) {
     const { data, error } = await supabase
         .from('facility_issues')
         .select('*')
-        .eq('facility_id', safeId)
-        .order('created_at', { ascending: false });
+        .eq('facility_id', safeId);
 
     if (error) {
         console.error("Database Error fetching issues:", error);
         return [];
     }
+
+    // Safe frontend client-side fallback sorting
+    if (data && data.length > 0) {
+        return data.sort((a, b) => {
+            const dateA = a.created_at || a.updated_at || 0;
+            const dateB = b.created_at || b.updated_at || 0;
+            return new Date(dateB) - new Date(dateA);
+        });
+    }
+
     return data || [];
 }
 
@@ -71,7 +80,7 @@ export async function saveFacilityIssue(payload, id = null) {
         updated_at: new Date().toISOString()
     };
 
-    // If it's a new row, attach the creation timestamp
+    // If it's a new row, attach the creation timestamp safely
     if (!id) {
         mappedPayload.created_at = new Date().toISOString();
     }
