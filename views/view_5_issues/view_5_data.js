@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_data.js
-UPDATED: 2026-06-03 06:55:00 PM
+UPDATED: 2026-06-03 06:46:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -115,4 +115,32 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
         return { error: result.error, data: null };
     }
     return { error: null, data: result.data && result.data[0] ? result.data[0] : null };
+}
+
+/**
+ * Permanently deletes an issue record from table storage.
+ * Handles cleaning up related contact junction linkages seamlessly.
+ */
+export async function deleteFacilityIssue(issueId) {
+    const safeIssueId = parseInt(issueId, 10);
+    if (isNaN(safeIssueId)) return { success: false };
+
+    // 1. Clean up junction linkages first to bypass relational dependency failures
+    await supabase
+        .from('contact_issues')
+        .delete()
+        .eq('issue_id', safeIssueId);
+
+    // 2. Erase core issue entry completely
+    const { error } = await supabase
+        .from('facility_issues')
+        .delete()
+        .eq('id', safeIssueId);
+
+    if (error) {
+        console.error("Database Error deleting facility issue record:", error);
+        return { success: false, error };
+    }
+
+    return { success: true };
 }
