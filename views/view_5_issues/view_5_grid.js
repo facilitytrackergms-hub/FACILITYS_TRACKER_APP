@@ -12,9 +12,10 @@ import { setupIssuesEvents } from './view_5_modal.js';
 export async function renderFacilityIssues(data) {
     const facility = data?.facility ? data.facility : data;
     
-    // Check if we arrived here via a preselected contact request
+    // Check if we arrived here via a preselected contact request or a specific issue link
     let autoOpen = data?.autoOpenModal || false;
     let prefillData = data?.prefill || null;
+    const autoOpenIssueId = data?.autoOpenIssue || null;
 
     if (data?.preselectedContact) {
         autoOpen = true;
@@ -75,6 +76,7 @@ export async function renderFacilityIssues(data) {
             <div id="issueModal" class="issue-modal-mask">
                 <div class="issue-modal-shell">
                     <h3 id="issueModalTitle" class="issue-modal-title">Issue Details</h3>
+                    <div id="issueModalTimestamp" style="font-size:11px; color:#6b7280; margin-top:-5px; margin-bottom:10px; font-style:italic; display:none;"></div>
                     
                     <input type="hidden" id="issueId">
 
@@ -163,6 +165,14 @@ export async function renderFacilityIssues(data) {
             
             feed.appendChild(card);
         });
+
+        // Trigger automatic parsing if matching request exists inside routing cache
+        if (autoOpenIssueId && window.openSelectedIssueInModal) {
+            const matchedIssue = issues.find(i => String(i.id) === String(autoOpenIssueId) || String(i.issue_id) === String(autoOpenIssueId));
+            if (matchedIssue) {
+                window.openSelectedIssueInModal(matchedIssue);
+            }
+        }
     }
 
     await loadIssuesDisplayList();
