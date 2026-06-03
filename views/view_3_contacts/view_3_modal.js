@@ -1,12 +1,13 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_modal.js
-UPDATED: 2026-06-03 12:15:00 PM
+UPDATED: 2026-06-03 12:31:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { insertContact, updateContact } from './view_3_data.js';
+// FIXED: Appended version query string token to clear out sticky browser module compilation states
+import { insertContact, updateContact } from './view_3_data.js?v=2026_v5';
 import { supabase } from '../../js/supabaseClient.js';
 
 export function setupContactsEvents(facility, refreshCallback) {
@@ -104,7 +105,6 @@ export function setupContactsEvents(facility, refreshCallback) {
                 image_url: imageUrl || ''
             };
 
-            // Only update internal notes row details if explicitly specified or handled as a column parameter
             if ('notes' in payload || notes) {
                 payload.notes = notes;
             }
@@ -151,7 +151,6 @@ export function openEditContactModal(contact) {
 }
 
 export function openContactIssuesModal(contactIssues, targetFacilityId, contactName = "") {
-    const modal = document.getElementById('manualContactModal'); 
     let checkModal = document.getElementById('contactIssuesListModal');
     
     if (!checkModal) {
@@ -162,28 +161,32 @@ export function openContactIssuesModal(contactIssues, targetFacilityId, contactN
     }
 
     const modalTitle = contactName ? `${contactName}'s Historic Issues Log` : "Cross-Referenced Issues Log";
+    const issuesArray = contactIssues || [];
 
     checkModal.innerHTML = `
         <div class="modal-shell" style="max-width: 450px;">
             <h3 class="modal-shell-title">${modalTitle}</h3>
-            <div class="contact-issues-scrollbar-tray" style="max-height: 250px; margin-bottom: 20px;">
-                ${contactIssues.map((issue, idx) => {
-                    const statusClass = issue.status?.toLowerCase() === 'resolved' ? 'tag-resolved' : 'tag-active';
+            <div class="contact-issues-scrollbar-tray" style="max-height: 250px; margin-bottom: 20px; overflow-y: auto;">
+                ${issuesArray.length === 0 ? `
+                    <p style="text-align:center; padding:10px; color:#6b7280; font-style:italic;">No logged issues attached to this contact.</p>
+                ` : issuesArray.map((issue, idx) => {
+                    const statusClass = String(issue.status).toLowerCase() === 'resolved' ? 'tag-resolved' : 'tag-active';
+                    const displayTitle = issue.title || `Issue #${issue.issue_id || idx}`;
                     return `
-                        <button class="history-issue-nav-btn" id="modalHistoryIssueClickBtn_${idx}" style="margin-bottom: 4px;">
-                            <span>⚠️ ${issue.title || 'Maintenance Request'}</span>
+                        <button class="history-issue-nav-btn" id="modalHistoryIssueClickBtn_${idx}" style="margin-bottom: 4px; width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+                            <span>⚠️ ${displayTitle}</span>
                             <span class="status-indicator-tag ${statusClass}">${issue.status || 'OPEN'}</span>
                         </button>
                     `;
                 }).join('')}
             </div>
-            <button id="closeIssuesModalBtn" class="contacts-view-btn btn-gray">Close Log Window</button>
+            <button id="closeIssuesModalBtn" class="contacts-view-btn btn-gray" style="width: 100%;">Close Log Window</button>
         </div>
     `;
 
     checkModal.style.display = 'flex';
 
-    contactIssues.forEach((issue, idx) => {
+    issuesArray.forEach((issue, idx) => {
         const btn = document.getElementById(`modalHistoryIssueClickBtn_${idx}`);
         if (btn) {
             btn.onclick = () => {
