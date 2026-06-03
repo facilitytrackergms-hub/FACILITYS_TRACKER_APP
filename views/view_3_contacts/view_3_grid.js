@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-02 10:35:00 PM
+UPDATED: 2026-06-02 10:55:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -31,16 +31,19 @@ export async function renderFacilityContacts(data) {
             .btn-danger { background:#dc2626; color:white; margin-top:10px; }
             .btn-warning { background:#f59e0b; color:white; margin-top:10px; margin-right:8px; }
             .contacts-grid-layout { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:12px; margin:20px 0; text-align:left; }
-            .contact-thumbnail { background:#f9fafb; border:1px solid #e5e7eb; padding:12px; border-radius:8px; cursor:pointer; text-align:center; transition:transform 0.15s ease; }
-            .contact-thumbnail:hover { transform:translateY(-2px); }
-            .thumbnail-name { font-weight:bold; color:#00264d; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            .contact-thumbnail { background:white; border:1px solid #e5e7eb; padding:12px; border-radius:8px; cursor:pointer; text-align:center; transition:transform 0.15s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+            .contact-thumbnail:hover { transform:translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+            .thumbnail-name { font-weight:bold; color:#00264d; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; margin-top:5px; }
             .thumbnail-role { font-size:12px; color:#6b7280; margin-top:2px; }
             .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
             .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; }
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
-            .contact-avatar-display { width:80px; height:80px; border-radius:50%; object-fit:cover; background:#e5e7eb; margin-bottom:15px; border:2px solid #00264d; }
+            
+            /* Avatar Image Layout styling matching facility UI guidelines */
+            .contact-avatar-frame { width:70px; height:70px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:2px solid #00264d; margin-bottom:8px; }
+            .detail-avatar-frame { width:90px; height:90px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:3px solid #00264d; margin-bottom:15px; display:block; }
             .action-row { display:flex; gap:10px; }
         </style>
     `;
@@ -111,8 +114,13 @@ export async function renderFacilityContacts(data) {
         contacts.forEach(c => {
             const block = document.createElement('div');
             block.className = 'contact-thumbnail';
+            
+            // Render placeholder initials if image link is blank
+            const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=00264d&color=fff`;
+            const avatarSrc = c.image_url ? c.image_url : fallbackAvatar;
+
             block.innerHTML = `
-                ${c.image_url ? `<img src="${c.image_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-bottom:5px;">` : ''}
+                <img src="${avatarSrc}" class="contact-avatar-frame" alt="avatar">
                 <div class="thumbnail-name">${c.name || 'N/A'}</div>
                 <div class="thumbnail-role">${c.role || 'Staff'}</div>
             `;
@@ -133,12 +141,14 @@ export async function renderFacilityContacts(data) {
             ? `<a href="mailto:${contact.email}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.email}</a>` 
             : 'N/A';
 
+        const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=00264d&color=fff`;
+        const avatarSrc = contact.image_url ? contact.image_url : fallbackAvatar;
+
         panel.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div>
-                    ${contact.image_url ? `<img src="${contact.image_url}" class="contact-avatar-display">` : ''}
-                </div>
+            <div style="display:flex; justify-content:center; width:100%;">
+                <img src="${avatarSrc}" class="detail-avatar-frame" alt="Contact Photo">
             </div>
+            
             <div class="contacts-view-label">Name</div>
             <div class="contacts-view-value">${contact.name || 'N/A'}</div>
             
