@@ -1,132 +1,244 @@
 /* =================================================
-FILE: views/view_3_contacts/view_3_data.js
-UPDATED: 2026-06-03 12:20:00 PM
+FILE: views/view_3_contacts/view_3_modal.js
+UPDATED: 2026-06-03 12:25:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
+import { insertContact, updateContact } from './view_3_data.js';
 import { supabase } from '../../js/supabaseClient.js';
 
-/**
- * Fetches all directory entries associated with a specific facility, 
- * alongside cross-referenced tracking relations from contact_issues.
- */
-export async function fetchContacts(facilityId) {
-    if (!facilityId) return [];
-    try {
-        // Step 1: Fetch valid columns from facility_contacts table
-        const { data: contacts, error: contactsError } = await supabase
-            .from('facility_contacts')
-            .select('id, facility_id, name, role, email, phone, image_url, created_at')
-            .eq('facility_id', Number(facilityId))
-            .order('name', { ascending: true });
+export function setupContactsEvents(facility, refreshCallback) {
+    const modal = document.getElementById('manualContactModal');
+    const triggerBtn = document.getElementById('manualContactTriggerBtn');
+    const closeBtn = document.getElementById('manualContactCloseBtn');
+    const saveBtn = document.getElementById('manualContactSaveBtn');
+    const backBtn = document.getElementById('backBtn');
 
-        if (contactsError) throw contactsError;
-        if (!contacts || contacts.length === 0) return [];
+    // Camera Upload Elements
+    const fileInput = document.getElementById('manualContactFile');
+    const triggerCameraBtn = document.getElementById('triggerCameraBtn');
+    const statusText = document.getElementById('uploadStatusText');
+    const hiddenImageInput = document.getElementById('manualContactImage');
 
-        // Step 2: Fetch junction linkages alongside linked title and status parameters
-        const contactIds = contacts.map(c => Number(c.id));
-        const { data: issuesLinks, error: linksError } = await supabase
-            .from('contact_issues')
-            .select(`
-                contact_id, 
-                issue_id,
-                facility_issues (
-                    title,
-                    status
-                )
-            `)
-            .in('contact_id', contactIds);
+    if (triggerCameraBtn && fileInput) {
+        triggerCameraBtn.onclick = (e) => {
+            e.preventDefault();
+            fileInput.click();
+        };
 
-        if (linksError) {
-            console.warn("Could not load associated issues mapping:", linksError);
-        }
+        fileInput.onchange = async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
 
-        // Step 3: Stitch relational records and lookup metrics together cleanly in memory
-        const mappings = issuesLinks || [];
-        return contacts.map(contact => {
-            const matchedRelations = mappings.filter(m => Number(m.contact_id) === Number(contact.id));
-            return {
-                ...contact,
-                contact_issues: matchedRelations.map(m => {
-                    // Handle cases where facility_issues is returned as an array or a single object record
-                    const issueDetails = Array.isArray(m.facility_issues) ? m.facility_issues[0] : m.facility_issues;
-                    return {
-                        issue_id: m.issue_id,
-                        title: issueDetails?.title || `Issue #${m.issue_id}`,
-                        status: issueDetails?.status || 'Open'
-                    };
-                })
+            if (statusText) statusText.innerText = "⏳ Saving ...";
+
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Math.random()}_${Date.now()}.${fileExt}`;
+                const filePath = `avatars/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('facility-assets')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = supabase.storage
+                    .from('facility-assets')
+                    .getPublicUrl(filePath);
+
+                if (hiddenImageInput) hiddenImageInput.value = publicUrlData.publicUrl;
+                if (statusText) statusText.innerText = "✅ Captured image ready";
+
+            } catch (err) {
+                console.error("Camera storage upload failed:", err);
+                if (statusText) statusText.innerText = "❌ Upload failed";
+            }
+        };
+    }
+
+    if (triggerBtn) {
+        triggerBtn.onclick = () => {
+            clearFormFields();
+            document.getElementById('modalTemplateTitle').innerText = "Create Directory Entry";
+            document.getElementById('editingContactId').value = "";
+            modal.style.display = 'flex';
+        };
+    }
+
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
+
+    if (backBtn) {
+        backBtn.onclick = () => {
+            if (window.navigateTo) window.navigateTo('view_2_controls', facility);
+        };
+    }
+
+    if (saveBtn) {
+        saveBtn.onclick = async () => {
+            const name = document.getElementById('manualContactName').value.trim();
+            const role = document.getElementById('manualContactRole').value.trim();
+            const phone = document.getElementById('manualContactPhone').value.trim();
+            const email = document.getElementById('manualContactEmail').value.trim();
+            const notes = document.getElementById('manualContactNotes').value.trim();
+            const imageUrl = document.getElementById('manualContactImage').value.trim();
+            const editingId = document.getElementById('editingContactId').value;
+
+            if (!name) {
+                alert("Please provide at least a name row label value.");
+                return;
+            }
+
+            const payload = {
+                facility_id: Number(facility.id),
+                name,
+                role: role || 'Staff',
+                phone: phone || 'N/A',
+                email: email || '',
+                image_url: imageUrl || ''
             };
-        });
-    } catch (err) {
-        console.error("Error fetching facility directory entries:", err);
-        return [];
+
+            if ('notes' in payload || notes) {
+                payload.notes = notes;
+            }
+
+            let success = false;
+            if (editingId) {
+                const res = await updateContact(editingId, payload);
+                if (res) success = true;
+            } else {
+                const res = await insertContact(payload);
+                if (res) success = true;
+            }
+
+            if (success) {
+                modal.style.display = 'none';
+                if (refreshCallback) refreshCallback(facility);
+            } else {
+                alert("Could not process directory database action request row values.");
+            }
+        };
     }
 }
 
-/**
- * Inserts a new profile row into the database directory table
- */
-export async function insertContact(payload) {
-    try {
-        const { data, error } = await supabase
-            .from('facility_contacts')
-            .insert([payload])
-            .select();
+export function openEditContactModal(contact) {
+    const modal = document.getElementById('manualContactModal');
+    if (!modal) return;
 
-        if (error) throw error;
-        return data && data.length > 0 ? data[0] : null;
-    } catch (err) {
-        console.error("Error inserting directory entry record:", err);
-        return null;
+    document.getElementById('modalTemplateTitle').innerText = "Modify Contact Details";
+    document.getElementById('editingContactId').value = contact.id;
+
+    document.getElementById('manualContactName').value = contact.name || '';
+    document.getElementById('manualContactRole').value = contact.role || '';
+    document.getElementById('manualContactPhone').value = contact.phone || '';
+    document.getElementById('manualContactEmail').value = contact.email || '';
+    document.getElementById('manualContactNotes').value = contact.notes || '';
+    document.getElementById('manualContactImage').value = contact.image_url || '';
+
+    const statusText = document.getElementById('uploadStatusText');
+    if (statusText) {
+        statusText.innerText = contact.image_url ? "✅ Has avatar photo attached" : "No image captured";
     }
+
+    modal.style.display = 'flex';
 }
 
-/**
- * Updates an existing contact card row entry matching a specific row ID
- */
-export async function updateContact(contactId, payload) {
-    if (!contactId) return null;
-    try {
-        const { data, error } = await supabase
-            .from('facility_contacts')
-            .update(payload)
-            .eq('id', Number(contactId))
-            .select();
-
-        if (error) throw error;
-        return data && data.length > 0 ? data[0] : null;
-    } catch (err) {
-        console.error(`Error updating contact record ID ${contactId}:`, err);
-        return null;
+export function openContactIssuesModal(contactIssues, targetFacilityId, contactName = "") {
+    let checkModal = document.getElementById('contactIssuesListModal');
+    
+    if (!checkModal) {
+        checkModal = document.createElement('div');
+        checkModal.id = 'contactIssuesListModal';
+        checkModal.className = 'modal-mask';
+        document.body.appendChild(checkModal);
     }
+
+    const modalTitle = contactName ? `${contactName}'s Historic Issues Log` : "Cross-Referenced Issues Log";
+    const issuesArray = contactIssues || [];
+
+    checkModal.innerHTML = `
+        <div class="modal-shell" style="max-width: 450px;">
+            <h3 class="modal-shell-title">${modalTitle}</h3>
+            <div class="contact-issues-scrollbar-tray" style="max-height: 250px; margin-bottom: 20px; overflow-y: auto;">
+                ${issuesArray.length === 0 ? `
+                    <p style="text-align:center; padding:10px; color:#6b7280; font-style:italic;">No logged issues attached to this contact.</p>
+                ` : issuesArray.map((issue, idx) => {
+                    const statusClass = String(issue.status).toLowerCase() === 'resolved' ? 'tag-resolved' : 'tag-active';
+                    // FIXED: Eliminated the fallback string 'Maintenance Request' to surface actual issue.title or fallback directly to issue ID context
+                    const displayTitle = issue.title || `Issue #${issue.issue_id || idx}`;
+                    return `
+                        <button class="history-issue-nav-btn" id="modalHistoryIssueClickBtn_${idx}" style="margin-bottom: 4px; width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+                            <span>⚠️ ${displayTitle}</span>
+                            <span class="status-indicator-tag ${statusClass}">${issue.status || 'OPEN'}</span>
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+            <button id="closeIssuesModalBtn" class="contacts-view-btn btn-gray" style="width: 100%;">Close Log Window</button>
+        </div>
+    `;
+
+    checkModal.style.display = 'flex';
+
+    issuesArray.forEach((issue, idx) => {
+        const btn = document.getElementById(`modalHistoryIssueClickBtn_${idx}`);
+        if (btn) {
+            btn.onclick = () => {
+                checkModal.style.display = 'none';
+                if (window.navigateTo) {
+                    window.navigateTo('view_5_issues', {
+                        facility: { id: targetFacilityId },
+                        autoOpenIssue: issue.issue_id,
+                        filterContactName: contactName
+                    });
+                }
+            };
+        }
+    });
+
+    document.getElementById('closeIssuesModalBtn').onclick = () => {
+        checkModal.style.display = 'none';
+    };
 }
 
-/**
- * Removes a directory entry row from the database
- */
-export async function deleteContact(contactId) {
-    if (!contactId) return false;
-    try {
-        const { error } = await supabase
-            .from('facility_contacts')
-            .delete()
-            .eq('id', Number(contactId));
+window.openContactIssuesModal = openContactIssuesModal;
 
-        if (error) throw error;
-        return true;
-    } catch (err) {
-        console.error(`Error deleting contact record ID ${contactId}:`, err);
-        return false;
-    }
+function clearFormFields() {
+    const nameEl = document.getElementById('manualContactName');
+    if (nameEl) nameEl.value = '';
+
+    const roleEl = document.getElementById('manualContactRole');
+    if (roleEl) roleEl.value = '';
+
+    const phoneEl = document.getElementById('manualContactPhone');
+    if (phoneEl) phoneEl.value = '';
+
+    const emailEl = document.getElementById('manualContactEmail');
+    if (emailEl) emailEl.value = '';
+
+    const notesEl = document.getElementById('manualContactNotes');
+    if (notesEl) notesEl.value = '';
+
+    const imgEl = document.getElementById('manualContactImage');
+    if (imgEl) imgEl.value = '';
+    
+    const statusText = document.getElementById('uploadStatusText');
+    if (statusText) statusText.innerText = "No image captured";
+    
+    const fileInput = document.getElementById('manualContactFile');
+    if (fileInput) fileInput.value = '';
 }
 
 /* =================================================
 VERSION TRACKING BLOCK
 ====================================================
 MODULE: view_3_contacts
-FILE_TYPE: data_layer
+FILE_TYPE: modal_view
 TARGET_RELATION: view_5_issues_grid
 ==================================================== */
