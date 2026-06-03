@@ -265,25 +265,7 @@ export async function openContactIssuesModal(contact) {
         }
     };
 
-    const unlinkButtons = modal.querySelectorAll('.unlink-issue-btn');
-    unlinkButtons.forEach(btn => {
-        btn.onclick = async (e) => {
-            e.stopPropagation();
-            const issueId = btn.getAttribute('data-issue-id');
-            const { error } = await supabase
-                .from('contact_issues')
-                .delete()
-                .eq('contact_id', Number(contact.id))
-                .eq('issue_id', Number(issueId));
-
-            if (!error) {
-                openContactIssuesModal(contact);
-            } else {
-                alert('Could not remove link entry.');
-            }
-        };
-    });
-
+   
     const historyCards = modal.querySelectorAll('.issue-history-item-card');
     historyCards.forEach(card => {
         card.onclick = (e) => {
