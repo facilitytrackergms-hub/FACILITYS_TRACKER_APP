@@ -141,7 +141,7 @@ export async function renderFacilityIssues(data) {
 
             card.innerHTML = `
                 <div class="issue-item-title">${issue.description || 'No description logged'}</div>
-                <div class="issue-item-meta">Priority: <strong>${issue.priority || 'Medium'}</strong> | By: ${issue.initiated_by || 'Staff'}</div>
+                <div class="issue-item-meta">Priority: <strong>${issue.priority || 'Medium'}</strong> | By: ${issue.reported_by || issue.initiated_by || 'Staff'}</div>
                 <div class="issue-item-meta" style="font-size:10px; color:#9ca3af; margin-top:2px;">Reported: ${issue.created_at ? new Date(issue.created_at).toLocaleDateString() : 'N/A'}</div>
                 <span class="issue-item-status ${badgeClass}">${issue.status || 'Open'}</span>
             `;
