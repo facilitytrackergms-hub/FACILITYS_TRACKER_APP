@@ -1,6 +1,6 @@
 /* =================================================
-FILE: views/view_3_controls/view_3_grid.js
-UPDATED: 2026-06-02 05:45:00 PM
+FILE: views/view_3_contacts/view_3_grid.js
+UPDATED: 2026-06-02 09:50:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -93,6 +93,7 @@ export async function renderFacilityContacts(data) {
         if (!facility?.id) return;
         const grid = document.getElementById('contactsGridElement');
         const contacts = await fetchContacts(facility.id);
+        if (!grid) return;
         grid.innerHTML = '';
 
         if (!contacts || contacts.length === 0) {
@@ -114,11 +115,15 @@ export async function renderFacilityContacts(data) {
 
     function showContactDetailPanel(contact) {
         const panel = document.getElementById('activeContactDetailCard');
+        if (!panel) return;
+
         const phoneLink = contact.phone 
             ? `<a href="tel:${contact.phone.replace(/[^0-9+]/g, '')}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.phone}</a>` 
             : 'N/A';
             
-        const emailLink = contact.email \n            ? `<a href="mailto:${contact.email}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.email}</a>` 
+        // Fixed syntax expression by clearing the stray slash-n token
+        const emailLink = contact.email 
+            ? `<a href="mailto:${contact.email}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.email}</a>` 
             : 'N/A';
 
         panel.innerHTML = `
