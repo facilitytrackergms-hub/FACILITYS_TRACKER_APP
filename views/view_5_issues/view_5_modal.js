@@ -40,6 +40,13 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
         document.getElementById('issuePriority').value = 'Medium';
         
         document.getElementById('issueModalTitle').innerText = "File New Issue Report";
+        
+        const timestampEl = document.getElementById('issueModalTimestamp');
+        if (timestampEl) {
+            timestampEl.style.display = 'none';
+            timestampEl.innerText = '';
+        }
+
         document.getElementById('saveIssueBtn').innerText = "SUBMIT ISSUE REPORT";
         document.getElementById('issue-image-section').style.display = 'none';
         document.getElementById('issueFollowupsBtn').style.display = 'none';
@@ -55,6 +62,18 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
         document.getElementById('issuePriority').value = issue.priority || 'Medium';
 
         document.getElementById('issueModalTitle').innerText = "Modify Issue Entry Fields";
+        
+        const timestampEl = document.getElementById('issueModalTimestamp');
+        if (timestampEl) {
+            if (issue.created_at) {
+                timestampEl.innerText = `Report Created On: ${new Date(issue.created_at).toLocaleString()}`;
+                timestampEl.style.display = 'block';
+            } else {
+                timestampEl.style.display = 'none';
+                timestampEl.innerText = '';
+            }
+        }
+
         document.getElementById('saveIssueBtn').innerText = "UPDATE INFO";
         
         const followupsBtn = document.getElementById('issueFollowupsBtn');
@@ -140,6 +159,12 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
             document.getElementById('issueId').value = savedItem.id;
             document.getElementById('saveIssueBtn').innerText = "UPDATE INFO";
             
+            const timestampEl = document.getElementById('issueModalTimestamp');
+            if (timestampEl && savedItem.created_at) {
+                timestampEl.innerText = `Report Created On: ${new Date(savedItem.created_at).toLocaleString()}`;
+                timestampEl.style.display = 'block';
+            }
+
             const followupsBtn = document.getElementById('issueFollowupsBtn');
             followupsBtn.style.display = 'block';
             followupsBtn.onclick = () => {
