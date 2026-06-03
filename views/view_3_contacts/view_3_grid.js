@@ -175,33 +175,6 @@ export async function renderFacilityContacts(data) {
         const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name || 'Staff')}&background=00264d&color=fff`;
         const avatarSrc = contact.image_url || contact.avatar_url || fallbackAvatar;
 
-        // Generate dynamic HTML for related issues tray if present
-        let issuesHtml = '';
-        if (contact.contact_issues && contact.contact_issues.length > 0) {
-            issuesHtml += `
-                <div class="contacts-view-label" style="margin-top: 10px;">Issue Summary / Description</div>
-                <div class="contact-issues-scrollbar-tray">
-            `;
-            contact.contact_issues.forEach((issue, index) => {
-                const statusClass = issue.status?.toLowerCase() === 'resolved' ? 'tag-resolved' : 'tag-active';
-                const statusLabel = issue.status || 'OPEN';
-                const resolvedTitle = issue.title || issue.issue_text || issue.text || issue.description || 'Maintenance Request';
-                
-                issuesHtml += `
-                    <button class="history-issue-nav-btn" id="historyIssueBtn_${index}">
-                        <span>⚠️ ${resolvedTitle}</span>
-                        <span class="status-indicator-tag ${statusClass}">${statusLabel}</span>
-                    </button>
-                `;
-            });
-            issuesHtml += `</div>`;
-        } else {
-            issuesHtml += `
-                <div class="contacts-view-label" style="margin-top: 10px;">Issue Summary / Description</div>
-                <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">No logged issues attached.</div>
-            `;
-        }
-
         panel.innerHTML = `
             <div style="display:flex; justify-content:center; width:100%;">
                 <img src="${avatarSrc}" class="detail-avatar-frame" alt="Contact Photo">
@@ -222,8 +195,6 @@ export async function renderFacilityContacts(data) {
             <div class="contacts-view-label">Notes</div>
             <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">${contact.notes || 'No notes added.'}</div>
 
-            ${issuesHtml}
-
             <div class="action-row">
                 <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:23%; font-size:11px; padding:10px 2px;">✏️ Edit</button>
                 <button id="newIssueContactBtn" class="contacts-view-btn btn-blue" style="width:29%; font-size:11px; padding:10px 2px;">➕ New Issue</button>
@@ -235,24 +206,6 @@ export async function renderFacilityContacts(data) {
         if (directoryLayout) directoryLayout.style.display = 'none';
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth' });
-
-        // Bind dynamic listeners for the issues list click navigation
-        if (contact.contact_issues && contact.contact_issues.length > 0) {
-            contact.contact_issues.forEach((issue, index) => {
-                const element = document.getElementById(`historyIssueBtn_${index}`);
-                if (element) {
-                    element.onclick = () => {
-                        if (window.navigateTo) {
-                            window.navigateTo('view_5_issues', { 
-                                facility: facility, 
-                                targetIssue: issue,
-                                filterContactName: contact.name 
-                            });
-                        }
-                    };
-                }
-            });
-        }
 
         document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
         
