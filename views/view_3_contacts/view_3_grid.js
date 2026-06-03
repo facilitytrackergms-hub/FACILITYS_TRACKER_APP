@@ -60,6 +60,9 @@ export async function renderFacilityContacts(data) {
             .status-indicator-tag { font-size:10px; font-weight:bold; text-transform:uppercase; padding:2px 6px; border-radius:4px; line-height:1; }
             .tag-active { background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; }
             .tag-resolved { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+            
+            /* Visual Stamp Styles */
+            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
         </style>
     `;
 
@@ -69,6 +72,10 @@ export async function renderFacilityContacts(data) {
             <div class="contacts-card-wrapper">
                 <h1 class="contacts-view-title" id="contactsTitleHeader">Facility Directory</h1>
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
+
+                <div class="view-build-stamp">
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 08:25:00 AM
+                </div>
 
                 <div id="activeContactDetailCard" style="display:none;" class="contacts-view-detail-box"></div>
 
