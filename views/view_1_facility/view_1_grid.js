@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_1_facility/view_1_grid.js
-UPDATED: 2026-06-02 05:30:00 PM
+UPDATED: 2026-06-02 08:45:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -72,7 +72,7 @@ export async function renderFacilities() {
             </div>
 
             <div style="margin-top: 50px; font-size: 0.8em; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
-                File: views/view_1_facility/view_1_grid.js | Updated: 2026-06-02 05:30:00 PM
+                File: views/view_1_facility/view_1_grid.js | Updated: 2026-06-02 08:45:00 PM
             </div>
         </div>
     `;
@@ -88,7 +88,8 @@ export async function renderFacilities() {
             const btn = document.createElement('button');
             btn.className = 'facility-btn';
             btn.textContent = f.name;
-            btn.onclick = () => window.navigateTo('view_2_controls', f);
+            // FIX: Wrap f inside an object property named facility to align with router expectations
+            btn.onclick = () => window.navigateTo('view_2_controls', { facility: f });
             list.appendChild(btn);
         });
     }
