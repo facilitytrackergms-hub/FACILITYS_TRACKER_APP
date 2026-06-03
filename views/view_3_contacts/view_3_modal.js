@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_modal.js
-UPDATED: 2026-06-03 12:35:00 PM
+UPDATED: 2026-06-03 07:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -76,7 +76,17 @@ export function setupContactsEvents(facility, refreshCallback) {
 
     if (backBtn) {
         backBtn.onclick = () => {
-            if (window.navigateTo) window.navigateTo('view_2_controls', facility);
+            if (window.navigateTo) {
+                // If returning from an issue redirection context trail path, send user back cleanly
+                if (facility?.returnToView === 'view_5_issues') {
+                    window.navigateTo('view_5_issues', { 
+                        facility: { id: facility.id },
+                        autoOpenPrefill: facility.cachedIssueForm
+                    });
+                    return;
+                }
+                window.navigateTo('view_2_controls', facility);
+            }
         };
     }
 
@@ -119,11 +129,42 @@ export function setupContactsEvents(facility, refreshCallback) {
 
             if (success) {
                 modal.style.display = 'none';
+                
+                // ROUTING WORKFLOW INTERCEPTOR: Back to original unsubmitted issue tracker draft safely
+                if (facility?.returnToView === 'view_5_issues') {
+                    if (window.navigateTo) {
+                        window.navigateTo('view_5_issues', {
+                            facility: { id: facility.id },
+                            autoOpenPrefill: {
+                                ...facility.cachedIssueForm,
+                                initiated_by: name // Use newly populated matching identity context row value
+                            }
+                        });
+                    }
+                    return;
+                }
+
                 if (refreshCallback) refreshCallback(facility);
             } else {
                 alert("Could not process directory database action request row values.");
             }
         };
+    }
+
+    // AUTOMATED REDIRECTION INTENT CHECKER: Check if triggered by an unlisted reporter setup trace request
+    if (facility?.prefillContactName) {
+        clearFormFields();
+        document.getElementById('modalTemplateTitle').innerText = "Complete Contact Directory Entry";
+        document.getElementById('editingContactId').value = "";
+        
+        document.getElementById('manualContactName').value = facility.prefillContactName;
+        document.getElementById('manualContactRole').value = "Staff";
+        
+        if (statusText) statusText.innerText = "Awaiting detail input updates...";
+        modal.style.display = 'flex';
+        
+        // Wipe variables to prevent popups on refresh cycles
+        delete facility.prefillContactName;
     }
 }
 
@@ -233,11 +274,3 @@ function clearFormFields() {
     const fileInput = document.getElementById('manualContactFile');
     if (fileInput) fileInput.value = '';
 }
-
-/* =================================================
-VERSION TRACKING BLOCK
-====================================================
-MODULE: view_3_contacts
-FILE_TYPE: modal_view
-TARGET_RELATION: view_5_issues_grid
-==================================================== */
