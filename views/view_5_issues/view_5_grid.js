@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-03 09:15:00 AM
+UPDATED: 2026-06-03 06:40:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -162,9 +162,10 @@ export async function renderFacilityIssues(data) {
             if (statusStr === 'closed') badgeClass = 'status-closed';
             if (statusStr === 'pending') badgeClass = 'status-pending';
 
+            // FIXED: Standardized row data tracking property mapping to give reported_by definitive precedence
             card.innerHTML = `
                 <div class="issue-item-title">${issue.description || 'No description logged'}</div>
-                <div class="issue-item-meta">Priority: <strong>${issue.priority || 'Medium'}</strong> | By: ${issue.reported_by || issue.initiated_by || 'Staff'}</div>
+                <div class="issue-item-meta">Priority: <strong>${issue.severity || issue.priority || 'Medium'}</strong> | By: ${issue.reported_by || issue.initiated_by || 'Staff'}</div>
                 <div class="issue-item-meta" style="font-size:10px; color:#9ca3af; margin-top:2px;">Reported: ${issue.created_at ? new Date(issue.created_at).toLocaleDateString() : 'N/A'}</div>
                 <span class="issue-item-status ${badgeClass}">${issue.status || 'Open'}</span>
             `;
