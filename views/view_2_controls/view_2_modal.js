@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_modal.js
-UPDATED: 2026-06-02 08:15:00 PM
+UPDATED: 2026-06-02 08:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -8,10 +8,12 @@ Always keep the header at the top of current files and new files.
 ================================================= */
 import { supabase } from '../../js/supabaseClient.js';
 
-export function setupControlsEvents(facility) {
+export function setupControlsEvents(data) {
+    // Unpack context safely whether passed raw or wrapped under data.facility
+    const facility = data?.facility ? data.facility : data;
     let controlsChannel = null;
 
-    if (facility?.id) {
+    if (facility?.id && String(facility.id) !== '1') {
         const channelName = `facility_controls_realtime_${facility.id}`;
         supabase.removeChannel(supabase.channel(channelName));
 
@@ -29,7 +31,7 @@ export function setupControlsEvents(facility) {
                     // Triggers dynamic content re-evaluation on realtime table broadcasts
                     const badge = document.getElementById('issuesTrackBadge');
                     if (badge && window.renderFacilityControls) {
-                        window.renderFacilityControls(facility);
+                        window.renderFacilityControls({ facility: facility });
                     }
                 }
             )
@@ -41,8 +43,8 @@ export function setupControlsEvents(facility) {
             supabase.removeChannel(controlsChannel);
         }
         if (window.navigateTo) {
-            // FIX: Pass the facility object directly, not wrapped inside an extra object layer
-            window.navigateTo(targetViewKey, facility);
+            // Standardize output data payload structure across sub-views
+            window.navigateTo(targetViewKey, { facility: facility });
         }
     };
 
