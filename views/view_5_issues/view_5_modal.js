@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-03 06:15:00 PM
+UPDATED: 2026-06-03 06:50:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -81,7 +81,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
         followupsBtn.onclick = () => {
             modal.style.display = 'none';
             if (window.navigateTo) {
-                window.navigateTo('view_7_followups', { facility, issue });
+                window.navigateTo('view_7_followups', { facility, issue: issue });
             }
         };
 
@@ -103,7 +103,8 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
 
     document.getElementById('backToControlsBtn').onclick = () => {
         if (window.navigateTo) {
-            window.navigateTo('view_2_controls', facility);
+            // FIXED: Wrapped context payload within an object structure matching updated router configurations
+            window.navigateTo('view_2_controls', { facility: facility });
         }
     };
 
