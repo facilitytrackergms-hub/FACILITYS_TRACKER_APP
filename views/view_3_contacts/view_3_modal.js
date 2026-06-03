@@ -39,16 +39,16 @@ export function setupContactsEvents(facility, refreshCallback) {
                 const fileExt = file.name.split('.').pop() || 'jpg';
                 const fileName = `contacts/${Date.now()}.${fileExt}`;
                 
-                // Stream your photo payload directly to your existing 'facility-images' bucket
-                const { data, error } = await supabase.storage
-                    .from('facility-images')
-                    .upload(fileName, file);
+              // Ensure this reads 'facility-images' exactly!
+const { data, error } = await supabase.storage
+    .from('facility-images')
+    .upload(fileName, file);
 
-                if (error) throw error;
+if (error) throw error;
 
-                const { data: urlData } = supabase.storage
-                    .from('facility-images')
-                    .getPublicUrl(fileName);
+const { data: urlData } = supabase.storage
+    .from('facility-images')
+    .getPublicUrl(fileName);
 
                 if (hiddenImageInput) hiddenImageInput.value = urlData.publicUrl;
                 if (statusText) statusText.innerText = "✅ Picture Attached!";
