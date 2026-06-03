@@ -1,12 +1,13 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_modal.js
-UPDATED: 2026-06-02 10:40:00 PM
+UPDATED: 2026-06-02 11:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
 import { insertContact, updateContact } from './view_3_data.js';
+import { supabase } from '../../js/supabaseClient.js';
 
 export function setupContactsEvents(facility, refreshCallback) {
     const modal = document.getElementById('manualContactModal');
@@ -14,6 +15,52 @@ export function setupContactsEvents(facility, refreshCallback) {
     const closeBtn = document.getElementById('manualContactCloseBtn');
     const saveBtn = document.getElementById('manualContactSaveBtn');
     const backBtn = document.getElementById('backBtn');
+
+    // Camera Upload Elements
+    const fileInput = document.getElementById('manualContactFile');
+    const triggerCameraBtn = document.getElementById('triggerCameraBtn');
+    const statusText = document.getElementById('uploadStatusText');
+    const hiddenImageInput = document.getElementById('manualContactImage');
+
+    if (triggerCameraBtn && fileInput) {
+        triggerCameraBtn.onclick = (e) => {
+            e.preventDefault();
+            fileInput.click(); // Instantly pops open the live mobile camera viewfinder
+        };
+
+        fileInput.onchange = async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            if (statusText) statusText.innerText = "⏳ Saving Snap...";
+            triggerCameraBtn.disabled = true;
+
+            try {
+                const fileExt = file.name.split('.').pop() || 'jpg';
+                const fileName = `contacts/${Date.now()}.${fileExt}`;
+                
+                // Stream your photo payload directly to your Supabase cloud asset storage bucket
+                const { data, error } = await supabase.storage
+                    .from('facility-media')
+                    .upload(fileName, file);
+
+                if (error) throw error;
+
+                const { data: urlData } = supabase.storage
+                    .from('facility-media')
+                    .getPublicUrl(fileName);
+
+                if (hiddenImageInput) hiddenImageInput.value = urlData.publicUrl;
+                if (statusText) statusText.innerText = "✅ Picture Attached!";
+            } catch (err) {
+                console.error("Camera Upload Error:", err);
+                if (statusText) statusText.innerText = "❌ Capture Failed";
+                alert("Could not process and save camera image.");
+            } finally {
+                triggerCameraBtn.disabled = false;
+            }
+        };
+    }
 
     if (triggerBtn) {
         triggerBtn.onclick = () => {
@@ -84,6 +131,11 @@ export function openEditContactModal(contact) {
     document.getElementById('manualContactNotes').value = contact.notes === 'No notes added.' ? '' : contact.notes;
     document.getElementById('manualContactImage').value = contact.image_url || '';
     
+    const statusText = document.getElementById('uploadStatusText');
+    if (statusText) {
+        statusText.innerText = contact.image_url ? "✅ Has Profile Image" : "No image captured";
+    }
+    
     document.getElementById('manualContactModal').style.display = 'flex';
 }
 
@@ -94,4 +146,10 @@ function clearFormFields() {
     document.getElementById('manualContactEmail').value = '';
     document.getElementById('manualContactNotes').value = '';
     document.getElementById('manualContactImage').value = '';
+    
+    const statusText = document.getElementById('uploadStatusText');
+    if (statusText) statusText.innerText = "No image captured";
+    
+    const fileInput = document.getElementById('manualContactFile');
+    if (fileInput) fileInput.value = '';
 }
