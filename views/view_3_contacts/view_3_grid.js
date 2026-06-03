@@ -179,15 +179,17 @@ export async function renderFacilityContacts(data) {
         let issuesHtml = '';
         if (contact.contact_issues && contact.contact_issues.length > 0) {
             issuesHtml += `
-                <div class="contacts-view-label" style="margin-top: 10px;">Reported Issues History</div>
+                <div class="contacts-view-label" style="margin-top: 10px;">Issue Summary / Description</div>
                 <div class="contact-issues-scrollbar-tray">
             `;
             contact.contact_issues.forEach((issue, index) => {
                 const statusClass = issue.status?.toLowerCase() === 'resolved' ? 'tag-resolved' : 'tag-active';
                 const statusLabel = issue.status || 'OPEN';
+                // Dynamically look for real issue details inside the lookup structure
+                const resolvedTitle = issue.description || issue.title || 'Maintenance Request';
                 issuesHtml += `
                     <button class="history-issue-nav-btn" id="historyIssueBtn_${index}">
-                        <span>⚠️ ${issue.title || 'Maintenance Request'}</span>
+                        <span>⚠️ ${resolvedTitle}</span>
                         <span class="status-indicator-tag ${statusClass}">${statusLabel}</span>
                     </button>
                 `;
@@ -195,8 +197,8 @@ export async function renderFacilityContacts(data) {
             issuesHtml += `</div>`;
         } else {
             issuesHtml += `
-                <div class="contacts-view-label" style="margin-top: 10px;">Reported Issues History</div>
-                <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">No notes added.</div>
+                <div class="contacts-view-label" style="margin-top: 10px;">Issue Summary / Description</div>
+                <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">No logged issues attached.</div>
             `;
         }
 
