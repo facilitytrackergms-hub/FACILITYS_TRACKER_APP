@@ -170,7 +170,11 @@ export async function openContactIssuesModal(contact) {
             facility_issues!contact_issues_issue_id_fkey (
                 id,
                 title,
-                description
+                description,
+                status,
+                priority,
+                created_at,
+                initiated_by
             )
         `)
         .eq('contact_id', Number(contact.id));
@@ -190,16 +194,36 @@ export async function openContactIssuesModal(contact) {
             <div style="font-weight:bold; color:#64748b; margin-bottom:15px; font-size:15px;">${contact.name}</div>
             
             <label style="font-size:12px; font-weight:bold; color:#4b5563; display:block; margin-bottom:6px;">Current Linked System Issues:</label>
-            <div id="currentIssuesList" style="max-height:160px; overflow-y:auto; margin-bottom:20px; border:1px solid #e5e7eb; padding:10px; border-radius:8px; background:#f9fafb;">
+            <div id="currentIssuesList" style="max-height:240px; overflow-y:auto; margin-bottom:20px; border:1px solid #e5e7eb; padding:10px; border-radius:8px; background:#f9fafb;">
                 ${linkedConnections && linkedConnections.length > 0 ? 
                     linkedConnections.map(c => {
                         const issue = c.facility_issues;
                         if (!issue) return '';
-                        const textDisplay = issue.title || issue.description || `Issue ID Reference: ${issue.id}`;
+                        
+                        const statusStr = (issue.status || 'Open').toLowerCase();
+                        let badgeStyle = 'background:#fef3c7; color:#d97706;';
+                        if (statusStr === 'closed') badgeStyle = 'background:#d1fae5; color:#059669;';
+                        if (statusStr === 'pending') badgeStyle = 'background:#e0f2fe; color:#0284c7;';
+
                         return `
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e5e7eb; font-size:13px; color:#1f2937;">
-                                <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:260px;">⚠️ ${textDisplay}</span>
-                                <button class="unlink-issue-btn" data-issue-id="${issue.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:12px;">Remove</button>
+                            <div class="issue-history-item-card" data-issue-id="${issue.id}" style="background:white; padding:12px; border-radius:8px; border:1px solid #e5e7eb; margin-bottom:10px; position:relative; cursor:pointer; text-align:left;">
+                                <div style="font-weight:bold; color:#00264d; font-size:14px; padding-right:65px; line-height:1.3;">
+                                    ${issue.description || issue.title || 'No Description Logged'}
+                                </div>
+                                <div style="font-size:11px; color:#6b7280; margin-top:6px;">
+                                    Priority: <span style="font-weight:600; color:#111827;">${issue.priority || 'Medium'}</span> 
+                                    <span style="margin:0 4px;">|</span> 
+                                    By: ${issue.initiated_by || 'Staff'}
+                                </div>
+                                <div style="font-size:10px; color:#9ca3af; margin-top:2px;">
+                                    Reported: ${issue.created_at ? new Date(issue.created_at).toLocaleDateString() : '6/3/2026'}
+                                </div>
+                                <span style="position:absolute; top:12px; right:12px; font-size:10px; padding:2px 8px; border-radius:12px; font-weight:bold; text-transform:uppercase; ${badgeStyle}">
+                                    ${issue.status || 'Open'}
+                                </span>
+                                <div style="margin-top:8px; border-top:1px dashed #e5e7eb; padding-top:6px; text-align:right;">
+                                    <button class="unlink-issue-btn" data-issue-id="${issue.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:11px; padding:0;">❌ Remove Link</button>
+                                </div>
                             </div>
                         `;
                     }).join('') 
@@ -212,7 +236,7 @@ export async function openContactIssuesModal(contact) {
                 <select id="issueSelectDropdown" style="flex:1; padding:10px; border-radius:8px; border:1px solid #d1d5db; font-size:13px; background:white;">
                     <option value="">-- Choose Active Issue --</option>
                     ${allIssues.map(i => {
-                        const optionText = i.title || i.description || `Issue #${i.id}`;
+                        const optionText = i.description || i.title || `Issue #${i.id}`;
                         return `<option value="${i.id}">${optionText}</option>`;
                     }).join('')}
                 </select>
@@ -246,7 +270,8 @@ export async function openContactIssuesModal(contact) {
     const unlinkButtons = modal.querySelectorAll('.unlink-issue-btn');
     unlinkButtons.forEach(btn => {
         btn.onclick = async (e) => {
-            const issueId = e.target.getAttribute('data-issue-id');
+            e.stopPropagation();
+            const issueId = btn.getAttribute('data-issue-id');
             const { error } = await supabase
                 .from('contact_issues')
                 .delete()
@@ -257,6 +282,22 @@ export async function openContactIssuesModal(contact) {
                 openContactIssuesModal(contact);
             } else {
                 alert('Could not remove link entry.');
+            }
+        };
+    });
+
+    // Make each issue card item clickable to jump directly into editing the full report fields
+    const historyCards = modal.querySelectorAll('.issue-history-item-card');
+    historyCards.forEach(card => {
+        card.onclick = (e) => {
+            if (e.target.classList.contains('unlink-issue-btn')) return;
+            const issueId = card.getAttribute('data-issue-id');
+            modal.style.display = 'none';
+            if (window.navigateTo) {
+                window.navigateTo('view_5_issues', {
+                    facility: { id: targetFacilityId },
+                    autoOpenIssue: issueId
+                });
             }
         };
     });
