@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 03:52:00 PM
+UPDATED: 2026-06-03 06:00:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -74,7 +74,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 11:55:00 AM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 06:00:00 PM
                 </div>
 
                 <div id="activeContactDetailCard" style="display:none;" class="contacts-view-detail-box"></div>
@@ -175,6 +175,27 @@ export async function renderFacilityContacts(data) {
         const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name || 'Staff')}&background=00264d&color=fff`;
         const avatarSrc = contact.image_url || contact.avatar_url || fallbackAvatar;
 
+        // Build clickable problem/issue buttons if any are attached to this specific user
+        const issuesList = contact.contact_issues || [];
+        let issuesMarkup = '';
+
+        if (issuesList.length > 0) {
+            issuesMarkup = `
+                <div class="contacts-view-label" style="margin-top:15px; margin-bottom:6px;">Reported Issues</div>
+                <div class="contact-issues-scrollbar-tray">
+                    ${issuesList.map(issue => {
+                        const statusClass = String(issue.status).toLowerCase() === 'open' || String(issue.status).toLowerCase() === 'active' ? 'tag-active' : 'tag-resolved';
+                        return `
+                            <button class="history-issue-nav-btn" data-issue-id="${issue.issue_id}">
+                                <span>${issue.title || `Issue #${issue.issue_id}`}</span>
+                                <span class="status-indicator-tag ${statusClass}">${issue.status || 'OPEN'}</span>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
         panel.innerHTML = `
             <div style="display:flex; justify-content:center; width:100%;">
                 <img src="${avatarSrc}" class="detail-avatar-frame" alt="Contact Photo">
@@ -195,6 +216,8 @@ export async function renderFacilityContacts(data) {
             <div class="contacts-view-label">Notes</div>
             <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">${contact.notes || 'No notes added.'}</div>
 
+            ${issuesMarkup}
+
             <div class="action-row">
                 <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:23%; font-size:11px; padding:10px 2px;">✏️ Edit</button>
                 <button id="newIssueContactBtn" class="contacts-view-btn btn-blue" style="width:29%; font-size:11px; padding:10px 2px;">➕ New Issue</button>
@@ -206,6 +229,16 @@ export async function renderFacilityContacts(data) {
         if (directoryLayout) directoryLayout.style.display = 'none';
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth' });
+
+        // Bind clicks on individual issue tracking buttons to jump to their respective screen views
+        panel.querySelectorAll('.history-issue-nav-btn').forEach(btn => {
+            btn.onclick = () => {
+                const targetIssueId = btn.getAttribute('data-issue-id');
+                if (window.navigateTo) {
+                    window.navigateTo('view_5_issues', { facility: facility, targetIssueId: targetIssueId });
+                }
+            };
+        });
 
         document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
         
