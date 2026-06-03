@@ -1,13 +1,13 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-02 10:00:00 PM
+UPDATED: 2026-06-02 10:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchContacts } from './view_3_data.js';
-import { setupContactsEvents } from './view_3_modal.js';
+import { fetchContacts, deleteContact } from './view_3_data.js';
+import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
 
 export async function renderFacilityContacts(data) {
     const app = document.getElementById('app');
@@ -21,14 +21,15 @@ export async function renderFacilityContacts(data) {
             .contacts-card-wrapper { max-width:500px; margin:0 auto; background:white; border-radius:12px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
             .contacts-view-title { color:#00264d; font-size:24px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; }
             .contacts-view-subtitle { color:#6b7280; font-size:14px; margin-bottom:20px; }
-            .contacts-view-detail-box { text-align:left; background:#f9fafb; padding:20px; border-radius:8px; border:1px solid #e5e7eb; margin-bottom:20px; }
+            .contacts-view-detail-box { text-align:left; background:#f9fafb; padding:20px; border-radius:8px; border:1px solid #e5e7eb; margin-bottom:20px; position:relative; }
             .contacts-view-label { font-size:12px; font-weight:bold; color:#9ca3af; text-transform:uppercase; margin-bottom:2px; }
             .contacts-view-value { font-size:16px; color:#1f2937; margin-bottom:15px; font-weight:500; }
-            .contacts-view-value:last-child { margin-bottom:0; }
             .contacts-view-btn { width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; text-transform:uppercase; box-sizing:border-box; }
             .btn-navy { background:#00264d; color:white; }
             .btn-emerald { background:#10b981; color:white; margin-bottom:12px; }
             .btn-gray { background:#9ca3af; color:white; }
+            .btn-danger { background:#dc2626; color:white; margin-top:10px; }
+            .btn-warning { background:#f59e0b; color:white; margin-top:10px; margin-right:8px; }
             .contacts-grid-layout { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:12px; margin:20px 0; text-align:left; }
             .contact-thumbnail { background:#f9fafb; border:1px solid #e5e7eb; padding:12px; border-radius:8px; cursor:pointer; text-align:center; transition:transform 0.15s ease; }
             .contact-thumbnail:hover { transform:translateY(-2px); }
@@ -39,7 +40,8 @@ export async function renderFacilityContacts(data) {
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
-            .form-action-group { display:flex; flex-direction:column; gap:8px; margin-top:20px; }
+            .contact-avatar-display { width:80px; height:80px; border-radius:50%; object-fit:cover; background:#e5e7eb; margin-bottom:15px; border:2px solid #00264d; }
+            .action-row { display:flex; gap:10px; }
         </style>
     `;
 
@@ -61,7 +63,8 @@ export async function renderFacilityContacts(data) {
 
             <div id="manualContactModal" class="modal-mask">
                 <div class="modal-shell">
-                    <h3 class="modal-shell-title">Create Directory Entry</h3>
+                    <h3 class="modal-shell-title" id="modalTemplateTitle">Create Directory Entry</h3>
+                    <input type="hidden" id="editingContactId" value="">
                     
                     <label class="form-field-label">Full Name</label>
                     <input type="text" id="manualContactName" class="form-field-input">
@@ -75,10 +78,13 @@ export async function renderFacilityContacts(data) {
                     <label class="form-field-label">Email Address</label>
                     <input type="email" id="manualContactEmail" class="form-field-input">
 
+                    <label class="form-field-label">Image URL / Avatar Link</label>
+                    <input type="url" id="manualContactImage" class="form-field-input" placeholder="https://example.com/photo.jpg">
+
                     <label class="form-field-label">Internal Notes</label>
                     <textarea id="manualContactNotes" class="form-field-input" style="height:60px; resize:none;"></textarea>
 
-                    <div class="form-action-group">
+                    <div class="form-action-group" style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
                         <button id="manualContactSaveBtn" class="contacts-view-btn btn-navy">Save Details</button>
                         <button id="manualContactCloseBtn" class="contacts-view-btn btn-gray">Cancel</button>
                     </div>
@@ -106,6 +112,7 @@ export async function renderFacilityContacts(data) {
             const block = document.createElement('div');
             block.className = 'contact-thumbnail';
             block.innerHTML = `
+                ${c.image_url ? `<img src="${c.image_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-bottom:5px;">` : ''}
                 <div class="thumbnail-name">${c.name || 'N/A'}</div>
                 <div class="thumbnail-role">${c.role || 'Staff'}</div>
             `;
@@ -118,19 +125,20 @@ export async function renderFacilityContacts(data) {
         const panel = document.getElementById('activeContactDetailCard');
         if (!panel) return;
 
-        // Structured cleanly without using line-break expressions
-        let phoneLink = 'N/A';
-        if (contact.phone) {
-            const cleanPhone = contact.phone.replace(/[^0-9+]/g, '');
-            phoneLink = `<a href="tel:${cleanPhone}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.phone}</a>`;
-        }
-
-        let emailLink = 'N/A';
-        if (contact.email) {
-            emailLink = `<a href="mailto:${contact.email}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.email}</a>`;
-        }
+        const phoneLink = contact.phone && contact.phone !== 'N/A'
+            ? `<a href="tel:${contact.phone.replace(/[^0-9+]/g, '')}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.phone}</a>` 
+            : 'N/A';
+            
+        const emailLink = contact.email 
+            ? `<a href="mailto:${contact.email}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.email}</a>` 
+            : 'N/A';
 
         panel.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    ${contact.image_url ? `<img src="${contact.image_url}" class="contact-avatar-display">` : ''}
+                </div>
+            </div>
             <div class="contacts-view-label">Name</div>
             <div class="contacts-view-value">${contact.name || 'N/A'}</div>
             
@@ -144,10 +152,30 @@ export async function renderFacilityContacts(data) {
             <div class="contacts-view-value">${emailLink}</div>
             
             <div class="contacts-view-label">Notes</div>
-            <div class="contacts-view-value" style="margin-bottom:0; font-size:13px; color:#4b5563;">${contact.notes || 'No notes added.'}</div>
+            <div class="contacts-view-value" style="font-size:13px; color:#4b5563;">${contact.notes || 'No notes added.'}</div>
+            
+            <div class="action-row">
+                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:50%;">✏️ Edit</button>
+                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:50%;">🗑️ Delete</button>
+            </div>
         `;
+        
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth' });
+
+        document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
+        
+        document.getElementById('deleteContactBtn').onclick = async () => {
+            if (confirm(`Are you sure you want to remove ${contact.name}?`)) {
+                const success = await deleteContact(contact.id);
+                if (success) {
+                    alert("Contact removed successfully.");
+                    renderFacilityContacts(facility);
+                } else {
+                    alert("Failed to delete contact.");
+                }
+            }
+        };
     }
 
     await loadContactsGridData();
