@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 08:25:00 AM
+UPDATED: 2026-06-03 08:30:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -74,7 +74,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 08:25:00 AM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 08:30:00 AM
                 </div>
 
                 <div id="activeContactDetailCard" style="display:none;" class="contacts-view-detail-box"></div>
@@ -175,6 +175,31 @@ export async function renderFacilityContacts(data) {
         const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=00264d&color=fff`;
         const avatarSrc = contact.image_url || contact.avatar_url || fallbackAvatar;
 
+        // Generate dynamic HTML for related issues tray if present
+        let issuesHtml = '';
+        if (contact.contact_issues && contact.contact_issues.length > 0) {
+            issuesHtml += `
+                <div class="contacts-view-label" style="margin-top: 10px;">Reported Issues History</div>
+                <div class="contact-issues-scrollbar-tray">
+            `;
+            contact.contact_issues.forEach((issue, index) => {
+                const statusClass = issue.status?.toLowerCase() === 'resolved' ? 'tag-resolved' : 'tag-active';
+                const statusLabel = issue.status || 'OPEN';
+                issuesHtml += `
+                    <button class="history-issue-nav-btn" id="historyIssueBtn_${index}">
+                        <span>⚠️ ${issue.title || 'Maintenance Request'}</span>
+                        <span class="status-indicator-tag ${statusClass}">${statusLabel}</span>
+                    </button>
+                `;
+            });
+            issuesHtml += `</div>`;
+        } else {
+            issuesHtml += `
+                <div class="contacts-view-label" style="margin-top: 10px;">Reported Issues History</div>
+                <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">No notes added.</div>
+            `;
+        }
+
         panel.innerHTML = `
             <div style="display:flex; justify-content:center; width:100%;">
                 <img src="${avatarSrc}" class="detail-avatar-frame" alt="Contact Photo">
@@ -195,6 +220,8 @@ export async function renderFacilityContacts(data) {
             <div class="contacts-view-label">Notes</div>
             <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">${contact.notes || 'No notes added.'}</div>
 
+            ${issuesHtml}
+
             <div class="action-row">
                 <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:23%; font-size:11px; padding:10px 2px;">✏️ Edit</button>
                 <button id="newIssueContactBtn" class="contacts-view-btn btn-blue" style="width:29%; font-size:11px; padding:10px 2px;">➕ New Issue</button>
@@ -206,6 +233,24 @@ export async function renderFacilityContacts(data) {
         if (directoryLayout) directoryLayout.style.display = 'none';
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth' });
+
+        // Bind dynamic listeners for the issues list click navigation
+        if (contact.contact_issues && contact.contact_issues.length > 0) {
+            contact.contact_issues.forEach((issue, index) => {
+                const element = document.getElementById(`historyIssueBtn_${index}`);
+                if (element) {
+                    element.onclick = () => {
+                        if (window.navigateTo) {
+                            window.navigateTo('view_5_issues', { 
+                                facility: facility, 
+                                targetIssue: issue,
+                                filterContactName: contact.name 
+                            });
+                        }
+                    };
+                }
+            });
+        }
 
         document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
         
