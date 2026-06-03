@@ -1,6 +1,6 @@
 /* =================================================
-FILE: views/view_3_controls/view_3_data.js
-UPDATED: 2026-06-02 05:45:00 PM
+FILE: views/view_3_contacts/view_3_data.js
+UPDATED: 2026-06-02 10:05:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -22,14 +22,16 @@ export async function fetchContacts(facilityId) {
 }
 
 export async function insertContact(contactData) {
-    // Ensuring lowercase keys for all database writes
+    // Safely extract the facility ID whether it's flat or nested inside an object
+    const rawFacilityId = contactData.facility_id || contactData.facility?.id || contactData.id;
+
     const cleanData = {
         name: contactData.name,
         role: contactData.role,
         phone: contactData.phone,
         email: contactData.email,
         notes: contactData.notes,
-        facility_id: contactData.facility_id
+        facility_id: rawFacilityId ? parseInt(rawFacilityId, 10) : null
     };
 
     const { data, error } = await supabase
