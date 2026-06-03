@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_data.js
-UPDATED: 2026-06-03 11:40:00 AM
+UPDATED: 2026-06-03 12:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -39,31 +39,34 @@ export async function fetchContacts(facilityId) {
             `)
             .in('contact_id', contactIds);
 
-        if (linksError) {
-            console.warn("Could not load associated issues mapping:", linksError);
-        }
+        if (linksError) throw linksError;
 
-        // Step 3: Stitch relational records and lookup metrics together cleanly in memory
-        const mappings = issuesLinks || [];
-        return contacts.map(contact => {
-            const matchedRelations = mappings.filter(m => Number(m.contact_id) === Number(contact.id));
+        // Step 3: Align rows into unified layout view models
+        return contacts.map(c => {
+            const matchedRelations = (issuesLinks || []).filter(link => Number(link.contact_id) === Number(c.id));
+            
             return {
-                ...contact,
-                contact_issues: matchedRelations.map(m => ({
-                    issue_id: m.issue_id,
-                    title: m.facility_issues?.title || `Issue #${m.issue_id}`,
-                    status: m.facility_issues?.status || 'Open'
-                }))
+                ...c,
+                contact_issues: matchedRelations.map(m => {
+                    // Defensive check: Handle cases where facility_issues is returned as an array or a direct single object record
+                    const issueDetails = Array.isArray(m.facility_issues) ? m.facility_issues[0] : m.facility_issues;
+                    return {
+                        issue_id: m.issue_id,
+                        title: issueDetails?.title || `Issue #${m.issue_id}`,
+                        status: issueDetails?.status || 'Open'
+                    };
+                })
             };
         });
+
     } catch (err) {
-        console.error("Error fetching facility directory entries:", err);
+        console.error("Critical error while populating contact data models:", err);
         return [];
     }
 }
 
 /**
- * Inserts a new profile row into the database directory table
+ * Creates a brand new directory card entry inside the facility contacts database table
  */
 export async function insertContact(payload) {
     try {
@@ -108,8 +111,7 @@ export async function deleteContact(contactId) {
     try {
         const { error } = await supabase
             .from('facility_contacts')
-            .delete()
-            .eq('id', Number(contactId));
+            .delete()\n            .eq('id', Number(contactId));
 
         if (error) throw error;
         return true;
