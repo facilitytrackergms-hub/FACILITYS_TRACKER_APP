@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 08:15:00 AM
+UPDATED: 2026-06-03 08:25:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -220,9 +220,7 @@ export async function renderFacilityContacts(data) {
             </div>
         `;
         
-        // Hide directory menu layout items entirely to match clean full page specs
         if (directoryLayout) directoryLayout.style.display = 'none';
-        
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth' });
 
@@ -234,7 +232,6 @@ export async function renderFacilityContacts(data) {
             }
         };
 
-        // Added a "Close" button handler to return directly back to the clean directory grid view option choice
         document.getElementById('closeContactDetailBtn').onclick = () => {
             panel.style.display = 'none';
             if (directoryLayout) directoryLayout.style.display = 'block';
@@ -254,6 +251,9 @@ export async function renderFacilityContacts(data) {
                 const success = await deleteContact(contact.id);
                 if (success) {
                     alert("Contact removed successfully.");
+                    // After delete, return back cleanly to the main layout selection menu
+                    panel.style.display = 'none';
+                    if (directoryLayout) directoryLayout.style.display = 'block';
                     renderFacilityContacts(facility);
                 } else {
                     alert("Failed to delete contact.");
