@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-02 09:50:00 PM
+UPDATED: 2026-06-02 09:55:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -121,7 +121,6 @@ export async function renderFacilityContacts(data) {
             ? `<a href="tel:${contact.phone.replace(/[^0-9+]/g, '')}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.phone}</a>` 
             : 'N/A';
             
-        // Fixed syntax expression by clearing the stray slash-n token
         const emailLink = contact.email 
             ? `<a href="mailto:${contact.email}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.email}</a>` 
             : 'N/A';
