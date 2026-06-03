@@ -185,8 +185,10 @@ export async function renderFacilityContacts(data) {
             contact.contact_issues.forEach((issue, index) => {
                 const statusClass = issue.status?.toLowerCase() === 'resolved' ? 'tag-resolved' : 'tag-active';
                 const statusLabel = issue.status || 'OPEN';
-                // Dynamically look for real issue details inside the lookup structure
-                const resolvedTitle = issue.description || issue.title || 'Maintenance Request';
+                
+                // Prioritize the actual custom texts or titles from database rows before resorting to standard fallback text
+                const resolvedTitle = issue.issue_text || issue.text || issue.description || issue.title || 'Maintenance Request';
+                
                 issuesHtml += `
                     <button class="history-issue-nav-btn" id="historyIssueBtn_${index}">
                         <span>⚠️ ${resolvedTitle}</span>
