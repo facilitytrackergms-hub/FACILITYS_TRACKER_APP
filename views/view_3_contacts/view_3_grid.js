@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 07:15:00 AM
+UPDATED: 2026-06-03 07:45:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -28,9 +28,9 @@ export async function renderFacilityContacts(data) {
             .btn-navy { background:#00264d; color:white; }
             .btn-emerald { background:#10b981; color:white; margin-bottom:12px; }
             .btn-gray { background:#9ca3af; color:white; }
-            .btn-danger { background:#dc2626; color:white; margin-top:10px; }
-            .btn-warning { background:#f59e0b; color:white; margin-top:10px; }
-            .btn-blue { background:#0056b3; color:white; margin-top:10px; }
+            .btn-danger { background:#dc2626; color:white; margin-top:0; }
+            .btn-warning { background:#f59e0b; color:white; margin-top:0; }
+            .btn-blue { background:#0056b3; color:white; margin-top:0; }
             .contacts-grid-layout { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:12px; margin:20px 0; text-align:left; }
             .contact-thumbnail { background:white; border:1px solid #e5e7eb; padding:12px; border-radius:8px; cursor:pointer; text-align:center; transition:transform 0.15s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
             .contact-thumbnail:hover { transform:translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -44,7 +44,7 @@ export async function renderFacilityContacts(data) {
             
             .contact-avatar-frame { width:70px; height:70px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:2px solid #00264d; margin-bottom:8px; }
             .detail-avatar-frame { width:90px; height:90px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:3px solid #00264d; margin-bottom:15px; display:block; }
-            .action-row { display:flex; gap:6px; width:100%; justify-content:space-between; }
+            .action-row { display:flex; gap:6px; width:100%; justify-content:space-between; align-items:center; margin-top:15px; }
             
             /* Camera Row Layout Styles */
             .camera-action-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
@@ -54,7 +54,7 @@ export async function renderFacilityContacts(data) {
             .grid-issue-badge { position:absolute; top:6px; right:6px; background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; font-size:10px; font-weight:bold; border-radius:4px; padding:2px 4px; line-height:1; }
 
             /* Scrollable Issue Tracker Log Styling */
-            .contact-issues-scrollbar-tray { max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; padding:8px; border-radius:8px; background:#ffffff; display:flex; flex-direction:column; gap:6px; margin-top:4px; margin-bottom:18px; }
+            .contact-issues-scrollbar-tray { max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; padding:8px; border-radius:8px; background:#ffffff; display:flex; flex-direction:column; gap:6px; margin-top:4px; margin-bottom:12px; }
             .history-issue-nav-btn { display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; border:1px solid #d1d5db; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-family:Arial, sans-serif; background:#f9fafb; font-weight:500; transition: background 0.15s; }
             .history-issue-nav-btn:hover { background:#f3f4f6; border-color:#9ca3af; }
             .status-indicator-tag { font-size:10px; font-weight:bold; text-transform:uppercase; padding:2px 6px; border-radius:4px; line-height:1; }
@@ -211,8 +211,9 @@ export async function renderFacilityContacts(data) {
             </div>
 
             <div class="action-row">
-                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:48%; font-size:12px; padding:10px 4px;">✏️ Edit Info</button>
-                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:48%; font-size:12px; padding:10px 4px; margin-top:0;">🗑️ Delete Contact</button>
+                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:32%; font-size:11px; padding:10px 2px;">✏️ Edit</button>
+                <button id="newIssueContactBtn" class="contacts-view-btn btn-blue" style="width:32%; font-size:11px; padding:10px 2px;">➕ New Issue</button>
+                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:32%; font-size:11px; padding:10px 2px;">🗑️ Delete</button>
             </div>
         `;
         
@@ -220,6 +221,13 @@ export async function renderFacilityContacts(data) {
         panel.scrollIntoView({ behavior: 'smooth' });
 
         document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
+        
+        // Routes the user to log a fresh problem ticket automatically preset with this contact profile
+        document.getElementById('newIssueContactBtn').onclick = () => {
+            if (window.navigateTo) {
+                window.navigateTo('view_5_issues', { facility: facility, preselectedContact: contact });
+            }
+        };
         
         // Setup individual click navigation handlers for each history row button entry
         panel.querySelectorAll('.history-issue-nav-btn').forEach(btn => {
