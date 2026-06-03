@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_data.js
-UPDATED: 2026-06-02 05:55:00 PM
+UPDATED: 2026-06-02 08:05:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -9,10 +9,13 @@ Always keep the header at the top of current files and new files.
 import { supabase } from '../../js/supabaseClient.js';
 
 export async function fetchFacilityIssues(facilityId) {
+    // Ensure the ID is formatted as a string for UUID compatibility
+    const safeId = String(facilityId);
+    
     const { data, error } = await supabase
         .from('facility_issues')
         .select('*')
-        .eq('facility_id', facilityId)
+        .eq('facility_id', safeId)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -23,10 +26,12 @@ export async function fetchFacilityIssues(facilityId) {
 }
 
 export async function fetchFacilityContacts(facilityId) {
+    const safeId = String(facilityId);
+
     const { data, error } = await supabase
         .from('contacts')
         .select('*')
-        .eq('facility_id', facilityId);
+        .eq('facility_id', safeId);
 
     if (error) {
         console.error("Database Error fetching contacts:", error);
@@ -36,9 +41,16 @@ export async function fetchFacilityContacts(facilityId) {
 }
 
 export async function insertFacilityContact(contactPayload) {
+    // Correct column mapping: change 'name' to the database column 'contact_name'
+    const mappedPayload = {
+        facility_id: String(contactPayload.facility_id),
+        contact_name: contactPayload.name || contactPayload.contact_name || '',
+        role: contactPayload.role || ''
+    };
+
     const { data, error } = await supabase
         .from('contacts')
-        .insert([contactPayload])
+        .insert([mappedPayload])
         .select();
 
     if (error) {
@@ -49,17 +61,32 @@ export async function insertFacilityContact(contactPayload) {
 }
 
 export async function saveFacilityIssue(payload, id = null) {
+    // Correct column mapping: change UI 'initiated_by' to match database 'reported_by'
+    const mappedPayload = {
+        facility_id: String(payload.facility_id),
+        description: payload.description || '',
+        reported_by: payload.initiated_by || payload.reported_by || '',
+        status: payload.status || 'Open',
+        priority: payload.priority || 'Medium',
+        updated_at: new Date().toISOString()
+    };
+
+    // If it's a new row, attach the creation timestamp
+    if (!id) {
+        mappedPayload.created_at = new Date().toISOString();
+    }
+
     let result;
     if (!id) {
         result = await supabase
             .from('facility_issues')
-            .insert([payload])
+            .insert([mappedPayload])
             .select();
     } else {
         result = await supabase
             .from('facility_issues')
-            .update(payload)
-            .eq('id', id)
+            .update(mappedPayload)
+            .eq('id', String(id))
             .select();
     }
 
