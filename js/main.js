@@ -1,6 +1,6 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-03 12:28:00 PM
+UPDATED: 2026-06-03 06:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -17,7 +17,8 @@ window.navigateTo = async (view, context = {}) => {
     // Defensive Check: Allow valid numeric IDs matching bigint columns
     const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups'];
     if (facilityViews.includes(view)) {
-        const facilityId = context?.id || context?.facility?.id;
+        // Look for the facility ID in either context.id or deep inside context.facility.id
+        const facilityId = context?.facility?.id || context?.id;
         if (facilityId === undefined || facilityId === null || String(facilityId) === '[object Object]') {
             console.warn(`Navigation blocked to "${view}": Missing valid facility ID context.`);
             view = 'view_1_facility';
@@ -69,7 +70,6 @@ window.navigateTo = async (view, context = {}) => {
         }
     } catch (err) {
         console.error("Navigation error:", err);
-        // FIXED: Balanced backtick template literal syntax closure string right here
         app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}</p>`;
     }
 };
