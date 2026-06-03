@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_modal.js
-UPDATED: 2026-06-02 05:40:00 PM
+UPDATED: 2026-06-02 08:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -41,7 +41,8 @@ export function setupControlsEvents(facility) {
             supabase.removeChannel(controlsChannel);
         }
         if (window.navigateTo) {
-            window.navigateTo(targetViewKey, { facility });
+            // FIX: Pass the facility object directly, not wrapped inside an extra object layer
+            window.navigateTo(targetViewKey, facility);
         }
     };
 
