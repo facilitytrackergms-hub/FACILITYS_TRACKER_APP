@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 08:30:00 AM
+UPDATED: 2026-06-03 11:55:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -74,7 +74,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 08:30:00 AM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 11:55:00 AM
                 </div>
 
                 <div id="activeContactDetailCard" style="display:none;" class="contacts-view-detail-box"></div>
@@ -186,8 +186,8 @@ export async function renderFacilityContacts(data) {
                 const statusClass = issue.status?.toLowerCase() === 'resolved' ? 'tag-resolved' : 'tag-active';
                 const statusLabel = issue.status || 'OPEN';
                 
-                // Prioritize the actual custom texts or titles from database rows before resorting to standard fallback text
-                const resolvedTitle = issue.issue_text || issue.text || issue.description || issue.title || 'Maintenance Request';
+                // FIXED: Prioritize issue.title first since view_3_data.js explicitly maps real text here
+                const resolvedTitle = issue.title || issue.issue_text || issue.text || issue.description || 'Maintenance Request';
                 
                 issuesHtml += `
                     <button class="history-issue-nav-btn" id="historyIssueBtn_${index}">
