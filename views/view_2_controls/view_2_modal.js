@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_modal.js
-UPDATED: 2026-06-02 08:35:00 PM
+UPDATED: 2026-06-02 09:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -48,8 +48,9 @@ export function setupControlsEvents(data) {
         }
     };
 
-    document.getElementById('toIndividualIssues').onclick = () => navigateWithCleanup('view_5_issues');
-    document.getElementById('toContacts').onclick = () => navigateWithCleanup('view_3_controls');
+    // Corrected target keys to match real physical folder layouts
+    document.getElementById('toIndividualIssues').onclick = () => navigateWithCleanup('view_5_modal');
+    document.getElementById('toContacts').onclick = () => navigateWithCleanup('view_3_contacts');
     document.getElementById('toProjects').onclick = () => navigateWithCleanup('view_4_projects');
     document.getElementById('toGallery').onclick = () => navigateWithCleanup('view_6_images');
     document.getElementById('backDash').onclick = () => navigateWithCleanup('view_1_facility');
