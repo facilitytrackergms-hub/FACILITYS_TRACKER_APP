@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_data.js
-UPDATED: 2026-06-03 12:15:00 PM
+UPDATED: 2026-06-03 12:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -39,16 +39,18 @@ export async function fetchContacts(facilityId) {
             `)
             .in('contact_id', contactIds);
 
-        if (linksError) throw linksError;
+        if (linksError) {
+            console.warn("Could not load associated issues mapping:", linksError);
+        }
 
-        // Step 3: Align rows into unified layout view models
-        return contacts.map(c => {
-            const matchedRelations = (issuesLinks || []).filter(link => Number(link.contact_id) === Number(c.id));
-            
+        // Step 3: Stitch relational records and lookup metrics together cleanly in memory
+        const mappings = issuesLinks || [];
+        return contacts.map(contact => {
+            const matchedRelations = mappings.filter(m => Number(m.contact_id) === Number(contact.id));
             return {
-                ...c,
+                ...contact,
                 contact_issues: matchedRelations.map(m => {
-                    // Defensive check: Handle cases where facility_issues is returned as an array or a direct single object record
+                    // Handle cases where facility_issues is returned as an array or a single object record
                     const issueDetails = Array.isArray(m.facility_issues) ? m.facility_issues[0] : m.facility_issues;
                     return {
                         issue_id: m.issue_id,
@@ -58,15 +60,14 @@ export async function fetchContacts(facilityId) {
                 })
             };
         });
-
     } catch (err) {
-        console.error("Critical error while populating contact data models:", err);
+        console.error("Error fetching facility directory entries:", err);
         return [];
     }
 }
 
 /**
- * Creates a brand new directory card entry inside the facility contacts database table
+ * Inserts a new profile row into the database directory table
  */
 export async function insertContact(payload) {
     try {
@@ -111,7 +112,8 @@ export async function deleteContact(contactId) {
     try {
         const { error } = await supabase
             .from('facility_contacts')
-            .delete()\n            .eq('id', Number(contactId));
+            .delete()
+            .eq('id', Number(contactId));
 
         if (error) throw error;
         return true;
