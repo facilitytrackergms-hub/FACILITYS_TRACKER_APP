@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_data.js
-UPDATED: 2026-06-03 06:10:00 AM
+UPDATED: 2026-06-03 06:35:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -9,14 +9,27 @@ Always keep the header at the top of current files and new files.
 import { supabase } from '../../js/supabaseClient.js';
 
 /**
- * Fetches all directory entries associated with a specific facility
+ * Fetches all directory entries associated with a specific facility, 
+ * including embedded join data for linked issue relationships.
  */
 export async function fetchContacts(facilityId) {
     if (!facilityId) return [];
     try {
+        // FIXED: Explicitly select known columns and left-join contact_issues relationships
         const { data, error } = await supabase
             .from('facility_contacts')
-            .select('*')
+            .select(`
+                id,
+                facility_id,
+                name,
+                role,
+                email,
+                phone,
+                created_at,
+                contact_issues (
+                    issue_id
+                )
+            `)
             .eq('facility_id', Number(facilityId))
             .order('name', { ascending: true });
 
@@ -30,7 +43,6 @@ export async function fetchContacts(facilityId) {
 
 /**
  * Inserts a new profile row into the database directory table
- * ADD THE 'export' KEYWORD HERE:
  */
 export async function insertContact(payload) {
     try {
@@ -49,7 +61,6 @@ export async function insertContact(payload) {
 
 /**
  * Updates an existing contact card row entry matching a specific row ID
- * ADD THE 'export' KEYWORD HERE:
  */
 export async function updateContact(contactId, payload) {
     if (!contactId) return null;
