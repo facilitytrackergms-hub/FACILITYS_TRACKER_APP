@@ -191,7 +191,7 @@ export async function openContactIssuesModal(contact) {
             <h3 style="margin-top:0; margin-bottom:5px; color:#00264d; font-size:18px;">Issues Involving:</h3>
             <div style="font-weight:bold; color:#64748b; margin-bottom:15px; font-size:15px;">${contact.name}</div>
             
-            <label style="font-size:12px; font-weight:bold; color:#4b5563; display:block; margin-bottom:6px;">Current Linked System Issues:</label>
+            <label style="font-size:12px; font-weight:bold; color:#4b5563; display:block; margin-bottom:6px;">Issue Summary / Description:</label>
             <div id="currentIssuesList" style="max-height:240px; overflow-y:auto; margin-bottom:20px; border:1px solid #e5e7eb; padding:10px; border-radius:8px; background:#f9fafb;">
                 ${linkedConnections && linkedConnections.length > 0 ? 
                     linkedConnections.map(c => {
@@ -203,10 +203,13 @@ export async function openContactIssuesModal(contact) {
                         if (statusStr === 'closed') badgeStyle = 'background:#d1fae5; color:#059669;';
                         if (statusStr === 'pending') badgeStyle = 'background:#e0f2fe; color:#0284c7;';
 
+                        // Pull real target issue descriptions
+                        const resolvedText = issue.description || issue.title || 'No Description Logged';
+
                         return `
                             <div class="issue-history-item-card" data-issue-id="${issue.id}" style="background:white; padding:12px; border-radius:8px; border:1px solid #e5e7eb; margin-bottom:10px; position:relative; cursor:pointer; text-align:left;">
                                 <div style="font-weight:bold; color:#00264d; font-size:14px; padding-right:65px; line-height:1.3;">
-                                    ${issue.description || issue.title || 'No Description Logged'}
+                                    ${resolvedText}
                                 </div>
                                 <div style="font-size:11px; color:#6b7280; margin-top:6px;">
                                     Priority: <span style="font-weight:600; color:#111827;">${issue.priority || 'Medium'}</span> 
