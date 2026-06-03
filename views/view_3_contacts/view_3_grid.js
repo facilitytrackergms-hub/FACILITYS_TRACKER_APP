@@ -1,13 +1,13 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 06:40:00 AM
+UPDATED: 2026-06-03 07:15:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
 import { fetchContacts, deleteContact } from './view_3_data.js';
-import { setupContactsEvents, openEditContactModal, openContactIssuesModal } from './view_3_modal.js';
+import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
 
 export async function renderFacilityContacts(data) {
     const app = document.getElementById('app');
@@ -52,6 +52,14 @@ export async function renderFacilityContacts(data) {
             
             /* Grid Warning Badge */
             .grid-issue-badge { position:absolute; top:6px; right:6px; background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; font-size:10px; font-weight:bold; border-radius:4px; padding:2px 4px; line-height:1; }
+
+            /* Scrollable Issue Tracker Log Styling */
+            .contact-issues-scrollbar-tray { max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; padding:8px; border-radius:8px; background:#ffffff; display:flex; flex-direction:column; gap:6px; margin-top:4px; margin-bottom:18px; }
+            .history-issue-nav-btn { display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; border:1px solid #d1d5db; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-family:Arial, sans-serif; background:#f9fafb; font-weight:500; transition: background 0.15s; }
+            .history-issue-nav-btn:hover { background:#f3f4f6; border-color:#9ca3af; }
+            .status-indicator-tag { font-size:10px; font-weight:bold; text-transform:uppercase; padding:2px 6px; border-radius:4px; line-height:1; }
+            .tag-active { background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; }
+            .tag-resolved { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
         </style>
     `;
 
@@ -128,8 +136,7 @@ export async function renderFacilityContacts(data) {
             block.className = 'contact-thumbnail';
             
             const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=00264d&color=fff`;
-            // Fixed field variables to match known schema columns 
-            const avatarSrc = c.avatar_url || c.image_url || fallbackAvatar;
+            const avatarSrc = c.image_url || c.avatar_url || fallbackAvatar;
             const issueCount = c.contact_issues ? c.contact_issues.length : 0;
 
             block.innerHTML = `
@@ -156,8 +163,27 @@ export async function renderFacilityContacts(data) {
             : 'N/A';
 
         const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=00264d&color=fff`;
-        const avatarSrc = contact.avatar_url || contact.image_url || fallbackAvatar;
-        const issueCount = contact.contact_issues ? contact.contact_issues.length : 0;
+        const avatarSrc = contact.image_url || contact.avatar_url || fallbackAvatar;
+        
+        const issuesList = contact.contact_issues || [];
+
+        // Generate the HTML buttons for the scrollable log area
+        let issuesLogHTML = '<span style="color:#9ca3af; font-size:12px; font-style:italic; display:block; padding:4px 0;">No active or past issues linked.</span>';
+        
+        if (issuesList.length > 0) {
+            issuesLogHTML = issuesList.map(issue => {
+                const isResolved = String(issue.status).toLowerCase() === 'resolved' || String(issue.status).toLowerCase() === 'done';
+                const tagClass = isResolved ? 'tag-resolved' : 'tag-active';
+                const tagText = isResolved ? 'Done' : 'Open';
+                
+                return `
+                    <button class="history-issue-nav-btn" data-issue-id="${issue.issue_id}">
+                        <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:240px;">⚠️ ${issue.title}</span>
+                        <span class="status-indicator-tag ${tagClass}">${tagText}</span>
+                    </button>
+                `;
+            }).join('');
+        }
 
         panel.innerHTML = `
             <div style="display:flex; justify-content:center; width:100%;">
@@ -177,14 +203,16 @@ export async function renderFacilityContacts(data) {
             <div class="contacts-view-value">${emailLink}</div>
             
             <div class="contacts-view-label">Notes</div>
-            <div class="contacts-view-value" style="font-size:13px; color:#4b5563;">${contact.notes || 'No notes added.'}</div>
+            <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">${contact.notes || 'No notes added.'}</div>
             
+            <div class="contacts-view-label">Reported Issues History</div>
+            <div class="contact-issues-scrollbar-tray">
+                ${issuesLogHTML}
+            </div>
+
             <div class="action-row">
-                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:32%; font-size:11px; padding:10px 4px;">✏️ Edit</button>
-                <button id="issuesContactBtn" class="contacts-view-btn btn-blue" style="width:32%; font-size:11px; padding:10px 4px;">
-                    ⚠️ Issues ${issueCount > 0 ? `(${issueCount})` : ''}
-                </button>
-                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:32%; font-size:11px; padding:10px 4px;">🗑️ Delete</button>
+                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:48%; font-size:12px; padding:10px 4px;">✏️ Edit Info</button>
+                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:48%; font-size:12px; padding:10px 4px; margin-top:0;">🗑️ Delete Contact</button>
             </div>
         `;
         
@@ -193,15 +221,15 @@ export async function renderFacilityContacts(data) {
 
         document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
         
-        document.getElementById('issuesContactBtn').onclick = () => {
-            if (typeof openContactIssuesModal === 'function') {
-                openContactIssuesModal(contact);
-            } else if (typeof window.openContactIssuesModal === 'function') {
-                window.openopenContactIssuesModal(contact);
-            } else {
-                alert("Issues view controller not fully mounted yet.");
-            }
-        };
+        // Setup individual click navigation handlers for each history row button entry
+        panel.querySelectorAll('.history-issue-nav-btn').forEach(btn => {
+            btn.onclick = () => {
+                const targetIssueId = btn.getAttribute('data-issue-id');
+                if (window.navigateTo) {
+                    window.navigateTo('view_5_issues', { id: targetIssueId, facility: facility });
+                }
+            };
+        });
         
         document.getElementById('deleteContactBtn').onclick = async () => {
             if (confirm(`Are you sure you want to remove ${contact.name}?`)) {
