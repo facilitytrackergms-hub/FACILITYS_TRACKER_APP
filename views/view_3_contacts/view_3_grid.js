@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-02 11:15:00 PM
+UPDATED: 2026-06-03 05:00:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -29,7 +29,8 @@ export async function renderFacilityContacts(data) {
             .btn-emerald { background:#10b981; color:white; margin-bottom:12px; }
             .btn-gray { background:#9ca3af; color:white; }
             .btn-danger { background:#dc2626; color:white; margin-top:10px; }
-            .btn-warning { background:#f59e0b; color:white; margin-top:10px; margin-right:8px; }
+            .btn-warning { background:#f59e0b; color:white; margin-top:10px; }
+            .btn-blue { background:#0056b3; color:white; margin-top:10px; }
             .contacts-grid-layout { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:12px; margin:20px 0; text-align:left; }
             .contact-thumbnail { background:white; border:1px solid #e5e7eb; padding:12px; border-radius:8px; cursor:pointer; text-align:center; transition:transform 0.15s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; }
             .contact-thumbnail:hover { transform:translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -43,7 +44,7 @@ export async function renderFacilityContacts(data) {
             
             .contact-avatar-frame { width:70px; height:70px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:2px solid #00264d; margin-bottom:8px; }
             .detail-avatar-frame { width:90px; height:90px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:3px solid #00264d; margin-bottom:15px; display:block; }
-            .action-row { display:flex; gap:10px; }
+            .action-row { display:flex; gap:6px; width:100%; justify-content:space-between; }
             
             /* Camera Row Layout Styles */
             .camera-action-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
@@ -172,8 +173,9 @@ export async function renderFacilityContacts(data) {
             <div class="contacts-view-value" style="font-size:13px; color:#4b5563;">${contact.notes || 'No notes added.'}</div>
             
             <div class="action-row">
-                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:50%;">✏️ Edit</button>
-                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:50%;">🗑️ Delete</button>
+                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:32%; font-size:11px; padding:10px 4px;">✏️ Edit</button>
+                <button id="issuesContactBtn" class="contacts-view-btn btn-blue" style="width:32%; font-size:11px; padding:10px 4px;">⚠️ Issues</button>
+                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:32%; font-size:11px; padding:10px 4px;">🗑️ Delete</button>
             </div>
         `;
         
@@ -181,6 +183,16 @@ export async function renderFacilityContacts(data) {
         panel.scrollIntoView({ behavior: 'smooth' });
 
         document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
+        
+        document.getElementById('issuesContactBtn').onclick = () => {
+            if (typeof window.openContactIssuesModal === 'function') {
+                window.openContactIssuesModal(contact);
+            } else if (typeof openContactIssuesModal === 'function') {
+                openContactIssuesModal(contact);
+            } else {
+                alert("Issues view controller not fully mounted yet.");
+            }
+        };
         
         document.getElementById('deleteContactBtn').onclick = async () => {
             if (confirm(`Are you sure you want to remove ${contact.name}?`)) {
