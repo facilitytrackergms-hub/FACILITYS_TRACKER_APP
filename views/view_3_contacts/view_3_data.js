@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_data.js
-UPDATED: 2026-06-03 06:55:00 AM
+UPDATED: 2026-06-03 07:00:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -15,7 +15,7 @@ import { supabase } from '../../js/supabaseClient.js';
 export async function fetchContacts(facilityId) {
     if (!facilityId) return [];
     try {
-        // Step 1: FIXED - Added image_url into the explicit columns array list selection
+        // Step 1: Fetch valid columns from facility_contacts table
         const { data: contacts, error: contactsError } = await supabase
             .from('facility_contacts')
             .select('id, facility_id, name, role, email, phone, image_url, created_at')
@@ -25,24 +25,35 @@ export async function fetchContacts(facilityId) {
         if (contactsError) throw contactsError;
         if (!contacts || contacts.length === 0) return [];
 
-        // Step 2: Fetch junction linkages from contact_issues map table
+        // Step 2: Fetch junction linkages alongside linked title and status parameters
         const contactIds = contacts.map(c => Number(c.id));
         const { data: issuesLinks, error: linksError } = await supabase
             .from('contact_issues')
-            .select('contact_id, issue_id')
+            .select(`
+                contact_id, 
+                issue_id,
+                facility_issues (
+                    title,
+                    status
+                )
+            `)
             .in('contact_id', contactIds);
 
         if (linksError) {
             console.warn("Could not load associated issues mapping:", linksError);
         }
 
-        // Step 3: Stitch relational entries together cleanly in memory
+        // Step 3: Stitch relational records and lookup metrics together cleanly in memory
         const mappings = issuesLinks || [];
         return contacts.map(contact => {
             const matchedRelations = mappings.filter(m => Number(m.contact_id) === Number(contact.id));
             return {
                 ...contact,
-                contact_issues: matchedRelations.map(m => ({ issue_id: m.issue_id }))
+                contact_issues: matchedRelations.map(m => ({
+                    issue_id: m.issue_id,
+                    title: m.facility_issues?.title || `Issue #${m.issue_id}`,
+                    status: m.facility_issues?.status || 'Open'
+                }))
             };
         });
     } catch (err) {
