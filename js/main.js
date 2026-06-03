@@ -36,7 +36,7 @@ window.navigateTo = async (view, context = {}) => {
             const { renderFacilityControls } = await import('../views/view_2_controls/view_2_grid.js');
             await renderFacilityControls(context);
         }
-        else if (view === 'view_3_controls') {
+        else if (view === 'view_3_contacts') {
             const { renderFacilityContacts } = await import('../views/view_3_contacts/view_3_grid.js');
             await renderFacilityContacts(context);
         }
