@@ -1,13 +1,13 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 05:00:00 AM
+UPDATED: 2026-06-03 05:30:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
 import { fetchContacts, deleteContact } from './view_3_data.js';
-import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
+import { setupContactsEvents, openEditContactModal, openContactIssuesModal } from './view_3_modal.js';
 
 export async function renderFacilityContacts(data) {
     const app = document.getElementById('app');
@@ -185,10 +185,10 @@ export async function renderFacilityContacts(data) {
         document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
         
         document.getElementById('issuesContactBtn').onclick = () => {
-            if (typeof window.openContactIssuesModal === 'function') {
-                window.openContactIssuesModal(contact);
-            } else if (typeof openContactIssuesModal === 'function') {
+            if (typeof openContactIssuesModal === 'function') {
                 openContactIssuesModal(contact);
+            } else if (typeof window.openContactIssuesModal === 'function') {
+                window.openContactIssuesModal(contact);
             } else {
                 alert("Issues view controller not fully mounted yet.");
             }
