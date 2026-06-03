@@ -167,25 +167,6 @@ export async function renderFacilityContacts(data) {
 
         const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=00264d&color=fff`;
         const avatarSrc = contact.image_url || contact.avatar_url || fallbackAvatar;
-        
-        const issuesList = contact.contact_issues || [];
-
-        let issuesLogHTML = '<span style="color:#9ca3af; font-size:12px; font-style:italic; display:block; padding:4px 0;">No active or past issues linked.</span>';
-        
-        if (issuesList.length > 0) {
-            issuesLogHTML = issuesList.map(issue => {
-                const isResolved = String(issue.status).toLowerCase() === 'resolved' || String(issue.status).toLowerCase() === 'done';
-                const tagClass = isResolved ? 'tag-resolved' : 'tag-active';
-                const tagText = isResolved ? 'Done' : 'Open';
-                
-                return `
-                    <button class="history-issue-nav-btn" data-issue-id="${issue.issue_id}">
-                        <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:240px;">⚠️ ${issue.title}</span>
-                        <span class="status-indicator-tag ${tagClass}">${tagText}</span>
-                    </button>
-                `;
-            }).join('');
-        }
 
         panel.innerHTML = `
             <div style="display:flex; justify-content:center; width:100%;">
@@ -206,11 +187,6 @@ export async function renderFacilityContacts(data) {
             
             <div class="contacts-view-label">Notes</div>
             <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">${contact.notes || 'No notes added.'}</div>
-            
-            <div class="contacts-view-label">Reported Issues History</div>
-            <div class="contact-issues-scrollbar-tray">
-                ${issuesLogHTML}
-            </div>
 
             <div class="action-row">
                 <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:23%; font-size:11px; padding:10px 2px;">✏️ Edit</button>
@@ -236,15 +212,6 @@ export async function renderFacilityContacts(data) {
             panel.style.display = 'none';
             if (directoryLayout) directoryLayout.style.display = 'block';
         };
-        
-        panel.querySelectorAll('.history-issue-nav-btn').forEach(btn => {
-            btn.onclick = () => {
-                const targetIssueId = btn.getAttribute('data-issue-id');
-                if (window.navigateTo) {
-                    window.navigateTo('view_5_issues', { facility: facility, autoOpenIssue: targetIssueId });
-                }
-            };
-        });
         
         document.getElementById('deleteContactBtn').onclick = async () => {
             if (confirm(`Are you sure you want to remove ${contact.name}?`)) {
