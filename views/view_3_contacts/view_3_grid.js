@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-02 10:55:00 PM
+UPDATED: 2026-06-02 11:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -41,10 +41,13 @@ export async function renderFacilityContacts(data) {
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
             
-            /* Avatar Image Layout styling matching facility UI guidelines */
             .contact-avatar-frame { width:70px; height:70px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:2px solid #00264d; margin-bottom:8px; }
             .detail-avatar-frame { width:90px; height:90px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:3px solid #00264d; margin-bottom:15px; display:block; }
             .action-row { display:flex; gap:10px; }
+            
+            /* Camera Row Layout Styles */
+            .camera-action-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
+            .camera-status-text { font-size:13px; font-weight:500; color:#4b5563; }
         </style>
     `;
 
@@ -81,8 +84,13 @@ export async function renderFacilityContacts(data) {
                     <label class="form-field-label">Email Address</label>
                     <input type="email" id="manualContactEmail" class="form-field-input">
 
-                    <label class="form-field-label">Image URL / Avatar Link</label>
-                    <input type="url" id="manualContactImage" class="form-field-input" placeholder="https://example.com/photo.jpg">
+                    <label class="form-field-label">Contact Profile Picture</label>
+                    <div class="camera-action-row">
+                        <input type="file" id="manualContactFile" accept="image/*" capture="user" style="display:none;">
+                        <button id="triggerCameraBtn" class="contacts-view-btn btn-emerald" style="margin:0; width:auto; padding:10px 16px;">📸 Take Photo</button>
+                        <span id="uploadStatusText" class="camera-status-text">No image captured</span>
+                    </div>
+                    <input type="hidden" id="manualContactImage" value="">
 
                     <label class="form-field-label">Internal Notes</label>
                     <textarea id="manualContactNotes" class="form-field-input" style="height:60px; resize:none;"></textarea>
@@ -115,7 +123,6 @@ export async function renderFacilityContacts(data) {
             const block = document.createElement('div');
             block.className = 'contact-thumbnail';
             
-            // Render placeholder initials if image link is blank
             const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=00264d&color=fff`;
             const avatarSrc = c.image_url ? c.image_url : fallbackAvatar;
 
