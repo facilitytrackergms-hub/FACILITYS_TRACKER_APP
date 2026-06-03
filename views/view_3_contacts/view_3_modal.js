@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_modal.js
-UPDATED: 2026-06-03 05:15:00 AM
+UPDATED: 2026-06-03 05:55:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -25,7 +25,7 @@ export function setupContactsEvents(facility, refreshCallback) {
     if (triggerCameraBtn && fileInput) {
         triggerCameraBtn.onclick = (e) => {
             e.preventDefault();
-            fileInput.click(); // Instantly pops open the live mobile camera viewfinder
+            fileInput.click();
         };
 
         fileInput.onchange = async () => {
@@ -39,7 +39,6 @@ export function setupContactsEvents(facility, refreshCallback) {
                 const fileExt = file.name.split('.').pop() || 'jpg';
                 const fileName = `contacts/${Date.now()}.${fileExt}`;
                 
-                // Point directly to your active unified storage bucket
                 const { data, error } = await supabase.storage
                     .from('facility-assets')
                     .upload(fileName, file);
@@ -159,7 +158,10 @@ export async function openContactIssuesModal(contact) {
 
     modal.style.display = 'flex';
 
-    // Fetch relational items matching your numeric bigint columns securely
+    // Target active facility identifier cross-references cleanly
+    const targetFacilityId = contact.facility_id || (window.currentFacility ? window.currentFacility.id : null);
+
+    // Fetch matching link connections
     const { data: linkedConnections } = await supabase
         .from('contact_issues')
         .select(`
@@ -172,10 +174,15 @@ export async function openContactIssuesModal(contact) {
         `)
         .eq('contact_id', Number(contact.id));
 
-    const { data: allIssues } = await supabase
-        .from('facility_issues')
-        .select('*')
-        .eq('facility_id', contact.facility_id);
+    // Fetch all available issue logs registered to this facility
+    let allIssues = [];
+    if (targetFacilityId) {
+        const { data } = await supabase
+            .from('facility_issues')
+            .select('*')
+            .eq('facility_id', Number(targetFacilityId));
+        allIssues = data || [];
+    }
 
     modal.innerHTML = `
         <div style="background:white; padding:22px; border-radius:14px; width:90%; max-width:440px; box-shadow:0 10px 25px rgba(0,0,0,0.2); font-family:Arial, sans-serif;">
@@ -188,9 +195,10 @@ export async function openContactIssuesModal(contact) {
                     linkedConnections.map(c => {
                         const issue = c.facility_issues;
                         if (!issue) return '';
+                        const textDisplay = issue.title || issue.description || `Issue ID Reference: ${issue.id}`;
                         return `
                             <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e5e7eb; font-size:13px; color:#1f2937;">
-                                <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:280px;">⚠️ ${issue.title || issue.description || 'Unnamed Issue'}</span>
+                                <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:260px;">⚠️ ${textDisplay}</span>
                                 <button class="unlink-issue-btn" data-issue-id="${issue.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:12px;">Remove</button>
                             </div>
                         `;
@@ -203,7 +211,10 @@ export async function openContactIssuesModal(contact) {
             <div style="display:flex; gap:8px; margin-bottom:20px;">
                 <select id="issueSelectDropdown" style="flex:1; padding:10px; border-radius:8px; border:1px solid #d1d5db; font-size:13px; background:white;">
                     <option value="">-- Choose Active Issue --</option>
-                    ${allIssues ? allIssues.map(i => `<option value="${i.id}">${i.title || i.description || ('ID: ' + i.id)}</option>`).join('') : ''}
+                    ${allIssues.map(i => {
+                        const optionText = i.title || i.description || `Issue #${i.id}`;
+                        return `<option value="${i.id}">${optionText}</option>`;
+                    }).join('')}
                 </select>
                 <button id="submitLinkBtn" style="background:#0056b3; color:white; border:none; padding:10px 16px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px;">Link</button>
             </div>
@@ -216,7 +227,10 @@ export async function openContactIssuesModal(contact) {
 
     document.getElementById('submitLinkBtn').onclick = async () => {
         const selectedIssueId = document.getElementById('issueSelectDropdown').value;
-        if (!selectedIssueId) return alert('Please select an active facility issue from the list.');
+        if (!selectedIssueId) {
+            alert('Please select an active facility issue from the list.');
+            return;
+        }
 
         const { error } = await supabase
             .from('contact_issues')
@@ -252,7 +266,6 @@ export async function openContactIssuesModal(contact) {
     };
 }
 
-// Make globally accessible for instances when decoupled event tracking occurs
 window.openContactIssuesModal = openContactIssuesModal;
 
 function clearFormFields() {
