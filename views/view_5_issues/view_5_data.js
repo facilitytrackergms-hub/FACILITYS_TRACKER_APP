@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_data.js
-UPDATED: 2026-06-02 08:35:00 PM
+UPDATED: 2026-06-02 08:50:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -9,8 +9,9 @@ Always keep the header at the top of current files and new files.
 import { supabase } from '../../js/supabaseClient.js';
 
 export async function fetchFacilityIssues(facilityId) {
-    // Ensure the ID is formatted as a string for UUID compatibility
-    const safeId = String(facilityId);
+    // Parse to an integer number to match the bigint database format
+    const safeId = parseInt(facilityId, 10);
+    if (isNaN(safeId)) return [];
     
     const { data, error } = await supabase
         .from('facility_issues')
@@ -22,20 +23,16 @@ export async function fetchFacilityIssues(facilityId) {
         return [];
     }
 
-    // Safe frontend client-side fallback sorting
     if (data && data.length > 0) {
-        return data.sort((a, b) => {
-            const dateA = a.created_at || a.updated_at || 0;
-            const dateB = b.created_at || b.updated_at || 0;
-            return new Date(dateB) - new Date(dateA);
-        });
+        return data.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     }
 
     return data || [];
 }
 
 export async function fetchFacilityContacts(facilityId) {
-    const safeId = String(facilityId);
+    const safeId = parseInt(facilityId, 10);
+    if (isNaN(safeId)) return [];
 
     const { data, error } = await supabase
         .from('contacts')
@@ -50,9 +47,10 @@ export async function fetchFacilityContacts(facilityId) {
 }
 
 export async function insertFacilityContact(contactPayload) {
-    // Correct column mapping: change 'name' to the database column 'contact_name'
+    const safeFacilityId = parseInt(contactPayload.facility_id, 10);
+    
     const mappedPayload = {
-        facility_id: String(contactPayload.facility_id),
+        facility_id: safeFacilityId,
         contact_name: contactPayload.name || contactPayload.contact_name || '',
         role: contactPayload.role || ''
     };
@@ -70,20 +68,16 @@ export async function insertFacilityContact(contactPayload) {
 }
 
 export async function saveFacilityIssue(payload, id = null) {
-    // Correct column mapping: change UI 'initiated_by' to match database 'reported_by'
+    const safeFacilityId = parseInt(payload.facility_id, 10);
+    
+    // Aligned with the database column names shown in your schema picture:
     const mappedPayload = {
-        facility_id: String(payload.facility_id),
+        facility_id: safeFacilityId,
+        title: payload.title || 'Maintenance Request',
         description: payload.description || '',
-        reported_by: payload.initiated_by || payload.reported_by || '',
-        status: payload.status || 'Open',
-        priority: payload.priority || 'Medium',
-        updated_at: new Date().toISOString()
+        severity: payload.severity || 'Medium',
+        status: payload.status || 'Open'
     };
-
-    // If it's a new row, attach the creation timestamp safely
-    if (!id) {
-        mappedPayload.created_at = new Date().toISOString();
-    }
 
     let result;
     if (!id) {
@@ -95,7 +89,7 @@ export async function saveFacilityIssue(payload, id = null) {
         result = await supabase
             .from('facility_issues')
             .update(mappedPayload)
-            .eq('id', String(id))
+            .eq('id', parseInt(id, 10))
             .select();
     }
 
