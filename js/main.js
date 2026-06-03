@@ -1,6 +1,6 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-02 08:35:00 PM
+UPDATED: 2026-06-02 08:50:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -14,12 +14,12 @@ window.navigateTo = async (view, context = {}) => {
         return;
     }
 
-    // Defensive Check: Prevent routing down to sub-views if the context or UUID is missing/placeholder
+    // Defensive Check: Allow valid numeric IDs matching bigint columns
     const facilityViews = ['view_2_controls', 'view_3_controls', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups'];
     if (facilityViews.includes(view)) {
-        const facilityId = context?.id || (context?.facility?.id);
-        if (!facilityId || String(facilityId) === '1' || String(facilityId) === '[object Object]') {
-            console.warn(`Navigation blocked to "${view}": Missing or invalid facility UUID context. Redirecting to dashboard.`);
+        const facilityId = context?.id || context?.facility?.id;
+        if (facilityId === undefined || facilityId === null || String(facilityId) === '[object Object]') {
+            console.warn(`Navigation blocked to "${view}": Missing valid facility ID context.`);
             view = 'view_1_facility';
             context = {};
         }
@@ -28,7 +28,6 @@ window.navigateTo = async (view, context = {}) => {
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
 
     try {
-        // Use "../" to back out of the "js" folder into the root directory
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility') {
             const { renderFacilities } = await import('../views/view_1_facility/view_1_grid.js');
             await renderFacilities(context);
