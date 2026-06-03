@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_modal.js
-UPDATED: 2026-06-02 11:20:00 PM
+UPDATED: 2026-06-02 11:30:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -39,15 +39,15 @@ export function setupContactsEvents(facility, refreshCallback) {
                 const fileExt = file.name.split('.').pop() || 'jpg';
                 const fileName = `contacts/${Date.now()}.${fileExt}`;
                 
-                // Stream your photo payload directly to your Supabase cloud asset storage bucket
+                // Stream your photo payload directly to your existing 'facility-images' bucket
                 const { data, error } = await supabase.storage
-                    .from('facility-media')
+                    .from('facility-images')
                     .upload(fileName, file);
 
                 if (error) throw error;
 
                 const { data: urlData } = supabase.storage
-                    .from('facility-media')
+                    .from('facility-images')
                     .getPublicUrl(fileName);
 
                 if (hiddenImageInput) hiddenImageInput.value = urlData.publicUrl;
