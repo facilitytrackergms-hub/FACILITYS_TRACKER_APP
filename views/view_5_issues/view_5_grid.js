@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-03 09:10:00 AM
+UPDATED: 2026-06-03 09:15:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -15,13 +15,19 @@ export async function renderFacilityIssues(data) {
     // Check if we arrived here via a preselected contact request or a specific issue link
     let autoOpen = data?.autoOpenModal || false;
     let prefillData = data?.prefill || null;
-    const autoOpenIssueId = data?.autoOpenIssue || null;
+    let autoOpenIssueId = data?.autoOpenIssue || null;
+    const targetIssue = data?.targetIssue || null;
 
     if (data?.preselectedContact) {
         autoOpen = true;
         prefillData = {
             initiated_by: data.preselectedContact.name || ''
         };
+    }
+
+    // If an issue was explicitly clicked from the contact view, open it automatically
+    if (targetIssue) {
+        autoOpenIssueId = targetIssue.id || targetIssue.issue_id || null;
     }
 
     if (!facility || !facility.id) {
@@ -133,8 +139,14 @@ export async function renderFacilityIssues(data) {
         const feed = document.getElementById('issuesFeedDisplay');
         if (!feed) return;
 
-        const issues = await fetchFacilityIssues(facility.id);
+        let issues = await fetchFacilityIssues(facility.id);
         feed.innerHTML = '';
+
+        // If filtering down to a single clicked contact issue, alter the array right here
+        if (targetIssue) {
+            const currentIssueId = String(targetIssue.id || targetIssue.issue_id);
+            issues = issues.filter(i => String(i.id) === currentIssueId || String(i.issue_id) === currentIssueId);
+        }
 
         if (!issues || issues.length === 0) {
             feed.innerHTML = '<div style="text-align:center; padding:20px; background:white; border-radius:8px; color:#6b7280; font-size:13px;">No listed issues documented for this site profile.</div>';
