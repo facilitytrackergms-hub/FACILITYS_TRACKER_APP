@@ -1,6 +1,6 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-02 10:15:00 PM
+UPDATED: 2026-06-03 06:45:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -27,8 +27,8 @@ window.navigateTo = async (view, context = {}) => {
 
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
 
-    // Query parameter token to bust module caches on deployments across all views
-    const cb = "?v=2026_v2";
+    // FIXED: Incremented parameter token version string to force clear stuck browser caches
+    const cb = "?v=2026_v3";
 
     try {
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility') {
