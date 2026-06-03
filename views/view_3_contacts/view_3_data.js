@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_data.js
-UPDATED: 2026-06-03 06:35:00 AM
+UPDATED: 2026-06-03 06:40:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -10,31 +10,41 @@ import { supabase } from '../../js/supabaseClient.js';
 
 /**
  * Fetches all directory entries associated with a specific facility, 
- * including embedded join data for linked issue relationships.
+ * alongside cross-referenced tracking relations from contact_issues.
  */
 export async function fetchContacts(facilityId) {
     if (!facilityId) return [];
     try {
-        // FIXED: Explicitly select known columns and left-join contact_issues relationships
-        const { data, error } = await supabase
+        // Step 1: Fetch valid columns from facility_contacts table
+        const { data: contacts, error: contactsError } = await supabase
             .from('facility_contacts')
-            .select(`
-                id,
-                facility_id,
-                name,
-                role,
-                email,
-                phone,
-                created_at,
-                contact_issues (
-                    issue_id
-                )
-            `)
+            .select('id, facility_id, name, role, email, phone, created_at')
             .eq('facility_id', Number(facilityId))
             .order('name', { ascending: true });
 
-        if (error) throw error;
-        return data || [];
+        if (contactsError) throw contactsError;
+        if (!contacts || contacts.length === 0) return [];
+
+        // Step 2: Fetch junction linkages from contact_issues map table
+        const contactIds = contacts.map(c => Number(c.id));
+        const { data: issuesLinks, error: linksError } = await supabase
+            .from('contact_issues')
+            .select('contact_id, issue_id')
+            .in('contact_id', contactIds);
+
+        if (linksError) {
+            console.warn("Could not load associated issues mapping:", linksError);
+        }
+
+        // Step 3: Stitch relational entries together cleanly in memory
+        const mappings = issuesLinks || [];
+        return contacts.map(contact => {
+            const matchedRelations = mappings.filter(m => Number(m.contact_id) === Number(contact.id));
+            return {
+                ...contact,
+                contact_issues: matchedRelations.map(m => ({ issue_id: m.issue_id }))
+            };
+        });
     } catch (err) {
         console.error("Error fetching facility directory entries:", err);
         return [];
