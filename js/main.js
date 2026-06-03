@@ -1,6 +1,6 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-02 07:50:00 PM
+UPDATED: 2026-06-02 08:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -12,6 +12,17 @@ window.navigateTo = async (view, context = {}) => {
     if (!app) {
         console.error("App container not found.");
         return;
+    }
+
+    // Defensive Check: Prevent routing down to sub-views if the context or UUID is missing/placeholder
+    const facilityViews = ['view_2_controls', 'view_3_controls', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups'];
+    if (facilityViews.includes(view)) {
+        const facilityId = context?.id || (context?.facility?.id);
+        if (!facilityId || String(facilityId) === '1' || String(facilityId) === '[object Object]') {
+            console.warn(`Navigation blocked to "${view}": Missing or invalid facility UUID context. Redirecting to dashboard.`);
+            view = 'view_1_facility';
+            context = {};
+        }
     }
 
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
