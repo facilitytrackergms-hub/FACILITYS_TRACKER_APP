@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_modal.js
-UPDATED: 2026-06-03 06:50:00 AM
+UPDATED: 2026-06-03 11:35:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -63,14 +63,18 @@ export function setupContactsEvents(facility, refreshCallback) {
 
     if (triggerBtn) {
         triggerBtn.onclick = () => {
-            document.getElementById('editingContactId').value = '';
-            document.getElementById('modalTemplateTitle').innerText = 'Create Directory Entry';
+            const editIdEl = document.getElementById('editingContactId');
+            if (editIdEl) editIdEl.value = '';
+            
+            const titleEl = document.getElementById('modalTemplateTitle');
+            if (titleEl) titleEl.innerText = 'Create Directory Entry';
+            
             clearFormFields();
-            modal.style.display = 'flex';
+            if (modal) modal.style.display = 'flex';
         };
     }
 
-    if (closeBtn) {
+    if (closeBtn && modal) {
         closeBtn.onclick = () => { modal.style.display = 'none'; };
     }
 
@@ -84,12 +88,18 @@ export function setupContactsEvents(facility, refreshCallback) {
 
     if (saveBtn) {
         saveBtn.onclick = async () => {
+            const nameEl = document.getElementById('manualContactName');
+            const roleEl = document.getElementById('manualContactRole');
+            const phoneEl = document.getElementById('manualContactPhone');
+            const emailEl = document.getElementById('manualContactEmail');
+            const imageEl = document.getElementById('manualContactImage');
+
             const payload = {
-                name: document.getElementById('manualContactName').value.trim(),
-                role: document.getElementById('manualContactRole').value.trim(),
-                phone: document.getElementById('manualContactPhone').value.trim(),
-                email: document.getElementById('manualContactEmail').value.trim(),
-                image_url: document.getElementById('manualContactImage').value.trim(),
+                name: nameEl ? nameEl.value.trim() : '',
+                role: roleEl ? roleEl.value.trim() : '',
+                phone: phoneEl ? phoneEl.value.trim() : '',
+                email: emailEl ? emailEl.value.trim() : '',
+                image_url: imageEl ? imageEl.value.trim() : '',
                 facility_id: facility.id
             };
 
@@ -98,7 +108,8 @@ export function setupContactsEvents(facility, refreshCallback) {
                 return;
             }
 
-            const editingId = document.getElementById('editingContactId').value;
+            const editingIdEl = document.getElementById('editingContactId');
+            const editingId = editingIdEl ? editingIdEl.value : '';
             let result = null;
 
             if (editingId) {
@@ -108,7 +119,7 @@ export function setupContactsEvents(facility, refreshCallback) {
             }
 
             if (result) {
-                modal.style.display = 'none';
+                if (modal) modal.style.display = 'none';
                 clearFormFields();
                 refreshCallback(facility);
             } else {
@@ -119,24 +130,38 @@ export function setupContactsEvents(facility, refreshCallback) {
 }
 
 export function openEditContactModal(contact) {
-    document.getElementById('editingContactId').value = contact.id;
-    document.getElementById('modalTemplateTitle').innerText = 'Modify Directory Entry';
+    const editIdEl = document.getElementById('editingContactId');
+    if (editIdEl) editIdEl.value = contact.id;
+
+    const titleEl = document.getElementById('modalTemplateTitle');
+    if (titleEl) titleEl.innerText = 'Modify Directory Entry';
     
-    document.getElementById('manualContactName').value = contact.name || '';
-    document.getElementById('manualContactRole').value = contact.role || '';
-    document.getElementById('manualContactPhone').value = contact.phone === 'N/A' ? '' : contact.phone;
-    document.getElementById('manualContactEmail').value = contact.email || '';
+    const nameEl = document.getElementById('manualContactName');
+    if (nameEl) nameEl.value = contact.name || '';
+
+    const roleEl = document.getElementById('manualContactRole');
+    if (roleEl) roleEl.value = contact.role || '';
+
+    const phoneEl = document.getElementById('manualContactPhone');
+    if (phoneEl) phoneEl.value = contact.phone === 'N/A' ? '' : contact.phone;
+
+    const emailEl = document.getElementById('manualContactEmail');
+    if (emailEl) emailEl.value = contact.email || '';
     
-    document.getElementById('manualContactNotes').value = contact.notes || '';
+    const notesEl = document.getElementById('manualContactNotes');
+    if (notesEl) notesEl.value = contact.notes || '';
+
     const currentImgUrl = contact.image_url || contact.avatar_url || '';
-    document.getElementById('manualContactImage').value = currentImgUrl;
+    const imgEl = document.getElementById('manualContactImage');
+    if (imgEl) imgEl.value = currentImgUrl;
     
     const statusText = document.getElementById('uploadStatusText');
     if (statusText) {
         statusText.innerText = currentImgUrl ? "✅ Has Profile Image" : "No image captured";
     }
     
-    document.getElementById('manualContactModal').style.display = 'flex';
+    const modal = document.getElementById('manualContactModal');
+    if (modal) modal.style.display = 'flex';
 }
 
 export async function openContactIssuesModal(contact) {
@@ -203,7 +228,6 @@ export async function openContactIssuesModal(contact) {
                         if (statusStr === 'closed') badgeStyle = 'background:#d1fae5; color:#059669;';
                         if (statusStr === 'pending') badgeStyle = 'background:#e0f2fe; color:#0284c7;';
 
-                        // Pull real target issue descriptions
                         const resolvedText = issue.description || issue.title || 'No Description Logged';
 
                         return `
@@ -268,7 +292,6 @@ export async function openContactIssuesModal(contact) {
         }
     };
 
-   
     const historyCards = modal.querySelectorAll('.issue-history-item-card');
     historyCards.forEach(card => {
         card.onclick = (e) => {
@@ -292,12 +315,23 @@ export async function openContactIssuesModal(contact) {
 window.openContactIssuesModal = openContactIssuesModal;
 
 function clearFormFields() {
-    document.getElementById('manualContactName').value = '';
-    document.getElementById('manualContactRole').value = '';
-    document.getElementById('manualContactPhone').value = '';
-    document.getElementById('manualContactEmail').value = '';
-    document.getElementById('manualContactNotes').value = '';
-    document.getElementById('manualContactImage').value = '';
+    const nameEl = document.getElementById('manualContactName');
+    if (nameEl) nameEl.value = '';
+
+    const roleEl = document.getElementById('manualContactRole');
+    if (roleEl) roleEl.value = '';
+
+    const phoneEl = document.getElementById('manualContactPhone');
+    if (phoneEl) phoneEl.value = '';
+
+    const emailEl = document.getElementById('manualContactEmail');
+    if (emailEl) emailEl.value = '';
+
+    const notesEl = document.getElementById('manualContactNotes');
+    if (notesEl) notesEl.value = '';
+
+    const imgEl = document.getElementById('manualContactImage');
+    if (imgEl) imgEl.value = '';
     
     const statusText = document.getElementById('uploadStatusText');
     if (statusText) statusText.innerText = "No image captured";
