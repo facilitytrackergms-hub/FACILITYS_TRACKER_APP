@@ -1,12 +1,13 @@
 /* =================================================
 FILE: views/view_6_images/view_6_grid.js
-UPDATED: 2026-06-02 09:10:00 PM
+UPDATED: 2026-06-03 04:15:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
 import { setupGalleryEvents } from './view_6_modal.js';
+import { supabase } from '../../js/supabaseClient.js';
 
 export async function renderFacilityImages(data) {
     const app = document.getElementById('app');
@@ -34,7 +35,7 @@ export async function renderFacilityImages(data) {
             </button>
 
             <div style="margin-top:40px; font-size:10px; color:#94a3b8; border-top:1px solid #e5e7eb; padding-top:10px;">
-                File: views/view_6_images/view_6_grid.js | Updated: 2026-06-02 09:10:00 PM
+                File: views/view_6_images/view_6_grid.js | Updated: 2026-06-03 04:15:00 AM
             </div>
         </div>
     `;
@@ -55,7 +56,7 @@ export async function renderFacilityImages(data) {
             newButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                nativePicker.click(); // Triggers your local computer file system explorer!
+                nativePicker.click(); // Triggers your local file system explorer
             });
 
             // Handle what happens when you pick a photo file from your directory
@@ -65,8 +66,48 @@ export async function renderFacilityImages(data) {
 
                 console.log("Selected local media item file:", file.name);
                 
-                // Temporary status message
-                alert(`Selected local file: "${file.name}". To save actual image bytes directly, we will connect your bucket storage next!`);
+                // Create a completely unique filename to avoid collision overwrites
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${crypto.randomUUID()}.${fileExt}`;
+                const filePath = `gallery/${fileName}`;
+
+                try {
+                    // 1. Upload the binary file directly to your unified bucket 'facility-assets'
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('facility-assets')
+                        .upload(filePath, file);
+
+                    if (uploadError) {
+                        throw uploadError;
+                    }
+
+                    // 2. Get the clean public link asset reference URL
+                    const { data: urlData } = supabase.storage
+                        .from('facility-assets')
+                        .getPublicUrl(filePath);
+
+                    const publicUrl = urlData.publicUrl;
+
+                    // 3. Register the newly created URL string row inside your database registry table
+                    const { error: dbError } = await supabase
+                        .from('facility_images')
+                        .insert([{
+                            facility_id: facility.id,
+                            image_url: publicUrl,
+                            created_at: new Date().toISOString()
+                        }]);
+
+                    if (dbError) {
+                        throw dbError;
+                    }
+
+                    // Success tracking cleanup! Re-render or trigger event re-load manually
+                    alert("Image successfully uploaded and attached to facility assets!");
+                    setupGalleryEvents(facility);
+                } catch (err) {
+                    console.error("Camera Upload Error:", err);
+                    alert("Could not complete direct file storage attachment: " + err.message);
+                }
             });
         }
     }, 150);
