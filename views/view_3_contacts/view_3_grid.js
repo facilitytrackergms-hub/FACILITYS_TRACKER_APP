@@ -241,7 +241,7 @@ export async function renderFacilityContacts(data) {
             btn.onclick = () => {
                 const targetIssueId = btn.getAttribute('data-issue-id');
                 if (window.navigateTo) {
-                    window.navigateTo('view_5_issues', { id: targetIssueId, facility: facility });
+                    window.navigateTo('view_5_issues', { facility: facility, autoOpenIssue: targetIssueId });
                 }
             };
         });
@@ -251,7 +251,6 @@ export async function renderFacilityContacts(data) {
                 const success = await deleteContact(contact.id);
                 if (success) {
                     alert("Contact removed successfully.");
-                    // After delete, return back cleanly to the main layout selection menu
                     panel.style.display = 'none';
                     if (directoryLayout) directoryLayout.style.display = 'block';
                     renderFacilityContacts(facility);
