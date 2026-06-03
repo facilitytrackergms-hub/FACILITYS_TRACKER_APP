@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_data.js
-UPDATED: 2026-06-02 10:30:00 PM
+UPDATED: 2026-06-02 10:45:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -25,6 +25,7 @@ export async function fetchContacts(facilityId) {
         name: c.contact_name || 'N/A', 
         role: c.role || 'Staff',
         email: c.email || '',
+        // Fallbacks since these columns don't exist in your DB yet
         phone: c.phone || 'N/A', 
         notes: c.notes || 'No notes added.',
         image_url: c.image_url || '' 
@@ -34,15 +35,19 @@ export async function fetchContacts(facilityId) {
 export async function insertContact(contactData) {
     const rawFacilityId = contactData.facility_id || contactData.facility?.id || contactData.id;
 
+    // ONLY include columns that match your exact Supabase schema screenshot
     const cleanData = {
         contact_name: contactData.name, 
         role: contactData.role,
         email: contactData.email,
-        facility_id: rawFacilityId ? parseInt(rawFacilityId, 10) : null,
-        phone: contactData.phone || '',
-        notes: contactData.notes || '',
-        image_url: contactData.image_url || ''
+        facility_id: rawFacilityId ? parseInt(rawFacilityId, 10) : null
     };
+
+    /* Un-comment these lines ONLY after adding the columns via the Supabase dashboard:
+    cleanData.phone = contactData.phone || '';
+    cleanData.notes = contactData.notes || '';
+    cleanData.image_url = contactData.image_url || '';
+    */
 
     const { data, error } = await supabase
         .from('contacts')
@@ -57,14 +62,18 @@ export async function insertContact(contactData) {
 }
 
 export async function updateContact(contactId, contactData) {
+    // ONLY include columns that match your exact Supabase schema screenshot
     const cleanData = {
         contact_name: contactData.name,
         role: contactData.role,
-        email: contactData.email,
-        phone: contactData.phone,
-        notes: contactData.notes,
-        image_url: contactData.image_url
+        email: contactData.email
     };
+
+    /* Un-comment these lines ONLY after adding the columns via the Supabase dashboard:
+    cleanData.phone = contactData.phone;
+    cleanData.notes = contactData.notes;
+    cleanData.image_url = contactData.image_url;
+    */
 
     const { data, error } = await supabase
         .from('contacts')
