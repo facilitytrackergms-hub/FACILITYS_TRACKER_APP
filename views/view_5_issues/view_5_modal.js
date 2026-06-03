@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-03 06:50:00 PM
+UPDATED: 2026-06-03 06:42:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -57,7 +57,8 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
     window.openSelectedIssueInModal = function(issue) {
         document.getElementById('issueId').value = issue.id || '';
         document.getElementById('issueDescription').value = issue.description || '';
-        document.getElementById('issueInitiatedBy').value = issue.initiated_by || issue.reported_by || '';
+        // FIXED: Checked against database column reported_by primarily, falling back on initiated_by safely
+        document.getElementById('issueInitiatedBy').value = issue.reported_by || issue.initiated_by || '';
         document.getElementById('issueStatus').value = issue.status || 'Open';
         document.getElementById('issuePriority').value = issue.severity || issue.priority || 'Medium';
 
@@ -103,7 +104,6 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
 
     document.getElementById('backToControlsBtn').onclick = () => {
         if (window.navigateTo) {
-            // FIXED: Wrapped context payload within an object structure matching updated router configurations
             window.navigateTo('view_2_controls', { facility: facility });
         }
     };
