@@ -1,227 +1,120 @@
 /* =================================================
-FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 07:00:00 AM
+FILE: views/view_3_contacts/view_3_data.js
+UPDATED: 2026-06-03 07:15:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchContacts, deleteContact } from './view_3_data.js';
-import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
+import { supabase } from '../../js/supabaseClient.js';
 
-export async function renderFacilityContacts(data) {
-    const app = document.getElementById('app');
-    if (!app) return;
+/**
+ * Fetches all directory entries associated with a specific facility, 
+ * alongside cross-referenced tracking relations from contact_issues.
+ */
+export async function fetchContacts(facilityId) {
+    if (!facilityId) return [];
+    try {
+        // Step 1: Fetch valid columns from facility_contacts table
+        const { data: contacts, error: contactsError } = await supabase
+            .from('facility_contacts')
+            .select('id, facility_id, name, role, email, phone, image_url, created_at')
+            .eq('facility_id', Number(facilityId))
+            .order('name', { ascending: true });
 
-    const facility = data?.facility ? data.facility : data;
+        if (contactsError) throw contactsError;
+        if (!contacts || contacts.length === 0) return [];
 
-    const styles = `
-        <style>
-            .contacts-view-container { padding:20px; font-family:Arial; min-height:100vh; background:#f3f4f6; text-align:center; box-sizing:border-box; }
-            .contacts-card-wrapper { max-width:500px; margin:0 auto; background:white; border-radius:12px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
-            .contacts-view-title { color:#00264d; font-size:24px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; }
-            .contacts-view-subtitle { color:#6b7280; font-size:14px; margin-bottom:20px; }
-            .contacts-view-detail-box { text-align:left; background:#f9fafb; padding:20px; border-radius:8px; border:1px solid #e5e7eb; margin-bottom:20px; position:relative; }
-            .contacts-view-label { font-size:12px; font-weight:bold; color:#9ca3af; text-transform:uppercase; margin-bottom:2px; }
-            .contacts-view-value { font-size:16px; color:#1f2937; margin-bottom:15px; font-weight:500; }
-            .contacts-view-btn { width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; text-transform:uppercase; box-sizing:border-box; }
-            .btn-navy { background:#00264d; color:white; }
-            .btn-emerald { background:#10b981; color:white; margin-bottom:12px; }
-            .btn-gray { background:#9ca3af; color:white; }
-            .btn-danger { background:#dc2626; color:white; margin-top:10px; }
-            .btn-warning { background:#f59e0b; color:white; margin-top:10px; }
-            .btn-blue { background:#0056b3; color:white; margin-top:10px; }
-            .contacts-grid-layout { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:12px; margin:20px 0; text-align:left; }
-            .contact-thumbnail { background:white; border:1px solid #e5e7eb; padding:12px; border-radius:8px; cursor:pointer; text-align:center; transition:transform 0.15s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
-            .contact-thumbnail:hover { transform:translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-            .thumbnail-name { font-weight:bold; color:#00264d; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; margin-top:5px; }
-            .thumbnail-role { font-size:12px; color:#6b7280; margin-top:2px; }
-            .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
-            .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; }
-            .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
-            .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
-            .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
-            
-            .contact-avatar-frame { width:70px; height:70px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:2px solid #00264d; margin-bottom:8px; }
-            .detail-avatar-frame { width:90px; height:90px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:3px solid #00264d; margin-bottom:15px; display:block; }
-            .action-row { display:flex; gap:6px; width:100%; justify-content:space-between; }
-            
-            /* Camera Row Layout Styles */
-            .camera-action-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
-            .camera-status-text { font-size:13px; font-weight:500; color:#4b5563; }
-            
-            /* Grid Warning Badge */
-            .grid-issue-badge { position:absolute; top:6px; right:6px; background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; font-size:10px; font-weight:bold; border-radius:4px; padding:2px 4px; line-height:1; }
+        // Step 2: Fetch junction linkages alongside linked title and status parameters
+        const contactIds = contacts.map(c => Number(c.id));
+        const { data: issuesLinks, error: linksError } = await supabase
+            .from('contact_issues')
+            .select(`
+                contact_id, 
+                issue_id,
+                facility_issues (
+                    title,
+                    status
+                )
+            `)
+            .in('contact_id', contactIds);
 
-            /* Scrollable Issue Tracker Log Styling */
-            .contact-issues-scrollbar-tray { max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; padding:8px; border-radius:8px; background:#ffffff; display:flex; flex-direction:column; gap:6px; margin-top:4px; margin-bottom:18px; }
-            .history-issue-nav-btn { display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; border:1px solid #d1d5db; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-family:Arial, sans-serif; background:#f9fafb; font-weight:500; transition: background 0.15s; }
-            .history-issue-nav-btn:hover { background:#f3f4f6; border-color:#9ca3af; }
-            .status-indicator-tag { font-size:10px; font-weight:bold; text-transform:uppercase; padding:2px 6px; border-radius:4px; line-height:1; }
-            .tag-active { background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; }
-            .tag-resolved { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
-        </style>
-    `;
-
-    app.innerHTML = `
-        ${styles}
-        <div class="contacts-view-container" id="mainContactsContainer">
-            <div class="contacts-card-wrapper">
-                <h1 class="contacts-view-title" id="contactsTitleHeader">Facility Directory</h1>
-                <p class="contacts-view-subtitle">${facility?.name || ''}</p>
-
-                <div id="activeContactDetailCard" style="display:none;" class="contacts-view-detail-box"></div>
-
-                <button id="manualContactTriggerBtn" class="contacts-view-btn btn-emerald">➕ Add New Contact</button>
-                
-                <div id="contactsGridElement" class="contacts-grid-layout">Loading...</div>
-
-                <button id="backBtn" class="contacts-view-btn btn-navy">⬅️ Back to Controls</button>
-            </div>
-
-            <div id="manualContactModal" class="modal-mask">
-                <div class="modal-shell">
-                    <h3 class="modal-shell-title" id="modalTemplateTitle">Create Directory Entry</h3>
-                    <input type="hidden" id="editingContactId" value="">
-                    
-                    <label class="form-field-label">Full Name</label>
-                    <input type="text" id="manualContactName" class="form-field-input">
-
-                    <label class="form-field-label">Job Title / Role</label>
-                    <input type="text" id="manualContactRole" class="form-field-input">
-
-                    <label class="form-field-label">Phone Number</label>
-                    <input type="text" id="manualContactPhone" class="form-field-input">
-
-                    <label class="form-field-label">Email Address</label>
-                    <input type="email" id="manualContactEmail" class="form-field-input">
-
-                    <label class="form-field-label">Contact Profile Picture</label>
-                    <div class="camera-action-row">
-                        <input type="file" id="manualContactFile" accept="image/*" capture="user" style="display:none;">
-                        <button id="triggerCameraBtn" class="contacts-view-btn btn-emerald" style="margin:0; width:auto; padding:10px 16px;">📸 Take Photo</button>
-                        <span id="uploadStatusText" class="camera-status-text">No image captured</span>
-                    </div>
-                    <input type="hidden" id="manualContactImage" value="">
-
-                    <label class="form-field-label">Internal Notes</label>
-                    <textarea id="manualContactNotes" class="form-field-input" style="height:60px; resize:none;"></textarea>
-
-                    <div class="form-action-group" style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
-                        <button id="manualContactSaveBtn" class="contacts-view-btn btn-navy">Save Details</button>
-                        <button id="manualContactCloseBtn" class="contacts-view-btn btn-gray">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    setupContactsEvents(facility, renderFacilityContacts);
-
-    async function loadContactsGridData() {
-        if (!facility?.id) return;
-        const grid = document.getElementById('contactsGridElement');
-        if (!grid) return;
-        
-        const contacts = await fetchContacts(facility.id);
-        grid.innerHTML = '';
-
-        if (!contacts || contacts.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#9ca3af; font-size:13px; padding:10px;">No contacts found.</div>';
-            return;
+        if (linksError) {
+            console.warn("Could not load associated issues mapping:", linksError);
         }
 
-        contacts.forEach(c => {
-            const block = document.createElement('div');
-            block.className = 'contact-thumbnail';
-            
-            const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=00264d&color=fff`;
-            const avatarSrc = c.image_url || c.avatar_url || fallbackAvatar;
-            const issueCount = c.contact_issues ? c.contact_issues.length : 0;
-
-            block.innerHTML = `
-                ${issueCount > 0 ? `<span class="grid-issue-badge">⚠️ ${issueCount}</span>` : ''}
-                <img src="${avatarSrc}" class="contact-avatar-frame" alt="avatar">
-                <div class="thumbnail-name">${c.name || 'N/A'}</div>
-                <div class="thumbnail-role">${c.role || 'Staff'}</div>
-            `;
-            block.onclick = () => showContactDetailPanel(c);
-            grid.appendChild(block);
+        // Step 3: Stitch relational records and lookup metrics together cleanly in memory
+        const mappings = issuesLinks || [];
+        return contacts.map(contact => {
+            const matchedRelations = mappings.filter(m => Number(m.contact_id) === Number(contact.id));
+            return {
+                ...contact,
+                contact_issues: matchedRelations.map(m => ({
+                    issue_id: m.issue_id,
+                    title: m.facility_issues?.title || `Issue #${m.issue_id}`,
+                    status: m.facility_issues?.status || 'Open'
+                }))
+            };
         });
+    } catch (err) {
+        console.error("Error fetching facility directory entries:", err);
+        return [];
     }
+}
 
-    function showContactDetailPanel(contact) {
-        const panel = document.getElementById('activeContactDetailCard');
-        if (!panel) return;
+/**
+ * Inserts a new profile row into the database directory table
+ */
+export async function insertContact(payload) {
+    try {
+        const { data, error } = await supabase
+            .from('facility_contacts')
+            .insert([payload])
+            .select();
 
-        const phoneLink = contact.phone && contact.phone !== 'N/A'
-            ? `<a href="tel:${contact.phone.replace(/[^0-9+]/g, '')}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.phone}</a>` 
-            : 'N/A';
-            
-        const emailLink = contact.email 
-            ? `<a href="mailto:${contact.email}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.email}</a>` 
-            : 'N/A';
+        if (error) throw error;
+        return data && data.length > 0 ? data[0] : null;
+    } catch (err) {
+        console.error("Error inserting directory entry record:", err);
+        return null;
+    }
+}
 
-        const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=00264d&color=fff`;
-        const avatarSrc = contact.image_url || contact.avatar_url || fallbackAvatar;
-        
-        const issuesList = contact.contact_issues || [];
+/**
+ * Updates an existing contact card row entry matching a specific row ID
+ */
+export async function updateContact(contactId, payload) {
+    if (!contactId) return null;
+    try {
+        const { data, error } = await supabase
+            .from('facility_contacts')
+            .update(payload)
+            .eq('id', Number(contactId))
+            .select();
 
-        // Generate the HTML buttons for the scrollable log area
-        let issuesLogHTML = '<span style="color:#9ca3af; font-size:12px; font-style:italic; display:block; padding:4px 0;">No active or past issues linked.</span>';
-        
-        if (issuesList.length > 0) {
-            issuesLogHTML = issuesList.map(issue => {
-                const isResolved = String(issue.status).toLowerCase() === 'resolved' || String(issue.status).toLowerCase() === 'done';
-                const tagClass = isResolved ? 'tag-resolved' : 'tag-active';
-                const tagText = isResolved ? 'Done' : 'Open';
-                
-                return `
-                    <button class="history-issue-nav-btn" data-issue-id="${issue.issue_id}">
-                        <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:240px;">⚠️ ${issue.title}</span>
-                        <span class="status-indicator-tag ${tagClass}">${tagText}</span>
-                    </button>
-                `;
-            }).join('');
-        }
+        if (error) throw error;
+        return data && data.length > 0 ? data[0] : null;
+    } catch (err) {
+        console.error(`Error updating contact record ID ${contactId}:`, err);
+        return null;
+    }
+}
 
-        panel.innerHTML = `
-            <div style="display:flex; justify-content:center; width:100%;">
-                <img src="${avatarSrc}" class="detail-avatar-frame" alt="Contact Photo">
-            </div>
-            
-            <div class="contacts-view-label">Name</div>
-            <div class="contacts-view-value">${contact.name || 'N/A'}</div>
-            
-            <div class="contacts-view-label">Role</div>
-            <div class="contacts-view-value">${contact.role || 'N/A'}</div>
-            
-            <div class="contacts-view-label">Phone</div>
-            <div class="contacts-view-value">${phoneLink}</div>
-            
-            <div class="contacts-view-label">Email</div>
-            <div class="contacts-view-value">${emailLink}</div>
-            
-            <div class="contacts-view-label">Notes</div>
-            <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">${contact.notes || 'No notes added.'}</div>
-            
-            <div class="contacts-view-label">Reported Issues History</div>
-            <div class="contact-issues-scrollbar-tray">
-                ${issuesLogHTML}
-            </div>
+/**
+ * Removes a directory entry row from the database
+ */
+export async function deleteContact(contactId) {
+    if (!contactId) return false;
+    try {
+        const { error } = await supabase
+            .from('facility_contacts')
+            .delete()
+            .eq('id', Number(contactId));
 
-            <div class="action-row">
-                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:48%; font-size:12px; padding:10px 4px;">✏️ Edit Info</button>
-                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:48%; font-size:12px; padding:10px 4px; margin-top:0;">🗑️ Delete Contact</button>
-            </div>
-        `;
-        
-        panel.style.display = 'block';
-        panel.scrollIntoView({ behavior: 'smooth' });
-
-        document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
-        
-        // Setup individual click navigation handlers for each history row button entry
-        panel.querySelectorAll('.history-issue-nav-btn').forEach(btn => {
-            btn.onclick = () => {
-                const targetIssueId = btn.getAttribute('data-issue-id
+        if (error) throw error;
+        return true;
+    } catch (err) {
+        console.error(`Error deleting contact record ID ${contactId}:`, err);
+        return false;
+    }
+}
