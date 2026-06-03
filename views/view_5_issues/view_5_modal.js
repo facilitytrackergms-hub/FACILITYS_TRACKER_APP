@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-03 09:10:00 AM
+UPDATED: 2026-06-03 06:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -57,9 +57,9 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
     window.openSelectedIssueInModal = function(issue) {
         document.getElementById('issueId').value = issue.id || '';
         document.getElementById('issueDescription').value = issue.description || '';
-        document.getElementById('issueInitiatedBy').value = issue.initiated_by || '';
+        document.getElementById('issueInitiatedBy').value = issue.initiated_by || issue.reported_by || '';
         document.getElementById('issueStatus').value = issue.status || 'Open';
-        document.getElementById('issuePriority').value = issue.priority || 'Medium';
+        document.getElementById('issuePriority').value = issue.severity || issue.priority || 'Medium';
 
         document.getElementById('issueModalTitle').innerText = "Modify Issue Entry Fields";
         
@@ -119,8 +119,32 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
             return;
         }
 
+        let targetContactId = null;
+
+        if (initiatedByName) {
+            // Check cache to find if contact exists
+            let matchedContact = activeContactsList.find(c => c.name && c.name.toLowerCase() === initiatedByName.toLowerCase());
+            
+            if (!matchedContact) {
+                const confirmAdd = confirm(`The contact "${initiatedByName}" was not found in your directory list. Create a new entry row for them now?`);
+                if (confirmAdd) {
+                    matchedContact = await insertFacilityContact({
+                        facility_id: facility.id,
+                        name: initiatedByName,
+                        role: 'Staff Participant Log'
+                    });
+                    await loadContactsCache();
+                }
+            }
+            
+            if (matchedContact) {
+                targetContactId = matchedContact.id;
+            }
+        }
+
         const payload = {
             facility_id: facility.id,
+            title: desc.substring(0, 30) + (desc.length > 30 ? '...' : ''),
             description: desc,
             initiated_by: initiatedByName || 'Staff',
             status: status,
@@ -132,22 +156,8 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
             payload.created_at = new Date().toISOString();
         }
 
-        if (initiatedByName) {
-            const match = activeContactsList.some(c => c.name && c.name.toLowerCase() === initiatedByName.toLowerCase());
-            if (!match) {
-                const confirmAdd = confirm(`The contact "${initiatedByName}" was not found in your directory list. Create a new entry row for them now?`);
-                if (confirmAdd) {
-                    await insertFacilityContact({
-                        facility_id: facility.id,
-                        name: initiatedByName,
-                        role: 'Staff Participant Log'
-                    });
-                    await loadContactsCache();
-                }
-            }
-        }
-
-        const result = await saveFacilityIssue(payload, id || null);
+        // Send down issue info along with the contact mapping profile ID row reference code link
+        const result = await saveFacilityIssue(payload, id || null, targetContactId);
         
         if (result.error) {
             await showCustomAlert("Error Saving", "Could not synchronize structural fields into cloud data table storage.", "❌");
