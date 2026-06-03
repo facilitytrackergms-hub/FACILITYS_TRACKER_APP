@@ -15,7 +15,7 @@ window.navigateTo = async (view, context = {}) => {
     }
 
     // Defensive Check: Allow valid numeric IDs matching bigint columns
-    const facilityViews = ['view_2_controls', 'view_3_controls', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups'];
+    const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups'];
     if (facilityViews.includes(view)) {
         const facilityId = context?.id || context?.facility?.id;
         if (facilityId === undefined || facilityId === null || String(facilityId) === '[object Object]') {
