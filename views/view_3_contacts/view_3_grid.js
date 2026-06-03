@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 05:30:00 AM
+UPDATED: 2026-06-03 06:40:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -32,7 +32,7 @@ export async function renderFacilityContacts(data) {
             .btn-warning { background:#f59e0b; color:white; margin-top:10px; }
             .btn-blue { background:#0056b3; color:white; margin-top:10px; }
             .contacts-grid-layout { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:12px; margin:20px 0; text-align:left; }
-            .contact-thumbnail { background:white; border:1px solid #e5e7eb; padding:12px; border-radius:8px; cursor:pointer; text-align:center; transition:transform 0.15s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+            .contact-thumbnail { background:white; border:1px solid #e5e7eb; padding:12px; border-radius:8px; cursor:pointer; text-align:center; transition:transform 0.15s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
             .contact-thumbnail:hover { transform:translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
             .thumbnail-name { font-weight:bold; color:#00264d; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; margin-top:5px; }
             .thumbnail-role { font-size:12px; color:#6b7280; margin-top:2px; }
@@ -49,6 +49,9 @@ export async function renderFacilityContacts(data) {
             /* Camera Row Layout Styles */
             .camera-action-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
             .camera-status-text { font-size:13px; font-weight:500; color:#4b5563; }
+            
+            /* Grid Warning Badge */
+            .grid-issue-badge { position:absolute; top:6px; right:6px; background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; font-size:10px; font-weight:bold; border-radius:4px; padding:2px 4px; line-height:1; }
         </style>
     `;
 
@@ -125,9 +128,12 @@ export async function renderFacilityContacts(data) {
             block.className = 'contact-thumbnail';
             
             const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=00264d&color=fff`;
-            const avatarSrc = c.image_url ? c.image_url : fallbackAvatar;
+            // Fixed field variables to match known schema columns 
+            const avatarSrc = c.avatar_url || c.image_url || fallbackAvatar;
+            const issueCount = c.contact_issues ? c.contact_issues.length : 0;
 
             block.innerHTML = `
+                ${issueCount > 0 ? `<span class="grid-issue-badge">⚠️ ${issueCount}</span>` : ''}
                 <img src="${avatarSrc}" class="contact-avatar-frame" alt="avatar">
                 <div class="thumbnail-name">${c.name || 'N/A'}</div>
                 <div class="thumbnail-role">${c.role || 'Staff'}</div>
@@ -150,7 +156,8 @@ export async function renderFacilityContacts(data) {
             : 'N/A';
 
         const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=00264d&color=fff`;
-        const avatarSrc = contact.image_url ? contact.image_url : fallbackAvatar;
+        const avatarSrc = contact.avatar_url || contact.image_url || fallbackAvatar;
+        const issueCount = contact.contact_issues ? contact.contact_issues.length : 0;
 
         panel.innerHTML = `
             <div style="display:flex; justify-content:center; width:100%;">
@@ -174,7 +181,9 @@ export async function renderFacilityContacts(data) {
             
             <div class="action-row">
                 <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:32%; font-size:11px; padding:10px 4px;">✏️ Edit</button>
-                <button id="issuesContactBtn" class="contacts-view-btn btn-blue" style="width:32%; font-size:11px; padding:10px 4px;">⚠️ Issues</button>
+                <button id="issuesContactBtn" class="contacts-view-btn btn-blue" style="width:32%; font-size:11px; padding:10px 4px;">
+                    ⚠️ Issues ${issueCount > 0 ? `(${issueCount})` : ''}
+                </button>
                 <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:32%; font-size:11px; padding:10px 4px;">🗑️ Delete</button>
             </div>
         `;
@@ -188,7 +197,7 @@ export async function renderFacilityContacts(data) {
             if (typeof openContactIssuesModal === 'function') {
                 openContactIssuesModal(contact);
             } else if (typeof window.openContactIssuesModal === 'function') {
-                window.openContactIssuesModal(contact);
+                window.openopenContactIssuesModal(contact);
             } else {
                 alert("Issues view controller not fully mounted yet.");
             }
