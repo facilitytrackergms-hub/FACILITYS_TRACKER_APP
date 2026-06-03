@@ -1,6 +1,6 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-03 11:50:00 AM
+UPDATED: 2026-06-03 12:10:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -69,7 +69,8 @@ window.navigateTo = async (view, context = {}) => {
         }
     } catch (err) {
         console.error("Navigation error:", err);
-        app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}</p>';
+        // FIXED: Balanced backtick template literal syntax closure string right here
+        app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}</p>`;
     }
 };
 
