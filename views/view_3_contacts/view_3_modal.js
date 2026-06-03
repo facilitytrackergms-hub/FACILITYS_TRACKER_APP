@@ -1,13 +1,12 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_modal.js
-UPDATED: 2026-06-03 12:31:00 PM
+UPDATED: 2026-06-03 12:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-// FIXED: Appended version query string token to clear out sticky browser module compilation states
-import { insertContact, updateContact } from './view_3_data.js?v=2026_v5';
+import { insertContact, updateContact } from './view_3_data.js';
 import { supabase } from '../../js/supabaseClient.js';
 
 export function setupContactsEvents(facility, refreshCallback) {
