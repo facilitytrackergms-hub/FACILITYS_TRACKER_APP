@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-02 05:55:00 PM
+UPDATED: 2026-06-03 09:10:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -11,8 +11,17 @@ import { setupIssuesEvents } from './view_5_modal.js';
 
 export async function renderFacilityIssues(data) {
     const facility = data?.facility ? data.facility : data;
-    const autoOpen = data?.autoOpenModal || false;
-    const prefillData = data?.prefill || null;
+    
+    // Check if we arrived here via a preselected contact request
+    let autoOpen = data?.autoOpenModal || false;
+    let prefillData = data?.prefill || null;
+
+    if (data?.preselectedContact) {
+        autoOpen = true;
+        prefillData = {
+            initiated_by: data.preselectedContact.name || ''
+        };
+    }
 
     if (!facility || !facility.id) {
         console.error("Facility object is missing or invalid inside issue tracker view.");
