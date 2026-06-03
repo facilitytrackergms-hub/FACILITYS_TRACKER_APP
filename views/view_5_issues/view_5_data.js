@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_data.js
-UPDATED: 2026-06-02 08:50:00 PM
+UPDATED: 2026-06-03 06:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -34,13 +34,14 @@ export async function fetchFacilityContacts(facilityId) {
     const safeId = parseInt(facilityId, 10);
     if (isNaN(safeId)) return [];
 
+    // Correct target to load explicitly from facility_contacts table structure
     const { data, error } = await supabase
-        .from('contacts')
+        .from('facility_contacts')
         .select('*')
         .eq('facility_id', safeId);
 
     if (error) {
-        console.error("Database Error fetching contacts:", error);
+        console.error("Database Error fetching facility contacts:", error);
         return [];
     }
     return data || [];
@@ -51,12 +52,12 @@ export async function insertFacilityContact(contactPayload) {
     
     const mappedPayload = {
         facility_id: safeFacilityId,
-        contact_name: contactPayload.name || contactPayload.contact_name || '',
+        name: contactPayload.name || '',
         role: contactPayload.role || ''
     };
 
     const { data, error } = await supabase
-        .from('contacts')
+        .from('facility_contacts')
         .insert([mappedPayload])
         .select();
 
@@ -67,15 +68,15 @@ export async function insertFacilityContact(contactPayload) {
     return data && data[0] ? data[0] : null;
 }
 
-export async function saveFacilityIssue(payload, id = null) {
+export async function saveFacilityIssue(payload, id = null, linkedContactId = null) {
     const safeFacilityId = parseInt(payload.facility_id, 10);
     
-    // Aligned with the database column names shown in your schema picture:
+    // Aligned with the database column names shown in your schema picture
     const mappedPayload = {
         facility_id: safeFacilityId,
         title: payload.title || 'Maintenance Request',
         description: payload.description || '',
-        severity: payload.severity || 'Medium',
+        severity: payload.priority || 'Medium',
         status: payload.status || 'Open'
     };
 
@@ -85,6 +86,21 @@ export async function saveFacilityIssue(payload, id = null) {
             .from('facility_issues')
             .insert([mappedPayload])
             .select();
+            
+        // Junction linkage block: stitch relationship mapping inside memory rows if newly inserted
+        if (!result.error && result.data && result.data[0] && linkedContactId) {
+            const savedIssueId = result.data[0].id;
+            const { error: junctionError } = await supabase
+                .from('contact_issues')
+                .insert([{
+                    contact_id: parseInt(linkedContactId, 10),
+                    issue_id: parseInt(savedIssueId, 10)
+                }]);
+                
+            if (junctionError) {
+                console.warn("Junction linkage mapping insertion error logged:", junctionError);
+            }
+        }
     } else {
         result = await supabase
             .from('facility_issues')
