@@ -50,7 +50,7 @@ export function setupControlsEvents(data) {
 
     // Corrected target keys to match real physical folder layouts
     document.getElementById('toIndividualIssues').onclick = () => navigateWithCleanup('view_5_modal');
-    document.getElementById('toContacts').onclick = () => navigateWithCleanup('view_3_Contacts');
+    document.getElementById('toContacts').onclick = () => navigateWithCleanup('view_3_contacts');
     document.getElementById('toProjects').onclick = () => navigateWithCleanup('view_4_projects');
     document.getElementById('toGallery').onclick = () => navigateWithCleanup('view_6_images');
     document.getElementById('backDash').onclick = () => navigateWithCleanup('view_1_facility');
