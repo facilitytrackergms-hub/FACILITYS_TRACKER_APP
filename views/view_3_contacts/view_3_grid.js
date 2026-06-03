@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 06:00:00 PM
+UPDATED: 2026-06-03 07:25:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -66,6 +66,17 @@ export async function renderFacilityContacts(data) {
         </style>
     `;
 
+    // Extract any pipeline properties from the route invocation object context safely
+    if (data?.prefillContactName) {
+        facility.prefillContactName = data.prefillContactName;
+    }
+    if (data?.returnToView) {
+        facility.returnToView = data.returnToView;
+    }
+    if (data?.cachedIssueForm) {
+        facility.cachedIssueForm = data.cachedIssueForm;
+    }
+
     app.innerHTML = `
         ${styles}
         <div class="contacts-view-container" id="mainContactsContainer">
@@ -74,7 +85,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 06:00:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 07:25:00 PM
                 </div>
 
                 <div id="activeContactDetailCard" style="display:none;" class="contacts-view-detail-box"></div>
@@ -175,7 +186,6 @@ export async function renderFacilityContacts(data) {
         const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name || 'Staff')}&background=00264d&color=fff`;
         const avatarSrc = contact.image_url || contact.avatar_url || fallbackAvatar;
 
-        // Build clickable problem/issue buttons if any are attached to this specific user
         const issuesList = contact.contact_issues || [];
         let issuesMarkup = '';
 
@@ -230,7 +240,6 @@ export async function renderFacilityContacts(data) {
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth' });
 
-        // Bind clicks on individual issue tracking buttons to jump to their respective screen views
         panel.querySelectorAll('.history-issue-nav-btn').forEach(btn => {
             btn.onclick = () => {
                 const targetIssueId = btn.getAttribute('data-issue-id');
