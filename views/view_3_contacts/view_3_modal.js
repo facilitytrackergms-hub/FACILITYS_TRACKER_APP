@@ -84,7 +84,6 @@ export function setupContactsEvents(facility, refreshCallback) {
 
     if (saveBtn) {
         saveBtn.onclick = async () => {
-            // FIXED: Added image_url back to the payload now that the column exists in the database
             const payload = {
                 name: document.getElementById('manualContactName').value.trim(),
                 role: document.getElementById('manualContactRole').value.trim(),
@@ -128,7 +127,6 @@ export function openEditContactModal(contact) {
     document.getElementById('manualContactPhone').value = contact.phone === 'N/A' ? '' : contact.phone;
     document.getElementById('manualContactEmail').value = contact.email || '';
     
-    // UI field backfills from fallback attributes if added in the future
     document.getElementById('manualContactNotes').value = contact.notes || '';
     const currentImgUrl = contact.image_url || contact.avatar_url || '';
     document.getElementById('manualContactImage').value = currentImgUrl;
@@ -286,7 +284,6 @@ export async function openContactIssuesModal(contact) {
         };
     });
 
-    // Make each issue card item clickable to jump directly into editing the full report fields
     const historyCards = modal.querySelectorAll('.issue-history-item-card');
     historyCards.forEach(card => {
         card.onclick = (e) => {
@@ -323,3 +320,11 @@ function clearFormFields() {
     const fileInput = document.getElementById('manualContactFile');
     if (fileInput) fileInput.value = '';
 }
+
+/* =================================================
+VERSION TRACKING BLOCK
+====================================================
+MODULE: view_3_contacts
+FILE_TYPE: modal_view
+TARGET_RELATION: view_5_issues_grid
+==================================================== */
