@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 07:45:00 AM
+UPDATED: 2026-06-03 08:00:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -167,7 +167,6 @@ export async function renderFacilityContacts(data) {
         
         const issuesList = contact.contact_issues || [];
 
-        // Generate the HTML buttons for the scrollable log area
         let issuesLogHTML = '<span style="color:#9ca3af; font-size:12px; font-style:italic; display:block; padding:4px 0;">No active or past issues linked.</span>';
         
         if (issuesList.length > 0) {
@@ -213,44 +212,4 @@ export async function renderFacilityContacts(data) {
             <div class="action-row">
                 <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:32%; font-size:11px; padding:10px 2px;">✏️ Edit</button>
                 <button id="newIssueContactBtn" class="contacts-view-btn btn-blue" style="width:32%; font-size:11px; padding:10px 2px;">➕ New Issue</button>
-                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:32%; font-size:11px; padding:10px 2px;">🗑️ Delete</button>
-            </div>
-        `;
-        
-        panel.style.display = 'block';
-        panel.scrollIntoView({ behavior: 'smooth' });
-
-        document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
-        
-        // Routes the user to log a fresh problem ticket automatically preset with this contact profile
-        document.getElementById('newIssueContactBtn').onclick = () => {
-            if (window.navigateTo) {
-                window.navigateTo('view_5_issues', { facility: facility, preselectedContact: contact });
-            }
-        };
-        
-        // Setup individual click navigation handlers for each history row button entry
-        panel.querySelectorAll('.history-issue-nav-btn').forEach(btn => {
-            btn.onclick = () => {
-                const targetIssueId = btn.getAttribute('data-issue-id');
-                if (window.navigateTo) {
-                    window.navigateTo('view_5_issues', { id: targetIssueId, facility: facility });
-                }
-            };
-        });
-        
-        document.getElementById('deleteContactBtn').onclick = async () => {
-            if (confirm(`Are you sure you want to remove ${contact.name}?`)) {
-                const success = await deleteContact(contact.id);
-                if (success) {
-                    alert("Contact removed successfully.");
-                    renderFacilityContacts(facility);
-                } else {
-                    alert("Failed to delete contact.");
-                }
-            }
-        };
-    }
-
-    await loadContactsGridData();
-}
+                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:32%; font-size:11px; padding
