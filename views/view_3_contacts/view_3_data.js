@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_data.js
-UPDATED: 2026-06-03 06:40:00 AM
+UPDATED: 2026-06-03 06:55:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -15,10 +15,10 @@ import { supabase } from '../../js/supabaseClient.js';
 export async function fetchContacts(facilityId) {
     if (!facilityId) return [];
     try {
-        // Step 1: Fetch valid columns from facility_contacts table
+        // Step 1: FIXED - Added image_url into the explicit columns array list selection
         const { data: contacts, error: contactsError } = await supabase
             .from('facility_contacts')
-            .select('id, facility_id, name, role, email, phone, created_at')
+            .select('id, facility_id, name, role, email, phone, image_url, created_at')
             .eq('facility_id', Number(facilityId))
             .order('name', { ascending: true });
 
