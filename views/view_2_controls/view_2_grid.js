@@ -101,8 +101,7 @@ export async function renderFacilityControls(data) {
 
     // Hook standard routing actions
     setupControlsEvents(facility);
-
-    // Context Hook: Handle the local profile photo picker interaction rules
+// Context Hook: Handle the local profile photo picker interaction rules
     const imageBox = document.getElementById('facilityHeaderImageBox');
     const fileInput = document.getElementById('facilityPhotoFileInput');
     
@@ -113,8 +112,20 @@ export async function renderFacilityControls(data) {
             const chosenFile = e.target.files[0];
             if (!chosenFile) return;
             
-            console.log(`Uploading picture attachment for ${facility?.name || 'Facility'}:`, chosenFile.name);
-            alert(`Selected file: "${chosenFile.name}". In our next step, we'll hook up the save functionality to persist this picture to the database profile!`);
+            // Visual loading state indicators
+            imageBox.innerHTML = `<span style="font-size:11px; color:#00264d; font-weight:bold; animation: pulse 1.5s infinite;">⏳ Uploading...</span>`;
+            
+            // Dynamic import to fetch the upload script helper dynamically
+            const { uploadFacilityImage } = await import('./view_2_data.js');
+            const updated = await uploadFacilityImage(facility.id, chosenFile);
+            
+            if (updated) {
+                // Instantly re-render the controls screen context with your shiny new live profile photo link!
+                renderFacilityControls(updated);
+            } else {
+                alert("Upload encountered an issue. Ensure your 'facility-assets' bucket is created and set to Public!");
+                renderFacilityControls(facility);
+            }
         });
     }
 
