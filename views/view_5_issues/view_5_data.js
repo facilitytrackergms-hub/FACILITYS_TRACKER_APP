@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_data.js
-UPDATED: 2026-06-03 06:22:00 PM
+UPDATED: 2026-06-03 06:55:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -71,14 +71,14 @@ export async function insertFacilityContact(contactPayload) {
 export async function saveFacilityIssue(payload, id = null, linkedContactId = null) {
     const safeFacilityId = parseInt(payload.facility_id, 10);
     
-    // FIXED: Added initiated_by to ensure the reporter's identity persists in Supabase table rows
+    // FIXED: Swapped 'initiated_by' out and mapped the incoming value to your true DB column: 'reported_by'
     const mappedPayload = {
         facility_id: safeFacilityId,
         title: payload.title || 'Maintenance Request',
         description: payload.description || '',
         severity: payload.priority || 'Medium',
         status: payload.status || 'Open',
-        initiated_by: payload.initiated_by || 'Staff'
+        reported_by: payload.initiated_by || 'Staff'
     };
 
     let result;
