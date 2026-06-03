@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_modal.js
-UPDATED: 2026-06-03 06:25:00 AM
+UPDATED: 2026-06-03 06:30:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -84,14 +84,12 @@ export function setupContactsEvents(facility, refreshCallback) {
 
     if (saveBtn) {
         saveBtn.onclick = async () => {
-            // FIXED: Payload column updated from image_url to avatar_url to match schema cache
+            // FIXED: Payload restricted exactly to columns present in the database table schema cache
             const payload = {
                 name: document.getElementById('manualContactName').value.trim(),
                 role: document.getElementById('manualContactRole').value.trim(),
                 phone: document.getElementById('manualContactPhone').value.trim(),
                 email: document.getElementById('manualContactEmail').value.trim(),
-                notes: document.getElementById('manualContactNotes').value.trim(),
-                avatar_url: document.getElementById('manualContactImage').value.trim(),
                 facility_id: facility.id
             };
 
@@ -128,9 +126,9 @@ export function openEditContactModal(contact) {
     document.getElementById('manualContactRole').value = contact.role || '';
     document.getElementById('manualContactPhone').value = contact.phone === 'N/A' ? '' : contact.phone;
     document.getElementById('manualContactEmail').value = contact.email || '';
-    document.getElementById('manualContactNotes').value = contact.notes === 'No notes added.' ? '' : contact.notes;
     
-    // FIXED: Support incoming parameter variations gracefully
+    // UI field backfills from fallback attributes if added in the future
+    document.getElementById('manualContactNotes').value = contact.notes || '';
     const currentImgUrl = contact.avatar_url || contact.image_url || '';
     document.getElementById('manualContactImage').value = currentImgUrl;
     
@@ -162,10 +160,8 @@ export async function openContactIssuesModal(contact) {
 
     modal.style.display = 'flex';
 
-    // Target active facility identifier cross-references cleanly
     const targetFacilityId = contact.facility_id || (window.currentFacility ? window.currentFacility.id : null);
 
-    // Fetch matching link connections
     const { data: linkedConnections } = await supabase
         .from('contact_issues')
         .select(`
@@ -178,7 +174,6 @@ export async function openContactIssuesModal(contact) {
         `)
         .eq('contact_id', Number(contact.id));
 
-    // Fetch all available issue logs registered to this facility
     let allIssues = [];
     if (targetFacilityId) {
         const { data } = await supabase
