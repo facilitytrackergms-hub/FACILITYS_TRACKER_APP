@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_data.js
-UPDATED: 2026-06-04 06:05:00 PM
+UPDATED: 2026-06-04 06:10:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -61,6 +61,25 @@ export async function deleteFacilityRecord(facilityId) {
 
     if (error) {
         console.error("Error cascading delete on facility table row target:", error);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Removes the image_url reference from a facility profile row without deleting the text records
+ */
+export async function deleteFacilityImage(facilityId) {
+    const safeId = parseInt(facilityId, 10);
+    if (isNaN(safeId)) return false;
+
+    const { error } = await supabase
+        .from('facilities')
+        .update({ image_url: null })
+        .eq('id', safeId);
+
+    if (error) {
+        console.error("Error wiping facility photo field link:", error);
         return false;
     }
     return true;
