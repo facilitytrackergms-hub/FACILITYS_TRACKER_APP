@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_data.js
-UPDATED: 2026-06-04 05:40:00 PM
+UPDATED: 2026-06-04 05:55:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -26,6 +26,27 @@ export async function fetchSingleFacility(facilityId) {
         return null;
     }
     return data;
+}
+
+/**
+ * Fetches the latest captured image row from the facility_images table
+ */
+export async function fetchLatestFacilityImage(facilityId) {
+    const safeId = parseInt(facilityId, 10);
+    if (isNaN(safeId)) return null;
+
+    const { data, error } = await supabase
+        .from('facility_images')
+        .select('*')
+        .eq('facility_id', safeId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+    if (error) {
+        console.error("Error loading latest facility image:", error);
+        return null;
+    }
+    return data && data[0] ? data[0] : null;
 }
 
 /**
@@ -59,7 +80,6 @@ export async function uploadFacilityImage(facilityId, file) {
         const fileName = `facility_${safeId}_${Date.now()}.${fileExtension}`;
         const filePath = `profiles/${fileName}`;
 
-        // 1. Upload the raw image bytes to your public 'facility-assets' bucket
         const { data: uploadData, error: uploadError } = await supabase.storage
             .from('facility-assets')
             .upload(filePath, file, {
@@ -72,7 +92,6 @@ export async function uploadFacilityImage(facilityId, file) {
             return null;
         }
 
-        // 2. Retrieve the public CDN link for the uploaded file
         const { data: urlData } = supabase.storage
             .from('facility-assets')
             .getPublicUrl(filePath);
@@ -80,7 +99,6 @@ export async function uploadFacilityImage(facilityId, file) {
         const publicUrl = urlData?.publicUrl;
         if (!publicUrl) throw new Error("Could not retrieve public link target path.");
 
-        // 3. Persist the image link directly back to your primary facilities table row
         const { data: updatedFacility, error: updateError } = await supabase
             .from('facilities')
             .update({ image_url: publicUrl })
