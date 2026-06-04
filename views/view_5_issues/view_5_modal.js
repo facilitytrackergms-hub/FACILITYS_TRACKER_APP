@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-04 06:20:00 PM
+UPDATED: 2026-06-04 06:50:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -8,17 +8,47 @@ Always keep the header at the top of current files and new files.
 ================================================= */
 import { saveFacilityIssue, deleteFacilityIssue } from './view_5_data.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
+import { fetchContacts } from '../view_3_contacts/view_3_data.js';
 
 export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = false, prefillData = null) {
     const modal = document.getElementById('issueModal');
     const deleteBtn = document.getElementById('deleteIssueBtn');
     
+    // Helper function to populate the contact dropdown list dynamically
+    async function populateContactDropdown(selectedValue = '') {
+        const selectEl = document.getElementById('issueInitiatedBy');
+        if (!selectEl) return;
+
+        // Start with a default empty/unlisted option to support the custom intercept logic
+        selectEl.innerHTML = '<option value="">-- Select Existing Contact (Or Leave Blank) --</option>';
+
+        try {
+            const contacts = await fetchContacts(facility.id);
+            if (contacts && contacts.length > 0) {
+                contacts.forEach(contact => {
+                    const option = document.createElement('option');
+                    option.value = contact.name;
+                    option.textContent = `${contact.name} (${contact.role || 'Staff'})`;
+                    selectEl.appendChild(option);
+                });
+            }
+        } catch (err) {
+            console.error("Could not populate contact drop box options:", err);
+        }
+
+        // Apply selected value or restore cached input parameters
+        selectEl.value = selectedValue;
+    }
+
     // Check if we are returning from a cached session draft state
     if (facility.cachedIssueForm) {
         document.getElementById('issueDescription').value = facility.cachedIssueForm.description || '';
         document.getElementById('issueStatus').value = facility.cachedIssueForm.status || 'Open';
         document.getElementById('issuePriority').value = facility.cachedIssueForm.priority || 'Medium';
         document.getElementById('issueId').value = facility.cachedIssueForm.id || '';
+        
+        populateContactDropdown(facility.cachedIssueForm.initiated_by || '');
+        
         modal.style.display = 'block';
         if (deleteBtn) {
             deleteBtn.style.display = facility.cachedIssueForm.id ? 'block' : 'none';
@@ -29,17 +59,18 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
     if (autoOpen) {
         openBlankIssueModal();
         if (prefillData && prefillData.initiated_by) {
-            document.getElementById('issueInitiatedBy').value = prefillData.initiated_by;
+            populateContactDropdown(prefillData.initiated_by);
         }
     }
 
     function openBlankIssueModal() {
         document.getElementById('issueId').value = '';
         document.getElementById('issueDescription').value = '';
-        document.getElementById('issueInitiatedBy').value = '';
         document.getElementById('issueStatus').value = 'Open';
         document.getElementById('issuePriority').value = 'Medium';
         
+        populateContactDropdown('');
+
         document.getElementById('issueModalTitle').innerText = "File New Issue Report";
         document.getElementById('issueModalTimestamp').style.display = 'none';
         document.getElementById('issue-image-section').style.display = 'none';
@@ -55,9 +86,11 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
         const idValue = issue.id || issue.issue_id || '';
         document.getElementById('issueId').value = idValue;
         document.getElementById('issueDescription').value = issue.description || '';
-        document.getElementById('issueInitiatedBy').value = issue.reported_by || issue.initiated_by || '';
         document.getElementById('issueStatus').value = issue.status || 'Open';
         document.getElementById('issuePriority').value = issue.severity || issue.priority || 'Medium';
+
+        const targetContact = issue.reported_by || issue.initiated_by || '';
+        populateContactDropdown(targetContact);
 
         document.getElementById('issueModalTitle').innerText = "Modify Issue Entry Fields";
         
