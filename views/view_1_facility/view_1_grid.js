@@ -2,10 +2,6 @@
 FILE: views/view_1_facility/view_1_grid.js
 UPDATED: 2026-06-02 08:45:00 PM
 
-STRICT HEADER RULE:/* =================================================
-FILE: views/view_1_facility/view_1_grid.js
-UPDATED: 2026-06-04 10:25:00 AM
-
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
