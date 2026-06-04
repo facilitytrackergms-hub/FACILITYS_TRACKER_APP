@@ -133,4 +133,180 @@ export async function renderFacilityContacts(data) {
                     <label class="form-field-label">Contact Profile Picture</label>
                     <div class="camera-action-row">
                         <input type="file" id="manualContactFile" accept="image/*" capture="user" style="display:none;">
-                        <button id="triggerCameraBtn" class="contacts-view-btn btn-emerald" style="margin:
+                        <button id="triggerCameraBtn" class="contacts-view-btn btn-emerald" style="margin:0; width:auto; padding:10px 16px;">📸 Take Photo</button>
+                        <span id="uploadStatusText" class="camera-status-text">No image captured</span>
+                    </div>
+                    <input type="hidden" id="manualContactImage" value="">
+
+                    <label class="form-field-label">Internal Notes</label>
+                    <textarea id="manualContactNotes" class="form-field-input" style="height:60px; resize:none;"></textarea>
+
+                    <div class="form-action-group" style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                        <button id="manualContactSaveBtn" class="contacts-view-btn btn-navy">Save Details</button>
+                        <button id="manualContactCloseBtn" class="contacts-view-btn btn-gray">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    setupContactsEvents(facility, renderFacilityContacts);
+
+    // SHORTCUT INTERCEPTOR: Automatically simulate the click if routed via validation check pipeline
+    if (facility.openFormInstantly) {
+        delete facility.openFormInstantly; // Clear the temporary intercept flag state context immediately
+        const modalTrigger = document.getElementById('manualContactTriggerBtn');
+        if (modalTrigger) {
+            modalTrigger.click();
+        }
+    }
+
+    async function loadContactsGridData() {
+        if (!facility?.id) return;
+        const grid = document.getElementById('contactsGridElement');
+        if (!grid) return;
+        
+        const contacts = await fetchContacts(facility.id);
+        grid.innerHTML = '';
+
+        if (!contacts || contacts.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#9ca3af; font-size:13px; padding:10px;">No contacts found.</div>';
+            return;
+        }
+
+        contacts.forEach(c => {
+            const block = document.createElement('div');
+            block.className = 'contact-thumbnail';
+            
+            const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || 'Staff')}&background=00264d&color=fff`;
+            const avatarSrc = c.image_url || c.avatar_url || fallbackAvatar;
+            
+            // Filter dynamic issues belonging specifically to this individual by matching name fields
+            const matchedIssues = rawIssues.filter(issue => 
+                (issue.reported_by && String(issue.reported_by).toLowerCase().trim() === String(c.name).toLowerCase().trim()) ||
+                (issue.initiated_by && String(issue.initiated_by).toLowerCase().trim() === String(c.name).toLowerCase().trim())
+            );
+            c.contact_issues = matchedIssues;
+            const issueCount = matchedIssues.length;
+
+            block.innerHTML = `
+                ${issueCount > 0 ? `<span class="grid-issue-badge">⚠️ ${issueCount}</span>` : ''}
+                <img src="${avatarSrc}" class="contact-avatar-frame" alt="avatar">
+                <div class="thumbnail-name">${c.name || 'N/A'}</div>
+                <div class="thumbnail-role">${c.role || 'Staff'}</div>
+            `;
+            block.onclick = () => showContactDetailPanel(c);
+            grid.appendChild(block);
+        });
+    }
+
+    function showContactDetailPanel(contact) {
+        const panel = document.getElementById('activeContactDetailCard');
+        const directoryLayout = document.getElementById('directorySelectionLayout');
+        if (!panel) return;
+
+        const phoneLink = contact.phone && contact.phone !== 'N/A'
+            ? `<a href="tel:${contact.phone.replace(/[^0-9+]/g, '')}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.phone}</a>` 
+            : 'N/A';
+            
+        const emailLink = contact.email 
+            ? `<a href="mailto:${contact.email}" style="color:#00264d; text-decoration:underline; font-weight:bold;">${contact.email}</a>` 
+            : 'N/A';
+
+        const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name || 'Staff')}&background=00264d&color=fff`;
+        const avatarSrc = contact.image_url || contact.avatar_url || fallbackAvatar;
+
+        const issuesList = contact.contact_issues || [];
+        let issuesMarkup = '';
+
+        if (issuesList.length > 0) {
+            issuesMarkup = `
+                <div class="contacts-view-label" style="margin-top:15px; margin-bottom:6px;">Reported Issues</div>
+                <div class="contact-issues-scrollbar-tray">
+                    ${issuesList.map(issue => {
+                        const statusClass = String(issue.status).toLowerCase() === 'open' || String(issue.status).toLowerCase() === 'active' ? 'tag-active' : 'tag-resolved';
+                        const issueTitleText = issue.description || issue.title || `Issue #${issue.id || issue.issue_id}`;
+                        return `
+                            <button class="history-issue-nav-btn" data-issue-id="${issue.id || issue.issue_id || ''}">
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${issueTitleText}</span>
+                                <span class="status-indicator-tag ${statusClass}">${issue.status || 'OPEN'}</span>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        panel.innerHTML = `
+            <div style="display:flex; justify-content:center; width:100%;">
+                <img src="${avatarSrc}" class="detail-avatar-frame" alt="Contact Photo">
+            </div>
+            
+            <div class="contacts-view-label">Name</div>
+            <div class="contacts-view-value">${contact.name || 'N/A'}</div>
+            
+            <div class="contacts-view-label">Role</div>
+            <div class="contacts-view-value">${contact.role || 'N/A'}</div>
+            
+            <div class="contacts-view-label">Phone</div>
+            <div class="contacts-view-value">${phoneLink}</div>
+            
+            <div class="contacts-view-label">Email</div>
+            <div class="contacts-view-value">${emailLink}</div>
+            
+            <div class="contacts-view-label">Notes</div>
+            <div class="contacts-view-value" style="font-size:13px; color:#4b5563; margin-bottom:12px;">${contact.notes || 'No notes added.'}</div>
+
+            ${issuesMarkup}
+
+            <div class="action-row">
+                <button id="editContactBtn" class="contacts-view-btn btn-warning" style="width:23%; font-size:11px; padding:10px 2px;">✏️ Edit</button>
+                <button id="newIssueContactBtn" class="contacts-view-btn btn-blue" style="width:29%; font-size:11px; padding:10px 2px;">➕ New Issue</button>
+                <button id="closeContactDetailBtn" class="contacts-view-btn btn-gray" style="width:23%; font-size:11px; padding:10px 2px;">❌ Close</button>
+                <button id="deleteContactBtn" class="contacts-view-btn btn-danger" style="width:23%; font-size:11px; padding:10px 2px;">🗑️ Delete</button>
+            </div>
+        `;
+        
+        if (directoryLayout) directoryLayout.style.display = 'none';
+        panel.style.display = 'block';
+        panel.scrollIntoView({ behavior: 'smooth' });
+
+        panel.querySelectorAll('.history-issue-nav-btn').forEach(btn => {
+            btn.onclick = () => {
+                const targetIssueId = btn.getAttribute('data-issue-id');
+                if (window.navigateTo) {
+                    window.navigateTo('view_5_issues', { facility: facility, autoOpenIssue: targetIssueId });
+                }
+            };
+        });
+
+        document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
+        
+        document.getElementById('newIssueContactBtn').onclick = () => {
+            if (window.navigateTo) {
+                window.navigateTo('view_5_issues', { facility: facility, preselectedContact: contact });
+            }
+        };
+
+        document.getElementById('closeContactDetailBtn').onclick = () => {
+            panel.style.display = 'none';
+            if (directoryLayout) directoryLayout.style.display = 'block';
+        };
+        
+        document.getElementById('deleteContactBtn').onclick = async () => {
+            if (confirm(`Are you sure you want to remove ${contact.name}?`)) {
+                const success = await deleteContact(contact.id);
+                if (success) {
+                    alert("Contact removed successfully.");
+                    panel.style.display = 'none';
+                    if (directoryLayout) directoryLayout.style.display = 'block';
+                    renderFacilityContacts(facility);
+                } else {
+                    alert("Failed to delete contact.");
+                }
+            }
+        };
+    }
+
+    await loadContactsGridData();
+}
