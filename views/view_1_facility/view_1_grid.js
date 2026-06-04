@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_1_facility/view_1_grid.js
-UPDATED: 2026-06-04 11:45:00 AM
+UPDATED: 2026-06-04 05:10:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -17,11 +17,12 @@ export async function renderFacilities() {
         <style>
             .dash-container { padding: 20px; text-align: center; font-family: Arial; background: #e3f2fd; min-height: 100vh; box-sizing: border-box; }
             .dash-card { background: rgba(255,255,255,0.88); border-radius: 18px; padding: 18px 12px 24px; box-shadow: 0 10px 24px rgba(0,0,0,0.12); border: 1px solid rgba(255,255,255,0.8); max-width: 380px; margin: 0 auto; }
-            .button-container { display: flex; flex-direction: column; gap: 15px; padding: 10px; max-width: 400px; margin: 0 auto; }
             
-            .facility-row-item { display: flex; gap: 8px; width: 100%; align-items: center; justify-content: space-between; }
-            .facility-btn { flex-grow: 1; height: 60px; border-radius: 10px; background-color: #003366; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 1em; text-align: left; padding: 0 15px; }
-            .facility-camera-btn { width: 70px; height: 60px; border-radius: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 0.9em; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; }
+            /* Changed to a clean 3-column grid layout for compact initials stacking */
+            .button-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px; max-width: 400px; margin: 0 auto; }
+            
+            /* Center-aligned padding adjustments optimized for short names/initials */
+            .facility-btn { width: 100%; height: 60px; border-radius: 10px; background-color: #003366; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 1.1em; text-align: center; padding: 5px; box-sizing: border-box; }
             
             .new-btn { background-color: #28a745; margin-bottom: 20px; width: 200px; text-align: center; }
             .dash-title { font-size: 1.25em; font-weight: 900; color: #003366; margin-bottom: 10px; text-transform: uppercase; border-bottom: 4px solid #003366; padding-bottom: 15px; display: inline-block; width: 90%; white-space: nowrap; }
@@ -77,7 +78,7 @@ export async function renderFacilities() {
             </div>
 
             <div style="margin-top: 50px; font-size: 0.8em; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
-                File: views/view_1_facility/view_1_grid.js | Updated: 2026-06-04 11:45:00 AM
+                File: views/view_1_facility/view_1_grid.js | Updated: 2026-06-04 05:10:00 PM
             </div>
         </div>
     `;
@@ -90,39 +91,11 @@ export async function renderFacilities() {
 
     if (data) {
         data.forEach(f => {
-            const row = document.createElement('div');
-            row.className = 'facility-row-item';
-
             const btn = document.createElement('button');
             btn.className = 'facility-btn';
             btn.textContent = f.name;
             btn.onclick = () => window.navigateTo('view_2_controls', { facility: f });
-
-            const cameraBtn = document.createElement('button');
-            cameraBtn.className = 'facility-camera-btn';
-            cameraBtn.innerHTML = '<span>📸</span><span style="font-size:10px;">PHOTO</span>';
-            
-            cameraBtn.onclick = () => {
-                const modal = document.getElementById('modal');
-                const facilityFields = document.getElementById('facility-fields');
-                const saveBtn = document.getElementById('saveBtn');
-                const imageSection = document.getElementById('post-save-images');
-                const imageMount = document.getElementById('image-manager-mount');
-                
-                document.getElementById('modalTitle').innerText = "Facility Image: " + f.name;
-                facilityFields.style.display = 'none';
-                saveBtn.style.display = 'none';
-                imageSection.style.display = 'block';
-                imageMount.innerHTML = '';
-                
-                modal.style.display = 'block';
-                
-                renderImageManagerSection(imageMount, 'facility', f.id, { title: 'Facility Photos' });
-            };
-
-            row.appendChild(btn);
-            row.appendChild(cameraBtn);
-            list.appendChild(row);
+            list.appendChild(btn);
         });
     }
 }
