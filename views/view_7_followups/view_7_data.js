@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_data.js
-UPDATED: 2026-06-02 06:05:00 PM
+UPDATED: 2026-06-04 02:15:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -42,4 +42,25 @@ export async function saveIssueFollowup(payload, id = null) {
         return { error: result.error, data: null };
     }
     return { error: null, data: result.data && result.data[0] ? result.data[0] : null };
+}
+
+/**
+ * 🚨 FIXED: Added missing deletion function requested by view_7_modal.js
+ * Removes a specific historic follow-up log record entry by ID.
+ */
+export async function deleteIssueFollowup(id) {
+    if (!id) return { error: 'Missing row entry ID targeting key constraint.', data: null };
+
+    const result = await supabase
+        .from('issue_followups')
+        .delete()
+        .eq('id', id)
+        .select();
+
+    if (result.error) {
+        console.error("Database Error removing follow-up entry record:", result.error);
+        return { error: result.error, data: null };
+    }
+    
+    return { error: null, data: result.data };
 }
