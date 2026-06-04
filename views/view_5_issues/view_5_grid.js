@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-03 07:40:00 PM
+UPDATED: 2026-06-04 02:10:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -75,6 +75,11 @@ export async function renderFacilityIssues(data) {
     app.innerHTML = `
         ${styles}
         <div class="issues-container">
+            
+            <div style="background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 6px 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; margin-bottom: 20px; display: inline-block; font-family: Arial, sans-serif;">
+                📍 Base View: VIEW_5_ISSUES (Facility Issue Tracker Grid)
+            </div>
+
             <h1 class="issues-title">Standard Facility Issues</h1>
             <p class="issues-subtitle">${facility.name || 'Facility'}</p>
 
@@ -89,6 +94,10 @@ export async function renderFacilityIssues(data) {
                     <h3 id="issueModalTitle" class="issue-modal-title">Issue Details</h3>
                     <div id="issueModalTimestamp" style="font-size:11px; color:#6b7280; margin-top:-5px; margin-bottom:10px; font-style:italic; display:none;"></div>
                     
+                    <div style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 8px; font-size: 10px; font-weight: bold; text-transform: uppercase; border-radius: 4px; margin-bottom: 12px; display: inline-block;">
+                        🪟 Modal Panel: VIEW_5_POPUP_CONTROLS
+                    </div>
+
                     <input type="hidden" id="issueId">
 
                     <label class="issue-form-label">Issue Summary / Description</label>
@@ -123,6 +132,10 @@ export async function renderFacilityIssues(data) {
                             💬 View Issue Follow-ups
                         </button>
                         <button id="closeIssueModal" class="issue-btn" style="background:#6b7280; width:100%;">Close Panel</button>
+                        
+                        <button id="deleteIssueBtn" class="issue-btn" style="background:#dc3545; display:none; width:100%;">
+                            🗑️ Delete Entire Record
+                        </button>
                     </div>
                 </div>
             </div>
@@ -147,7 +160,6 @@ export async function renderFacilityIssues(data) {
         let issues = await fetchFacilityIssues(facility.id);
         feed.innerHTML = '';
 
-        // If filtering down to a single clicked contact issue, alter the array right here
         if (targetIssue) {
             const currentIssueId = String(targetIssue.id || targetIssue.issue_id);
             issues = issues.filter(i => String(i.id) === currentIssueId || String(i.issue_id) === currentIssueId);
@@ -183,7 +195,6 @@ export async function renderFacilityIssues(data) {
             feed.appendChild(card);
         });
 
-        // Trigger automatic parsing if matching request exists inside routing cache
         if (autoOpenIssueId && window.openSelectedIssueInModal) {
             const matchedIssue = issues.find(i => String(i.id) === String(autoOpenIssueId) || String(i.issue_id) === String(autoOpenIssueId));
             if (matchedIssue) {
