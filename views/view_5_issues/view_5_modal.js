@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-04 02:12:00 AM
+UPDATED: 2026-06-04 06:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -174,13 +174,13 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
                 await performSaveOperation(id, desc, "MD", status, priority);
             };
 
-            // Handle choice 2: Cache parameters and bridge route to directory creation fields
+            // Handle choice 2: Bypass directory contact grid list and target form directly
             document.getElementById('optAddNewContactBtn').onclick = () => {
                 app.removeChild(overlay);
                 if (window.navigateTo) {
                     window.navigateTo('view_3_contacts', {
                         facility: facility,
-                        autoOpenModal: true,
+                        openFormInstantly: true,
                         cachedIssueForm: { id, description: desc, status, priority }
                     });
                 }
