@@ -6,10 +6,6 @@ STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-<div style="background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 6px 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; margin-bottom: 15px; display: inline-block; font-family: Arial, sans-serif;">
-    📍 Currently Viewing: VIEW_5_ISSUES (Facility Issue Tracker Grid)
-</div>
-
 import { fetchFacilityIssues } from './view_5_data.js';
 import { setupIssuesEvents } from './view_5_modal.js';
 
@@ -79,6 +75,7 @@ export async function renderFacilityIssues(data) {
     app.innerHTML = `
         ${styles}
         <div class="issues-container">
+        
  <div style="background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 6px 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; margin-bottom: 15px; display: inline-block; font-family: Arial, sans-serif;">
      📍 Currently Viewing: VIEW_5_ISSUES (Facility Issue Tracker Grid)
   </div>
