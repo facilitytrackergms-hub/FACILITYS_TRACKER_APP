@@ -1,6 +1,6 @@
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-03 06:20:00 PM
+UPDATED: 2026-06-04 05:30:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -28,8 +28,8 @@ window.navigateTo = async (view, context = {}) => {
 
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
 
-    // FIXED: Incremented parameter token version string to v5 to completely purge cached copies of internal module dependencies
-    const cb = "?v=2026_v5";
+    // FIXED: Incremented token to v6 to match view files and completely purge cached copies of internal module dependencies
+    const cb = "?v=2026_v6";
 
     try {
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility') {
