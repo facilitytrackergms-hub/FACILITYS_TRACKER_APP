@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_grid.js
-UPDATED: 2026-06-04 05:25:00 PM
+UPDATED: 2026-06-04 05:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -94,7 +94,7 @@ export async function renderFacilityControls(data) {
             </div>
 
             <div class="footer-tag">
-                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-04 05:25:00 PM
+                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-04 05:35:00 PM
             </div>
         </div>
     `;
@@ -111,5 +111,7 @@ export async function renderFacilityControls(data) {
             badgeElement.textContent = openIssues.length;
         }
     }
+    
+    // FIXED: Shifted inside the async layout function block scope boundary
     await loadBadges();
 }
