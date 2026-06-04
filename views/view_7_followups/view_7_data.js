@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_data.js
-UPDATED: 2026-06-04 02:15:00 AM
+UPDATED: 2026-06-04 02:20:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -13,7 +13,7 @@ export async function fetchIssueFollowups(issueId) {
         .from('issue_followups')
         .select('*')
         .eq('issue_id', issueId)
-        .order('timestamp', { ascending: true });
+        .order('created_at', { ascending: true }); // 🌟 FIXED: Changed sorting target from 'timestamp' to 'created_at'
 
     if (error) {
         console.error("Database Error fetching follow-ups:", error);
@@ -45,7 +45,6 @@ export async function saveIssueFollowup(payload, id = null) {
 }
 
 /**
- * 🚨 FIXED: Added missing deletion function requested by view_7_modal.js
  * Removes a specific historic follow-up log record entry by ID.
  */
 export async function deleteIssueFollowup(id) {
