@@ -1,7 +1,7 @@
 /* =================================================
 FILE: views/view_1_facility/view_1_grid.js
 UPDATED: 2026-06-02 08:45:00 PM
-/* =================================================
+
 FILE: views/view_1_facility/view_1_grid.js
 UPDATED: 2026-06-04 10:15:00 AM
 
