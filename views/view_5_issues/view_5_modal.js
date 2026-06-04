@@ -1,87 +1,50 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-03 06:45:00 PM
+UPDATED: 2026-06-04 01:23:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchFacilityContacts, insertFacilityContact, saveFacilityIssue, deleteFacilityIssue } from './view_5_data.js';
+import { saveFacilityIssue, deleteFacilityIssue } from './view_5_data.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
 
-export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, prefillData) {
+export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = false, prefillData = null) {
     const modal = document.getElementById('issueModal');
-    const alertModal = document.getElementById('customAlertModal');
-    let activeContactsList = [];
-
-    async function loadContactsCache() {
-        activeContactsList = await fetchFacilityContacts(facility.id);
-    }
-    loadContactsCache();
-
-    // Inject phone-optimized styling overrides directly into the modal control area wrapper dynamically
-    const shell = document.querySelector('.issue-modal-shell');
-    if (shell) {
-        // Enforce a structured flex layout for form actions
-        shell.style.maxWidth = '480px';
-        shell.style.width = '95%';
+    
+    // Check if we are returning from a cached session draft state
+    if (facility.cachedIssueForm) {
+        document.getElementById('issueDescription').value = facility.cachedIssueForm.description || '';
+        document.getElementById('issueStatus').value = facility.cachedIssueForm.status || 'Open';
+        document.getElementById('issuePriority').value = facility.cachedIssueForm.priority || 'Medium';
+        document.getElementById('issueId').value = facility.cachedIssueForm.id || '';
+        modal.style.display = 'block';
+        delete facility.cachedIssueForm;
     }
 
-    // Refactor structural form footer actions button stack container into a responsive flex grid tray layout
-    const btnContainer = document.querySelector('#issueModal .issue-modal-shell > div:last-of-type');
-    if (btnContainer) {
-        btnContainer.id = 'modalButtonTrayWrapper';
-        btnContainer.removeAttribute('style');
-        btnContainer.style.cssText = 'display: flex; flex-direction: column; gap: 8px; margin-top: 20px;';
-        
-        btnContainer.innerHTML = `
-            <div style="display: flex; gap: 8px; width: 100%;">
-                <button id="saveIssueBtn" class="issue-btn issue-btn-navy" style="flex: 1; padding: 10px 5px; font-size: 12px; margin: 0;">Save Issue Report</button>
-                <button id="issueFollowupsBtn" class="issue-btn" style="flex: 1; padding: 10px 5px; font-size: 12px; background: #f5c400; color: #111; display: none; margin: 0;">💬 Follow-ups</button>
-                <button id="closeIssueModal" class="issue-btn" style="flex: 1; padding: 10px 5px; font-size: 12px; background: #6b7280; margin: 0;">Close Panel</button>
-            </div>
-            <button id="deleteIssueBtn" class="issue-btn" style="width: 100%; padding: 10px; font-size: 12px; background: #dc2626; color: white; display: none; margin-top: 4px; border: none; border-radius: 8px; font-weight: bold; text-transform: uppercase; cursor: pointer;">🗑️ Delete Entire Record</button>
-        `;
+    if (autoOpen) {
+        openBlankIssueModal();
+        if (prefillData && prefillData.initiated_by) {
+            document.getElementById('issueInitiatedBy').value = prefillData.initiated_by;
+        }
     }
 
-    function showCustomAlert(title, message, icon = 'ℹ️') {
-        document.getElementById('alertIcon').innerText = icon;
-        document.getElementById('alertTitle').innerText = title;
-        document.getElementById('alertMessage').innerText = message;
-        alertModal.style.display = 'flex';
-        return new Promise((resolve) => {
-            document.getElementById('alertCloseBtn').onclick = () => {
-                alertModal.style.display = 'none';
-                resolve();
-            };
-        });
-    }
-
-    function openBlankModal(initialReporterName = '') {
+    function openBlankIssueModal() {
         document.getElementById('issueId').value = '';
         document.getElementById('issueDescription').value = '';
-        document.getElementById('issueInitiatedBy').value = initialReporterName;
+        document.getElementById('issueInitiatedBy').value = '';
         document.getElementById('issueStatus').value = 'Open';
         document.getElementById('issuePriority').value = 'Medium';
         
         document.getElementById('issueModalTitle').innerText = "File New Issue Report";
-        
-        const timestampEl = document.getElementById('issueModalTimestamp');
-        if (timestampEl) {
-            timestampEl.style.display = 'none';
-            timestampEl.innerText = '';
-        }
-
-        document.getElementById('saveIssueBtn').innerText = "SUBMIT REPORT";
+        document.getElementById('issueModalTimestamp').style.display = 'none';
         document.getElementById('issue-image-section').style.display = 'none';
         document.getElementById('issueFollowupsBtn').style.display = 'none';
-        document.getElementById('deleteIssueBtn').style.display = 'none';
-        
         modal.style.display = 'block';
     }
 
     window.openSelectedIssueInModal = function(issue) {
-        document.getElementById('issueId').value = issue.id || '';
+        document.getElementById('issueId').value = issue.id || issue.issue_id || '';
         document.getElementById('issueDescription').value = issue.description || '';
         document.getElementById('issueInitiatedBy').value = issue.reported_by || issue.initiated_by || '';
         document.getElementById('issueStatus').value = issue.status || 'Open';
@@ -90,54 +53,25 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
         document.getElementById('issueModalTitle').innerText = "Modify Issue Entry Fields";
         
         const timestampEl = document.getElementById('issueModalTimestamp');
-        if (timestampEl) {
-            if (issue.created_at) {
-                timestampEl.innerText = `Report Created On: ${new Date(issue.created_at).toLocaleString()}`;
-                timestampEl.style.display = 'block';
-            } else {
-                timestampEl.style.display = 'none';
-                timestampEl.innerText = '';
-            }
+        if (issue.created_at) {
+            timestampEl.innerText = `Report Created On: ${new Date(issue.created_at).toLocaleString()}`;
+            timestampEl.style.display = 'block';
+        } else {
+            timestampEl.style.display = 'none';
         }
 
-        document.getElementById('saveIssueBtn').innerText = "UPDATE INFO";
-        
-        const followupsBtn = document.getElementById('issueFollowupsBtn');
-        followupsBtn.style.display = 'block';
-        followupsBtn.onclick = () => {
-            modal.style.display = 'none';
-            if (window.navigateTo) {
-                window.navigateTo('view_7_followups', { facility, issue: issue });
-            }
-        };
-
-        // Enable and wire up the mobile delete action code execution path
-        const deleteBtn = document.getElementById('deleteIssueBtn');
-        deleteBtn.style.display = 'block';
-        deleteBtn.onclick = async () => {
-            const confirmed = confirm("Are you absolutely sure you want to permanently delete this issue record? This cannot be undone.");
-            if (confirmed) {
-                const result = await deleteFacilityIssue(issue.id);
-                if (result.success) {
-                    modal.style.display = 'none';
-                    renderFacilityIssuesFn(facility);
-                    alert("Issue record successfully deleted.");
-                } else {
-                    await showCustomAlert("Delete Failed", "Could not remove record. Ensure child comment entries are cleared first.", "❌");
-                }
-            }
-        };
-
+        const imageSection = document.getElementById('issue-image-section');
         const imageContainer = document.getElementById('issue-image-container');
-        document.getElementById('issue-image-section').style.display = 'block';
+        imageSection.style.display = 'block';
         imageContainer.innerHTML = '';
         
-        renderImageManagerSection(imageContainer, 'issue', issue.id, { facility, title: 'Issue Photos' });
+        renderImageManagerSection(imageContainer, 'issue', issue.id || issue.issue_id, { facility, title: 'Issue Photos' });
         
+        document.getElementById('issueFollowupsBtn').style.display = 'block';
         modal.style.display = 'block';
     };
 
-    document.getElementById('createNewIssueBtn').onclick = () => openBlankModal();
+    document.getElementById('createNewIssueBtn').onclick = openBlankIssueModal;
 
     document.getElementById('closeIssueModal').onclick = () => {
         modal.style.display = 'none';
@@ -146,98 +80,145 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen, pr
 
     document.getElementById('backToControlsBtn').onclick = () => {
         if (window.navigateTo) {
-            window.navigateTo('view_2_controls', { facility: facility });
+            window.navigateTo('view_2_controls', { facility });
         }
     };
 
+    document.getElementById('issueFollowupsBtn').onclick = () => {
+        const currentIssueId = document.getElementById('issueId').value;
+        const currentDesc = document.getElementById('issueDescription').value;
+        if (window.navigateTo && currentIssueId) {
+            modal.style.display = 'none';
+            window.navigateTo('view_7_followups', { 
+                facility, 
+                issue: { id: currentIssueId, title: currentDesc } 
+            });
+        }
+    };
+
+    // Save action implementation with inline interceptor for missing dynamic properties
     document.getElementById('saveIssueBtn').onclick = async () => {
         const id = document.getElementById('issueId').value;
         const desc = document.getElementById('issueDescription').value.trim();
-        const initiatedByName = document.getElementById('issueInitiatedBy').value.trim();
+        const initiatedBy = document.getElementById('issueInitiatedBy').value.trim();
         const status = document.getElementById('issueStatus').value;
         const priority = document.getElementById('issuePriority').value;
 
         if (!desc) {
-            await showCustomAlert("Validation Required", "Please enter an issue description summary text.", "⚠️");
+            showCustomAlert("⚠️ Notice", "Issue Summary/Description is a required field.");
             return;
         }
 
-        let targetContactId = null;
+        // REQUIRED CHECK: If field is null/blank, pop up custom intercept option prompt
+        if (!initiatedBy) {
+            modal.style.display = 'none';
+            
+            const app = document.getElementById('app');
+            const overlay = document.createElement('div');
+            overlay.id = 'reportedByValidationOverlay';
+            overlay.style = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; display:flex; justify-content:center; align-items:center; font-family:Arial, sans-serif; padding:15px; box-sizing:border-box;';
+            
+            overlay.innerHTML = `
+                <div style="background:white; border-radius:12px; max-width:400px; width:100%; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.25); text-align:center; box-sizing:border-box;">
+                    <div style="font-size:36px; margin-bottom:10px;">👤</div>
+                    <h3 style="margin:0 0 8px 0; color:#00264d; font-size:18px;">Reported By Required</h3>
+                    <p style="margin:0 0 20px 0; font-size:13px; color:#4b5563; line-height:1.4;">
+                        Who submitted this report? Choose an attribute below or create an entry profile in the directory system.
+                    </p>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button id="optReportByMDBtn" style="background:#00264d; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; text-transform:uppercase;">🛠️ Report by MD for Maintenance</button>
+                        <button id="optAddNewContactBtn" style="background:#28a745; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; text-transform:uppercase;">➕ Add New Contact</button>
+                        <button id="optCancelValidationBtn" style="background:#e5e7eb; color:#1f2937; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;">Cancel</button>
+                    </div>
+                </div>
+            `;
+            app.appendChild(overlay);
 
-        if (initiatedByName) {
-            let matchedContact = activeContactsList.find(c => c.name && c.name.toLowerCase() === initiatedByName.toLowerCase());
-            
-            if (!matchedContact) {
-                const confirmAdd = confirm(`The contact "${initiatedByName}" was not found in your directory list. Create a new entry row for them now?`);
-                if (confirmAdd) {
-                    matchedContact = await insertFacilityContact({
-                        facility_id: facility.id,
-                        name: initiatedByName,
-                        role: 'Staff Participant Log'
+            // Handle choice 1: Save with "MD" automatically loaded
+            document.getElementById('optReportByMDBtn').onclick = async () => {
+                app.removeChild(overlay);
+                document.getElementById('issueInitiatedBy').value = "MD";
+                modal.style.display = 'block';
+                await performSaveOperation(id, desc, "MD", status, priority);
+            };
+
+            // Handle choice 2: Cache parameters and bridge route to directory creation fields
+            document.getElementById('optAddNewContactBtn').onclick = () => {
+                app.removeChild(overlay);
+                if (window.navigateTo) {
+                    window.navigateTo('view_3_contacts', {
+                        facility: facility,
+                        autoOpenModal: true,
+                        cachedIssueForm: { id, description: desc, status, priority }
                     });
-                    await loadContactsCache();
                 }
-            }
-            
-            if (matchedContact) {
-                targetContactId = matchedContact.id;
-            }
+            };
+
+            // Handle choice 3: Gracefully close overlay prompt
+            document.getElementById('optCancelValidationBtn').onclick = () => {
+                app.removeChild(overlay);
+                modal.style.display = 'block';
+            };
+
+            return;
         }
 
+        await performSaveOperation(id, desc, initiatedBy, status, priority);
+    };
+
+    async function performSaveOperation(id, desc, initiatedBy, status, priority) {
         const payload = {
             facility_id: facility.id,
-            title: desc.substring(0, 30) + (desc.length > 30 ? '...' : ''),
             description: desc,
-            initiated_by: initiatedByName || 'Staff',
+            initiated_by: initiatedBy,
             status: status,
-            priority: priority,
-            updated_at: new Date().toISOString()
+            priority: priority
         };
 
-        if (!id) {
-            payload.created_at = new Date().toISOString();
-        }
-
-        const result = await saveFacilityIssue(payload, id || null, targetContactId);
+        const result = await saveFacilityIssue(payload, id || null);
         
         if (result.error) {
-            await showCustomAlert("Error Saving", "Could not synchronize structural fields into cloud data table storage.", "❌");
+            showCustomAlert("❌ Error", "Could not synchronize maintenance record metrics.");
             return;
         }
 
         const savedItem = result.data;
         if (savedItem) {
             document.getElementById('issueId').value = savedItem.id;
-            document.getElementById('saveIssueBtn').innerText = "UPDATE INFO";
+            document.getElementById('issueModalTitle').innerText = "Modify Issue Entry Fields";
             
-            const timestampEl = document.getElementById('issueModalTimestamp');
-            if (timestampEl && savedItem.created_at) {
-                timestampEl.innerText = `Report Created On: ${new Date(savedItem.created_at).toLocaleString()}`;
-                timestampEl.style.display = 'block';
-            }
-
-            const followupsBtn = document.getElementById('issueFollowupsBtn');
-            followupsBtn.style.display = 'block';
-            followupsBtn.onclick = () => {
-                modal.style.display = 'none';
-                if (window.navigateTo) {
-                    window.navigateTo('view_7_followups', { facility, issue: savedItem });
-                }
-            };
-
-            document.getElementById('deleteIssueBtn').style.display = 'block';
-
             const imageSection = document.getElementById('issue-image-section');
             const imageContainer = document.getElementById('issue-image-container');
             imageSection.style.display = 'block';
             imageContainer.innerHTML = '';
             
             renderImageManagerSection(imageContainer, 'issue', savedItem.id, { facility, title: 'Issue Photos' });
-            await showCustomAlert("Success Logged", "Issue tracked dataset fields saved successfully!", "✅");
+            document.getElementById('issueFollowupsBtn').style.display = 'block';
+            
+            showCustomAlert("✅ Success", "Facility issue log updated successfully!");
         }
-    };
+    }
 
-    if (autoOpen && prefillData) {
-        openBlankModal(prefillData.initiated_by);
+    function showCustomAlert(title, message) {
+        const alertModal = document.getElementById('customAlertModal');
+        const alertTitle = document.getElementById('alertTitle');
+        const alertMessage = document.getElementById('alertMessage');
+        const alertCloseBtn = document.getElementById('alertCloseBtn');
+        const alertIcon = document.getElementById('alertIcon');
+
+        if (alertModal && alertTitle && alertMessage && alertCloseBtn) {
+            alertTitle.innerText = title;
+            alertMessage.innerText = message;
+            alertIcon.innerText = title.includes("Success") ? "🎉" : "⚠️";
+            alertModal.style.display = 'flex';
+            
+            alertCloseBtn.onclick = () => {
+                alertModal.style.display = 'none';
+                renderFacilityIssuesFn(facility);
+            };
+        } else {
+            alert(message);
+            renderFacilityIssuesFn(facility);
+        }
     }
 }
