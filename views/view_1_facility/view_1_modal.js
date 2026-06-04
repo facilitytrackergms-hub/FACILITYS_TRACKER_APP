@@ -42,6 +42,7 @@ export function setupFacilitiesEvents(renderFacilitiesFn) {
         const name = document.getElementById('name').value.trim();
         const address = document.getElementById('address').value.trim();
         const phone = document.getElementById('phone').value.trim();
+        
 
         if (!name || !address || !phone) {
             warningModal.style.display = 'block';
