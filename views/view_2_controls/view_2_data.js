@@ -1,8 +1,5 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_data.js
-UPDATED: 2026-06-02 09:30:00 PM
-/* =================================================
-FILE: views/view_2_controls/view_2_data.js
 UPDATED: 2026-06-04 05:40:00 PM
 
 STRICT HEADER RULE:
@@ -58,82 +55,6 @@ export async function uploadFacilityImage(facilityId, file) {
     if (isNaN(safeId) || !file) return null;
 
     try {
-        // Generate a clean, unique file path (e.g., facility_1_1717371000.png)
-        const fileExtension = file.name.split('.').pop();
-        const fileName = `facility_${safeId}_${Date.now()}.${fileExtension}`;
-        const filePath = `profiles/${fileName}`;
-
-        // 1. Upload the raw image bytes to your public 'facility-assets' bucket
-        const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('facility-assets')
-            .upload(filePath, file, {
-                cacheControl: '3600',
-                upsert: true
-            });
-
-        if (uploadError) {
-            console.error("Supabase Storage Upload Error:", uploadError);
-            return null;
-        }
-
-        // 2. Retrieve the public CDN link for the uploaded file
-        const { data: urlData } = supabase.storage
-            .from('facility-assets')
-            .getPublicUrl(filePath);
-
-        const publicUrl = urlData?.publicUrl;
-        if (!publicUrl) throw new Error("Could not retrieve public link target path.");
-
-        // 3. Persist the image link directly back to your primary facilities table row
-        const { data: updatedFacility, error: updateError } = await supabase
-            .from('facilities')
-            .update({ image_url: publicUrl })
-            .eq('id', safeId)
-            .select();
-
-        if (updateError) {
-            console.error("Database Error linking photo URL to facility:", updateError);
-            return null;
-        }
-
-        return updatedFacility && updatedFacility[0] ? updatedFacility[0] : null;
-
-    } catch (err) {
-        console.error("Catch error during image process execution:", err);
-        return null;
-    }
-}
-STRICT HEADER RULE:
-Do not ever remove or change this header section.
-Always keep the header at the top of current files and new files.
-================================================= */
-import { supabase } from '../../js/supabaseClient.js';
-
-export async function fetchFacilityIssues(facilityId) {
-    const safeId = parseInt(facilityId, 10);
-    if (isNaN(safeId)) return [];
-
-    const { data, error } = await supabase
-        .from('facility_issues')
-        .select('*')
-        .eq('facility_id', safeId);
-
-    if (error) {
-        console.error("Error fetching issues for badge:", error);
-        return [];
-    }
-    return data || [];
-}
-
-/**
- * Uploads a local file to Supabase storage bucket and binds the URL to the facility
- */
-export async function uploadFacilityImage(facilityId, file) {
-    const safeId = parseInt(facilityId, 10);
-    if (isNaN(safeId) || !file) return null;
-
-    try {
-        // Generate a clean, unique file path (e.g., facility_1_1717371000.png)
         const fileExtension = file.name.split('.').pop();
         const fileName = `facility_${safeId}_${Date.now()}.${fileExtension}`;
         const filePath = `profiles/${fileName}`;
