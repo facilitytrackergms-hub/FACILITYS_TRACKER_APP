@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-03 07:25:00 PM
+UPDATED: 2026-06-04 06:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -76,6 +76,9 @@ export async function renderFacilityContacts(data) {
     if (data?.cachedIssueForm) {
         facility.cachedIssueForm = data.cachedIssueForm;
     }
+    if (data?.openFormInstantly) {
+        facility.openFormInstantly = data.openFormInstantly;
+    }
 
     app.innerHTML = `
         ${styles}
@@ -85,7 +88,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-03 07:25:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-04 06:35:00 PM
                 </div>
 
                 <div id="activeContactDetailCard" style="display:none;" class="contacts-view-detail-box"></div>
@@ -137,6 +140,15 @@ export async function renderFacilityContacts(data) {
     `;
 
     setupContactsEvents(facility, renderFacilityContacts);
+
+    // SHORTCUT INTERCEPTOR: Automatically simulate the click if routed via validation check pipeline
+    if (facility.openFormInstantly) {
+        delete facility.openFormInstantly; // Clear the temporary intercept flag state context immediately
+        const modalTrigger = document.getElementById('manualContactTriggerBtn');
+        if (modalTrigger) {
+            modalTrigger.click();
+        }
+    }
 
     async function loadContactsGridData() {
         if (!facility?.id) return;
