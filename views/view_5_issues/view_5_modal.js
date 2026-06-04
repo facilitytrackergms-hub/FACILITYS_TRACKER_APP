@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-04 01:23:00 AM
+UPDATED: 2026-06-04 01:32:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -11,6 +11,7 @@ import { renderImageManagerSection } from '../../js/imageManager.js';
 
 export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = false, prefillData = null) {
     const modal = document.getElementById('issueModal');
+    const deleteBtn = document.getElementById('deleteIssueBtn');
     
     // Check if we are returning from a cached session draft state
     if (facility.cachedIssueForm) {
@@ -19,6 +20,9 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
         document.getElementById('issuePriority').value = facility.cachedIssueForm.priority || 'Medium';
         document.getElementById('issueId').value = facility.cachedIssueForm.id || '';
         modal.style.display = 'block';
+        if (deleteBtn) {
+            deleteBtn.style.display = facility.cachedIssueForm.id ? 'inline-block' : 'none';
+        }
         delete facility.cachedIssueForm;
     }
 
@@ -40,11 +44,16 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
         document.getElementById('issueModalTimestamp').style.display = 'none';
         document.getElementById('issue-image-section').style.display = 'none';
         document.getElementById('issueFollowupsBtn').style.display = 'none';
+        
+        if (deleteBtn) {
+            deleteBtn.style.display = 'none'; // Hide delete button for unsaved issues
+        }
         modal.style.display = 'block';
     }
 
     window.openSelectedIssueInModal = function(issue) {
-        document.getElementById('issueId').value = issue.id || issue.issue_id || '';
+        const idValue = issue.id || issue.issue_id || '';
+        document.getElementById('issueId').value = idValue;
         document.getElementById('issueDescription').value = issue.description || '';
         document.getElementById('issueInitiatedBy').value = issue.reported_by || issue.initiated_by || '';
         document.getElementById('issueStatus').value = issue.status || 'Open';
@@ -65,9 +74,13 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
         imageSection.style.display = 'block';
         imageContainer.innerHTML = '';
         
-        renderImageManagerSection(imageContainer, 'issue', issue.id || issue.issue_id, { facility, title: 'Issue Photos' });
+        renderImageManagerSection(imageContainer, 'issue', idValue, { facility, title: 'Issue Photos' });
         
         document.getElementById('issueFollowupsBtn').style.display = 'block';
+        
+        if (deleteBtn) {
+            deleteBtn.style.display = idValue ? 'inline-block' : 'none'; // Show delete option for existing items
+        }
         modal.style.display = 'block';
     };
 
@@ -95,6 +108,25 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
             });
         }
     };
+
+    // Permanent deletion logic block
+    if (deleteBtn) {
+        deleteBtn.onclick = async () => {
+            const id = document.getElementById('issueId').value;
+            if (!id) return;
+
+            const confirmRemoval = confirm("Are you sure you want to permanently delete this issue and all connected historic logs? This action cannot be undone.");
+            if (!confirmRemoval) return;
+
+            const result = await deleteFacilityIssue(id);
+            if (result.success) {
+                modal.style.display = 'none';
+                showCustomAlert("✅ Removed", "The facility issue record has been successfully scrubbed.");
+            } else {
+                showCustomAlert("❌ Error", "Could not complete table removal due to relational database dependency constraints.");
+            }
+        };
+    }
 
     // Save action implementation with inline interceptor for missing dynamic properties
     document.getElementById('saveIssueBtn').onclick = async () => {
@@ -195,6 +227,10 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
             renderImageManagerSection(imageContainer, 'issue', savedItem.id, { facility, title: 'Issue Photos' });
             document.getElementById('issueFollowupsBtn').style.display = 'block';
             
+            if (deleteBtn) {
+                deleteBtn.style.display = 'inline-block';
+            }
+            
             showCustomAlert("✅ Success", "Facility issue log updated successfully!");
         }
     }
@@ -209,7 +245,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
         if (alertModal && alertTitle && alertMessage && alertCloseBtn) {
             alertTitle.innerText = title;
             alertMessage.innerText = message;
-            alertIcon.innerText = title.includes("Success") ? "🎉" : "⚠️";
+            alertIcon.innerText = title.includes("Success") || title.includes("Removed") ? "🎉" : "⚠️";
             alertModal.style.display = 'flex';
             
             alertCloseBtn.onclick = () => {
