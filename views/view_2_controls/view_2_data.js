@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_data.js
-UPDATED: 2026-06-04 05:55:00 PM
+UPDATED: 2026-06-04 06:05:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -29,24 +29,41 @@ export async function fetchSingleFacility(facilityId) {
 }
 
 /**
- * Fetches the latest captured image row from the facility_images table
+ * Updates a facility's textual information details inside the primary database table
  */
-export async function fetchLatestFacilityImage(facilityId) {
+export async function updateFacilityDetails(facilityId, name, address, phone) {
     const safeId = parseInt(facilityId, 10);
-    if (isNaN(safeId)) return null;
+    if (isNaN(safeId)) return false;
 
-    const { data, error } = await supabase
-        .from('facility_images')
-        .select('*')
-        .eq('facility_id', safeId)
-        .order('created_at', { ascending: false })
-        .limit(1);
+    const { error } = await supabase
+        .from('facilities')
+        .update({ name, address, phone })
+        .eq('id', safeId);
 
     if (error) {
-        console.error("Error loading latest facility image:", error);
-        return null;
+        console.error("Error writing updated facility attributes:", error);
+        return false;
     }
-    return data && data[0] ? data[0] : null;
+    return true;
+}
+
+/**
+ * Completely removes a facility record row from the database cluster
+ */
+export async function deleteFacilityRecord(facilityId) {
+    const safeId = parseInt(facilityId, 10);
+    if (isNaN(safeId)) return false;
+
+    const { error } = await supabase
+        .from('facilities')
+        .delete()
+        .eq('id', safeId);
+
+    if (error) {
+        console.error("Error cascading delete on facility table row target:", error);
+        return false;
+    }
+    return true;
 }
 
 /**
