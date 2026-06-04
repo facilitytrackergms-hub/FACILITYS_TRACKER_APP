@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_data.js
-UPDATED: 2026-06-04 02:20:00 AM
+UPDATED: 2026-06-04 02:25:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -12,8 +12,8 @@ export async function fetchIssueFollowups(issueId) {
     const { data, error } = await supabase
         .from('issue_followups')
         .select('*')
-        .eq('issue_id', issueId)
-        .order('created_at', { ascending: true }); // 🌟 FIXED: Changed sorting target from 'timestamp' to 'created_at'
+        .eq('related_issue', issueId) // 🌟 FIXED: Changed to match real column name
+        .order('created_at', { ascending: true }); // 🌟 FIXED: Changed to match real column name
 
     if (error) {
         console.error("Database Error fetching follow-ups:", error);
