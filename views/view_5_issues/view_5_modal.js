@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-04 01:32:00 AM
+UPDATED: 2026-06-04 02:12:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -21,7 +21,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
         document.getElementById('issueId').value = facility.cachedIssueForm.id || '';
         modal.style.display = 'block';
         if (deleteBtn) {
-            deleteBtn.style.display = facility.cachedIssueForm.id ? 'inline-block' : 'none';
+            deleteBtn.style.display = facility.cachedIssueForm.id ? 'block' : 'none';
         }
         delete facility.cachedIssueForm;
     }
@@ -79,7 +79,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
         document.getElementById('issueFollowupsBtn').style.display = 'block';
         
         if (deleteBtn) {
-            deleteBtn.style.display = idValue ? 'inline-block' : 'none'; // Show delete option for existing items
+            deleteBtn.style.display = idValue ? 'block' : 'none'; // Show delete option for existing items
         }
         modal.style.display = 'block';
     };
@@ -119,7 +119,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
             if (!confirmRemoval) return;
 
             const result = await deleteFacilityIssue(id);
-            if (result.success) {
+            if (result && !result.error) {
                 modal.style.display = 'none';
                 showCustomAlert("✅ Removed", "The facility issue record has been successfully scrubbed.");
             } else {
@@ -228,7 +228,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn, autoOpen = f
             document.getElementById('issueFollowupsBtn').style.display = 'block';
             
             if (deleteBtn) {
-                deleteBtn.style.display = 'inline-block';
+                deleteBtn.style.display = 'block';
             }
             
             showCustomAlert("✅ Success", "Facility issue log updated successfully!");
