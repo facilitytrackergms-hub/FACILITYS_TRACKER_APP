@@ -1,6 +1,6 @@
 /* =================================================
 FILE: js/imageManager.js
-UPDATED: 2026-06-02 07:44:00 PM
+UPDATED: 2026-06-04 09:55:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -34,9 +34,17 @@ export function renderImageManagerSection(container, type, id, options = {}) {
     list.innerHTML = '<span style="color:#6b7280; font-size:12px; font-style:italic;">Loading photos...</span>';
     section.appendChild(list);
 
-    // Add Image button
+    // Hidden Native Phone Camera Input Field
+    const cameraInput = document.createElement('input');
+    cameraInput.type = 'file';
+    cameraInput.accept = 'image/*';
+    cameraInput.setAttribute('capture', 'environment'); // Forces smartphones to open the rear camera
+    cameraInput.style.display = 'none';
+    section.appendChild(cameraInput);
+
+    // Add Image button configured for camera trigger
     const addBtn = document.createElement('button');
-    addBtn.textContent = '➕ Add Asset Photo Link';
+    addBtn.textContent = '📸 Take or Upload Photo';
     addBtn.style.padding = '10px';
     addBtn.style.cursor = 'pointer';
     addBtn.style.background = '#28a745';
@@ -122,29 +130,58 @@ export function renderImageManagerSection(container, type, id, options = {}) {
         });
     }
 
-    addBtn.onclick = async () => {
-        const url = prompt('Provide complete public asset image reference URL link:');
-        if (!url || !url.trim()) return;
+    // Trigger the native smartphone camera picker
+    addBtn.onclick = () => {
+        cameraInput.click();
+    };
 
-        const payload = {
-            image_url: url.trim(),
-            created_at: new Date().toISOString()
+    // Listen for the photo capture completion event
+    cameraInput.onchange = async (event) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        const targetFile = files[0];
+        addBtn.textContent = '⏳ Processing Photo...';
+        addBtn.disabled = true;
+
+        // Convert file object to data string automatically
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const dataUrlString = e.target.result;
+
+            const payload = {
+                image_url: dataUrlString,
+                created_at: new Date().toISOString()
+            };
+
+            if (type === 'issue') payload.issue_id = id;
+            else if (type === 'followup') payload.followup_id = id;
+            else payload.facility_id = id;
+
+            const { error } = await supabase
+                .from('facility_images')
+                .insert([payload]);
+
+            // Reset button display metrics
+            addBtn.textContent = '📸 Take or Upload Photo';
+            addBtn.disabled = false;
+            cameraInput.value = ''; // Reset file input buffer
+
+            if (error) {
+                console.error("Error appending image metadata payload row:", error);
+                alert("Could not update image database registry: " + error.message);
+            } else {
+                loadImages();
+            }
         };
 
-        if (type === 'issue') payload.issue_id = id;
-        else if (type === 'followup') payload.followup_id = id;
-        else payload.facility_id = id;
+        reader.onerror = () => {
+            alert("Failed to parse phone camera file data stream.");
+            addBtn.textContent = '📸 Take or Upload Photo';
+            addBtn.disabled = false;
+        };
 
-        const { error } = await supabase
-            .from('facility_images')
-            .insert([payload]);
-
-        if (error) {
-            console.error("Error appending image metadata payload row:", error);
-            alert("Could not update image database registry: " + error.message);
-        } else {
-            loadImages();
-        }
+        reader.readAsDataURL(targetFile);
     };
 
     section.appendChild(addBtn);
