@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-04 02:10:00 AM
+UPDATED: 2026-06-04 02:40:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -196,7 +196,16 @@ export async function renderFacilityIssues(data) {
         });
 
         if (autoOpenIssueId && window.openSelectedIssueInModal) {
-            const matchedIssue = issues.find(i => String(i.id) === String(autoOpenIssueId) || String(i.issue_id) === String(autoOpenIssueId));
+            // 🌟 FIXED: Graceful fallback search handling both string UUID matches and sequential indexing values
+            let matchedIssue = issues.find(i => String(i.id) === String(autoOpenIssueId) || String(i.issue_id) === String(autoOpenIssueId));
+            
+            if (!matchedIssue && !isNaN(autoOpenIssueId)) {
+                const numericIdx = parseInt(autoOpenIssueId, 10) - 1;
+                if (issues[numericIdx]) {
+                    matchedIssue = issues[numericIdx];
+                }
+            }
+
             if (matchedIssue) {
                 window.openSelectedIssueInModal(matchedIssue);
             }
