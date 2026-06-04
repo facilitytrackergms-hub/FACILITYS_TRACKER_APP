@@ -1,21 +1,30 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_grid.js
-UPDATED: 2026-06-04 05:35:00 PM
+UPDATED: 2026-06-04 05:55:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchFacilityIssues, fetchSingleFacility } from './view_2_data.js?v=2026_v6';
+import { fetchFacilityIssues, fetchSingleFacility, fetchLatestFacilityImage } from './view_2_data.js?v=2026_v6';
 import { setupControlsEvents } from './view_2_modal.js?v=2026_v6';
 
 export async function renderFacilityControls(data) {
     const app = document.getElementById('app');
     if (!app) return;
 
-    // Fetch the freshest copy of the facility from the database to ensure image_url is populated
+    // Fetch the freshest copy of the facility from the database
     const initialFacility = data?.facility ? data.facility : data;
     const facility = await fetchSingleFacility(initialFacility?.id) || initialFacility;
+
+    // Fallback: If image_url is missing on the facility, check the facility_images table
+    let activeImageUrl = facility?.image_url || null;
+    if (!activeImageUrl && facility?.id) {
+        const fallbackImageRecord = await fetchLatestFacilityImage(facility.id);
+        if (fallbackImageRecord) {
+            activeImageUrl = fallbackImageRecord.image_url;
+        }
+    }
 
     // Cleaned up syntax for phone numbers and click-to-dial mobile links
     const addressDisplay = facility?.address || 'No Address Listed';
@@ -28,10 +37,10 @@ export async function renderFacilityControls(data) {
 
     // Dynamic Image Render Layer logic
     let imageHtml = '';
-    if (facility?.image_url) {
+    if (activeImageUrl) {
         imageHtml = `
             <div style="margin: 5px auto 15px auto; width: 90%; max-width: 440px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
-                <img src="${facility.image_url}" alt="${facility.name}" style="width: 100%; height: auto; max-height: 200px; object-fit: cover; display: block;" />
+                <img src="${activeImageUrl}" alt="${facility?.name || 'Facility'}" style="width: 100%; height: auto; max-height: 200px; object-fit: cover; display: block;" />
             </div>
         `;
     }
@@ -94,7 +103,7 @@ export async function renderFacilityControls(data) {
             </div>
 
             <div class="footer-tag">
-                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-04 05:35:00 PM
+                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-04 05:55:00 PM
             </div>
         </div>
     `;
@@ -112,6 +121,5 @@ export async function renderFacilityControls(data) {
         }
     }
     
-    // FIXED: Shifted inside the async layout function block scope boundary
     await loadBadges();
 }
