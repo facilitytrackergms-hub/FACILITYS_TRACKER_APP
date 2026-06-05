@@ -1,12 +1,12 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_grid.js
-UPDATED: 2026-06-04 08:55:00 PM
+UPDATED: 2026-06-04 09:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchIssueFollowups } from './view_7_data.js';
+import { fetchIssueFollowups, deleteIssueFollowup } from './view_7_data.js';
 import { setupFollowupsEvents } from './view_7_modal.js';
 
 export async function renderIssueFollowups(data, issueContext = null) {
@@ -46,6 +46,10 @@ export async function renderIssueFollowups(data, issueContext = null) {
             .overlay-bodytext { font-size:13px; color:#4b5563; margin:0 0 20px 0; line-height:1.4; }
             .overlay-message-box { background:#f3f4f6; padding:12px; border-radius:6px; font-size:12px; font-family:monospace; color:#1f2937; border:1px solid #e5e7eb; margin-bottom:15px; word-break:break-word; max-height:120px; overflow-y:auto; }
             .overlay-action-btn { width:100%; padding:12px; border-radius:6px; border:none; font-weight:bold; font-size:12px; text-transform:uppercase; cursor:pointer; margin-bottom:8px; text-align:center; }
+            
+            /* Inline Log Deletion Button Element Styles */
+            .inline-log-delete-trigger { background:none; border:none; color:#dc2626; font-size:14px; cursor:pointer; padding:2px 6px; font-weight:bold; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; transition: background 0.2s ease; }
+            .inline-log-delete-trigger:hover { background:#fee2e2; }
         </style>
     `;
 
@@ -87,7 +91,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
                 </select>
 
                 <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-bottom:4px; text-transform:uppercase;">Executed By / Reporter</label>
-                <input type="text" id="actionByInput" placeholder="Enter full identity name" style="width:100%; padding:10px; margin-bottom:12px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;" />
+                <input type="text" id="actionByInput" value="${issueCreatorName}" placeholder="Enter full identity name" style="width:100%; padding:10px; margin-bottom:12px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;" />
 
                 <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-bottom:4px; text-transform:uppercase;">Detailed Description Summary</label>
                 <textarea id="descriptionInput" rows="4" placeholder="Describe findings, progress updates, or changes made..." style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; font-family:Arial; resize:vertical; box-sizing:border-box;"></textarea>
@@ -150,9 +154,12 @@ export async function renderIssueFollowups(data, issueContext = null) {
             const imageMarkup = f.followup_image_url ? `<img src="${f.followup_image_url}" class="followup-thumb-img" alt="Attached evidence">` : '';
             
             card.innerHTML = `
-                <div class="followup-card-header">
+                <div class="followup-card-header" style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="followup-type-badge">${f.followup_title || 'Comment'}</span>
-                    <span class="followup-meta-text">By: <strong>${f.initiated_by_text || 'N/A'}</strong></span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="followup-meta-text">By: <strong>${f.initiated_by_text || issueCreatorName}</strong></span>
+                        <button class="inline-log-delete-trigger" title="Delete Log Entry">🗑️</button>
+                    </div>
                 </div>
                 <div class="followup-body-desc">${f.followup_notes_text || ''}</div>
                 ${imageMarkup}
@@ -161,6 +168,29 @@ export async function renderIssueFollowups(data, issueContext = null) {
             card.onclick = () => {
                 if (window.openSelectedFollowupInModal) window.openSelectedFollowupInModal(f);
             };
+
+            // Catch inline entry deletion request separately
+            const deleteTrigger = card.querySelector('.inline-log-delete-trigger');
+            if (deleteTrigger) {
+                deleteTrigger.onclick = async (e) => {
+                    e.stopPropagation(); // Shield modal view layer trigger event context
+                    
+                    if (confirm(`Are you completely sure you want to permanently erase this specific log update entry? This action cannot be reversed.`)) {
+                        deleteTrigger.innerText = "⏳";
+                        deleteTrigger.style.pointerEvents = "none";
+                        
+                        const success = await deleteIssueFollowup(f.id);
+                        if (success) {
+                            await loadFollowupsDisplayFeed();
+                        } else {
+                            alert("Database layer synchronization exception error removing selected activity entry log row.");
+                            deleteTrigger.innerText = "🗑️";
+                            deleteTrigger.style.pointerEvents = "auto";
+                        }
+                    }
+                };
+            }
+
             feed.appendChild(card);
         });
     }
