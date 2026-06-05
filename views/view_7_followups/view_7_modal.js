@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_modal.js
-UPDATED: 2026-06-04 08:45:00 PM
+UPDATED: 2026-06-04 09:14:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -12,11 +12,14 @@ import { renderImageManagerSection } from '../../js/imageManager.js';
 export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
     const modal = document.getElementById('followupModal');
 
+    // Cleanly look across all potential database field variants for original reporter name
+    const originalReporter = issue?.reported_by || issue?.initiated_by || issue?.reported_by_text || 'Staff Member';
+
     function openBlankFollowupModal() {
         document.getElementById('followupId').value = '';
         document.getElementById('followupImageUrl').value = '';
         document.getElementById('actionTypeInput').value = 'Comment';
-        document.getElementById('actionByInput').value = '';
+        document.getElementById('actionByInput').value = originalReporter;
         document.getElementById('descriptionInput').value = '';
         
         const modalTitle = document.getElementById('followupModalTitle');
@@ -44,7 +47,7 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
         document.getElementById('followupId').value = followup.id || '';
         document.getElementById('followupImageUrl').value = followup.followup_image_url || '';
         document.getElementById('actionTypeInput').value = followup.followup_title || 'Comment';
-        document.getElementById('actionByInput').value = followup.initiated_by_text || '';
+        document.getElementById('actionByInput').value = followup.initiated_by_text || originalReporter;
         document.getElementById('descriptionInput').value = followup.followup_notes_text || '';
 
         const modalTitle = document.getElementById('followupModalTitle');
@@ -91,15 +94,12 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
                 return;
             }
 
-            // Cleanly look across all potential database field variants for original reporter name
-            const originalReporter = issue?.reported_by || issue?.initiated_by || issue?.reported_by_text || 'Staff Member';
-
             // Carry original contact data into the row record mapping pipeline
             const payload = {
                 related_issue: issue.id,
                 followup_title: type,
                 followup_notes_text: desc,
-                initiated_by_text: by || 'Staff',
+                initiated_by_text: by || originalReporter,
                 reported_by_text: originalReporter,
                 followup_image_url: imageUrl || null
             };
