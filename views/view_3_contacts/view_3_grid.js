@@ -1,13 +1,13 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-05 03:45:00 PM
+UPDATED: 2026-06-05 03:52:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchContacts, insertContact } from './view_3_data.js';
-import { setupContactsEvents } from './view_3_modal.js';
+import { fetchContacts } from './view_3_data.js';
+import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
 
 export async function renderFacilityContacts(data) {
@@ -55,7 +55,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 03:45:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 03:52:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -69,6 +69,7 @@ export async function renderFacilityContacts(data) {
                 <div class="modal-shell">
                     <h3 class="modal-shell-title" id="modalTemplateTitle">Create Directory Entry</h3>
                     <input type="hidden" id="editingContactId" value="">
+                    <input type="hidden" id="manualContactImage" value="">
                     
                     <label class="form-field-label">Full Name</label>
                     <input type="text" id="manualContactName" class="form-field-input">
@@ -82,11 +83,18 @@ export async function renderFacilityContacts(data) {
                     <label class="form-field-label">Email Address</label>
                     <input type="email" id="manualContactEmail" class="form-field-input">
 
+                    <label class="form-field-label">Contact Photo Upload</label>
+                    <div class="camera-action-row">
+                        <button id="triggerCameraBtn" class="contacts-view-btn btn-navy" style="width:auto; padding:8px 15px; font-size:12px;">Choose File / Camera</button>
+                        <input type="file" id="manualContactFile" style="display:none;" accept="image/*">
+                        <span id="uploadStatusText" class="camera-status-text">No image captured</span>
+                    </div>
+
                     <label class="form-field-label">Contact Notes</label>
                     <textarea id="manualContactNotes" class="form-field-input" style="height:60px; resize:none;"></textarea>
 
                     <div class="form-action-group" style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
-                        <button id="customSaveContactBtn" class="contacts-view-btn btn-navy">Save Details</button>
+                        <button id="manualContactSaveBtn" class="contacts-view-btn btn-navy">Save Details</button>
                         <button id="manualContactCloseBtn" class="contacts-view-btn btn-gray">Cancel</button>
                     </div>
                 </div>
@@ -98,74 +106,6 @@ export async function renderFacilityContacts(data) {
 
     let rawIssues = [];
     try { if (facility?.id) rawIssues = await fetchFacilityIssues(facility.id); } catch(e) {}
-
-    // FIXED: Manually handle opening the modal via the emerald button
-    const triggerBtn = document.getElementById('manualContactTriggerBtn');
-    if (triggerBtn) {
-        triggerBtn.onclick = () => {
-            // Clear out form text items from any prior entries
-            document.getElementById('editingContactId').value = '';
-            document.getElementById('manualContactName').value = '';
-            document.getElementById('manualContactRole').value = '';
-            document.getElementById('manualContactPhone').value = '';
-            document.getElementById('manualContactEmail').value = '';
-            document.getElementById('manualContactNotes').value = '';
-            document.getElementById('manualContactModal').style.display = 'flex';
-        };
-    }
-
-    // FIXED: Manually handle closing the modal via the cancel button
-    const closeBtn = document.getElementById('manualContactCloseBtn');
-    if (closeBtn) {
-        closeBtn.onclick = () => {
-            document.getElementById('manualContactModal').style.display = 'none';
-        };
-    }
-
-    // Overwrite the normal save behavior to catch workflows coming from an active issue report
-    document.getElementById('customSaveContactBtn').onclick = async () => {
-        const name = document.getElementById('manualContactName').value.trim();
-        const role = document.getElementById('manualContactRole').value.trim() || 'Staff';
-        const phone = document.getElementById('manualContactPhone').value.trim();
-        const email = document.getElementById('manualContactEmail').value.trim();
-        const notes = document.getElementById('manualContactNotes').value.trim();
-
-        if (!name) {
-            alert("Contact name is required.");
-            return;
-        }
-
-        const newContact = await insertContact({
-            facility_id: facility.id,
-            name: name,
-            role: role,
-            phone: phone,
-            email: email,
-            notes: notes
-        });
-
-        if (newContact) {
-            document.getElementById('manualContactModal').style.display = 'none';
-            
-            // Loop back straight to original issue request form if flagged
-            if (returnToView === 'view_5_issues' && window.navigateTo) {
-                window.navigateTo('view_5_issues', {
-                    facility: facility,
-                    openFormInstantly: true,
-                    selectedContact: { id: newContact.id, name: newContact.name },
-                    cachedIssueForm: cachedIssueForm
-                });
-            } else {
-                await loadContactsGridData();
-            }
-        } else {
-            alert("Could not save new contact directory entries.");
-        }
-    };
-
-    document.getElementById('backBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
-    };
 
     if (data?.openFormInstantly) {
         document.getElementById('manualContactModal').style.display = 'flex';
@@ -196,7 +136,6 @@ export async function renderFacilityContacts(data) {
             `;
 
             block.onclick = () => {
-                // If a user clicks an existing contact while a draft issue is active, pass them back as the reporter
                 if (returnToView === 'view_5_issues' && window.navigateTo) {
                     window.navigateTo('view_5_issues', {
                         facility: facility,
@@ -204,6 +143,8 @@ export async function renderFacilityContacts(data) {
                         selectedContact: { id: c.id, name: c.name },
                         cachedIssueForm: cachedIssueForm
                     });
+                } else {
+                    openEditContactModal(c);
                 }
             };
 
