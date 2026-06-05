@@ -72,7 +72,6 @@ export async function renderIssueFollowups(data, issueContext = null) {
             <div class="followups-stack">
                 <button id="addNewFollowupBtn" class="followup-btn">➕ Add Activity Log</button>
                 <button id="backToIssuesBtn" class="followup-btn-secondary followup-btn">⬅️ Back To Facility Issues</button>
-                <button id="deleteEntireIssueBtn" class="followup-btn-danger followup-btn">🗑️ Delete Issue Request</button>
             </div>
 
             <div id="followupsFeedDisplay" class="followup-feed">
@@ -137,28 +136,6 @@ export async function renderIssueFollowups(data, issueContext = null) {
 
     document.getElementById('backToIssuesBtn').onclick = () => {
         if (window.navigateTo) window.navigateTo('view_5_issues', { facility: facility });
-    };
-
-    // Wire up the new comprehensive Issue deletion handler
-    document.getElementById('deleteEntireIssueBtn').onclick = async () => {
-        if (!issue?.id) return;
-        if (confirm(`Are you completely sure you want to permanently delete this entire maintenance request thread along with all historical logs? This action cannot be undone.`)) {
-            try {
-                // Leverage database removal layer via custom implementation hooks if available
-                if (window.crudEngine && window.crudEngine.deleteRow) {
-                    await window.crudEngine.deleteRow('facility_issues_table', issue.id);
-                } else if (window.deleteFacilityIssueRecord) {
-                    await window.deleteFacilityIssueRecord(issue.id);
-                }
-                
-                // Reroute cleanly back to standard issues grid context overview
-                if (window.navigateTo) {
-                    window.navigateTo('view_5_issues', { facility: facility });
-                }
-            } catch (err) {
-                alert("Error encountered trying to delete the standard facility issue context header.");
-            }
-        }
     };
 
     setupFollowupsEvents(facility, issue, renderIssueFollowups);
