@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_modal.js
-UPDATED: 2026-06-04 02:26:00 AM
+UPDATED: 2026-06-04 08:05:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -18,31 +18,38 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
         document.getElementById('actionByInput').value = '';
         document.getElementById('descriptionInput').value = '';
         
-        document.getElementById('followupModalTitle').innerText = "Log Action Event";
-        document.getElementById('followup-image-section').style.display = 'none';
+        const modalTitle = document.getElementById('followupModalTitle');
+        if (modalTitle) modalTitle.innerText = "Log Action Event";
+        
+        const imgSec = document.getElementById('followup-image-section');
+        if (imgSec) imgSec.style.display = 'none';
+        
         modal.style.display = 'block';
     }
 
     window.openSelectedFollowupInModal = function(followup) {
-        // 🌟 FIXED: Reading from real column keys
         document.getElementById('followupId').value = followup.id || '';
         document.getElementById('actionTypeInput').value = followup.followup_title || 'Comment';
         document.getElementById('actionByInput').value = followup.initiated_by_text || '';
         document.getElementById('descriptionInput').value = followup.followup_notes_text || '';
 
-        document.getElementById('followupModalTitle').innerText = "Modify Follow-up Entry";
+        const modalTitle = document.getElementById('followupModalTitle');
+        if (modalTitle) modalTitle.innerText = "Modify Follow-up Entry";
         
         const imageSection = document.getElementById('followup-image-section');
         const imageContainer = document.getElementById('followup-image-container');
-        imageSection.style.display = 'block';
-        imageContainer.innerHTML = '';
-        
-        renderImageManagerSection(imageContainer, 'followup', followup.id, { facility, title: 'Follow-up Photos' });
+        if (imageSection && imageContainer) {
+            imageSection.style.display = 'block';
+            imageContainer.innerHTML = '';
+            renderImageManagerSection(imageContainer, 'followup', followup.id, { facility, title: 'Follow-up Photos' });
+        }
         modal.style.display = 'block';
     };
 
-    if (document.getElementById('createNewFollowupBtn')) {
-        document.getElementById('createNewFollowupBtn').onclick = openBlankFollowupModal;
+    // 🌟 FIXED: Target the correct ID rendered on the grid view layout ('addNewFollowupBtn')
+    const addBtn = document.getElementById('addNewFollowupBtn') || document.getElementById('createNewFollowupBtn');
+    if (addBtn) {
+        addBtn.onclick = openBlankFollowupModal;
     }
 
     if (document.getElementById('closeFollowupModal')) {
@@ -64,7 +71,6 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
                 return;
             }
 
-            // 🌟 FIXED: Created payload matching actual database column layout names
             const payload = {
                 related_issue: issue.id,
                 followup_title: type,
@@ -79,19 +85,11 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
                 return;
             }
 
-            const savedItem = result.data;
-            if (savedItem) {
-                document.getElementById('followupId').value = savedItem.id;
-                document.getElementById('followupModalTitle').innerText = "Modify Follow-up Entry";
-                
-                const imageSection = document.getElementById('followup-image-section');
-                const imageContainer = document.getElementById('followup-image-container');
-                imageSection.style.display = 'block';
-                imageContainer.innerHTML = '';
-                
-                renderImageManagerSection(imageContainer, 'followup', savedItem.id, { facility, title: 'Follow-up Photos' });
-                alert("Followup activity recorded successfully!");
-            }
+            modal.style.display = 'none'; 
+            alert("Followup activity recorded successfully!");
+            
+            // 🌟 FIXED: Re-render list immediately upon successful submission loop context
+            renderIssueFollowupsFn(facility, issue);
         };
     }
 }
