@@ -1,12 +1,12 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-04 10:38:00 PM
+UPDATED: 2026-06-04 10:45:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchFacilityIssues } from './view_5_data.js';
+import { fetchFacilityIssues, deleteFacilityIssue } from './view_5_data.js';
 import { setupIssuesEvents, openIssueModal } from './view_5_modal.js';
 
 export async function renderFacilityIssues(facilityContext) {
@@ -119,28 +119,11 @@ export async function renderFacilityIssues(facilityContext) {
         
         if (confirm(`Are you completely sure you want to permanently delete the issue "${targetTitle}"? This will clear all recorded progress records.`)) {
             try {
-                if (window.crudEngine && window.crudEngine.deleteRow) {
-                    
-                    // STEP A: Fetch child rows to drop dependencies safely by their direct unique IDs
-                    if (window.crudEngine.getRows) {
-                        try {
-                            const followups = await window.crudEngine.getRows('facility_issues_followup');
-                            if (followups && followups.length > 0) {
-                                const linkedEntries = followups.filter(f => f.issue_id === activeSelectedIssue.id);
-                                for (const item of linkedEntries) {
-                                    await window.crudEngine.deleteRow('facility_issues_followup', item.id);
-                                }
-                            }
-                        } catch (schemaErr) {
-                            console.warn("Child follow-up records lookup skipped or empty:", schemaErr);
-                        }
-                    }
-
-                    // STEP B: Delete parent target safely from core database
-                    await window.crudEngine.deleteRow('facility_issues', activeSelectedIssue.id);
-                    
-                } else if (window.deleteFacilityIssueRecord) {
-                    await window.deleteFacilityIssueRecord(activeSelectedIssue.id);
+                // Directly call the imported module function from view_5_data.js
+                const response = await deleteFacilityIssue(activeSelectedIssue.id);
+                
+                if (!response.success) {
+                    throw new Error(response.error ? response.error.message : "Database rejection");
                 }
                 
                 // Clear state, hide active structural layout, and re-pull view data
