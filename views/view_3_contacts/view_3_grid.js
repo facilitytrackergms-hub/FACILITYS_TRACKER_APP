@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-05 03:26:00 PM
+UPDATED: 2026-06-05 03:45:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -55,7 +55,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 03:26:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 03:45:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -99,6 +99,29 @@ export async function renderFacilityContacts(data) {
     let rawIssues = [];
     try { if (facility?.id) rawIssues = await fetchFacilityIssues(facility.id); } catch(e) {}
 
+    // FIXED: Manually handle opening the modal via the emerald button
+    const triggerBtn = document.getElementById('manualContactTriggerBtn');
+    if (triggerBtn) {
+        triggerBtn.onclick = () => {
+            // Clear out form text items from any prior entries
+            document.getElementById('editingContactId').value = '';
+            document.getElementById('manualContactName').value = '';
+            document.getElementById('manualContactRole').value = '';
+            document.getElementById('manualContactPhone').value = '';
+            document.getElementById('manualContactEmail').value = '';
+            document.getElementById('manualContactNotes').value = '';
+            document.getElementById('manualContactModal').style.display = 'flex';
+        };
+    }
+
+    // FIXED: Manually handle closing the modal via the cancel button
+    const closeBtn = document.getElementById('manualContactCloseBtn');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            document.getElementById('manualContactModal').style.display = 'none';
+        };
+    }
+
     // Overwrite the normal save behavior to catch workflows coming from an active issue report
     document.getElementById('customSaveContactBtn').onclick = async () => {
         const name = document.getElementById('manualContactName').value.trim();
@@ -112,7 +135,6 @@ export async function renderFacilityContacts(data) {
             return;
         }
 
-        // Changed target hook here to target internal database wrapper name
         const newContact = await insertContact({
             facility_id: facility.id,
             name: name,
