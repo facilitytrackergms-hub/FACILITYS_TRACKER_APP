@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_grid.js
-UPDATED: 2026-06-04 09:15:00 PM
+UPDATED: 2026-06-04 09:18:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -137,7 +137,7 @@ export async function renderFacilityControls(data) {
             </div>
 
             <div class="footer-tag">
-                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-04 09:15:00 PM
+                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-04 09:18:00 PM
             </div>
         </div>
     `;
@@ -191,4 +191,48 @@ export async function renderFacilityControls(data) {
             deleteMgmtBtn.disabled = true;
             
             const success = await deleteFacilityRecord(facility.id);
-            if (
+            if (success) {
+                mgmtOverlay.style.display = 'none';
+                if (window.navigateTo) window.navigateTo('view_1_dashboard');
+            } else {
+                alert("Database deletion exception encountered.");
+                deleteMgmtBtn.textContent = "🗑️ Delete Facility Entirely";
+                deleteMgmtBtn.disabled = false;
+            }
+        }
+    };
+
+    // Navigation Submenu Routings
+    document.getElementById('toIndividualIssues').onclick = () => {
+        if (window.navigateTo) window.navigateTo('view_5_issues', { facility: facility });
+    };
+
+    document.getElementById('toContacts').onclick = () => {
+        if (window.navigateTo) window.navigateTo('view_3_contacts', { facility: facility });
+    };
+
+    document.getElementById('toProjects').onclick = () => {
+        if (window.navigateTo) window.navigateTo('view_4_projects', { facility: facility });
+    };
+
+    document.getElementById('toGallery').onclick = () => {
+        if (window.navigateTo) window.navigateTo('view_6_gallery', { facility: facility });
+    };
+
+    document.getElementById('backDash').onclick = () => {
+        if (window.navigateTo) window.navigateTo('view_1_dashboard');
+    };
+
+    // Live Badge Sync Counter
+    try {
+        const activeIssues = await fetchFacilityIssues(facility.id);
+        const activeCount = activeIssues ? activeIssues.filter(i => i.status !== 'Resolved' && i.status !== 'Closed').length : 0;
+        const badge = document.getElementById('issuesTrackBadge');
+        if (badge && activeCount > 0) {
+            badge.innerText = activeCount;
+            badge.style.display = 'inline-block';
+        }
+    } catch (err) {
+        console.warn("Could not sync active issue count badge parameters:", err);
+    }
+}
