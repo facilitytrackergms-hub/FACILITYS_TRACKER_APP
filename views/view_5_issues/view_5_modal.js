@@ -1,146 +1,163 @@
 /* =================================================
-FILE: views/view_5_issues/view_5_data.js
-UPDATED: 2026-06-04 08:52:00 PM
+FILE: views/view_5_issues/view_5_modal.js
+UPDATED: 2026-06-04 09:00:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { supabase } from '../../js/supabaseClient.js';
+import { saveFacilityIssue, fetchFacilityContacts, insertFacilityContact } from './view_5_data.js';
+import { renderImageManagerSection } from '../../js/imageManager.js';
 
-export async function fetchFacilityIssues(facilityId) {
-    // Parse to an integer number to match the bigint database format
-    const safeId = parseInt(facilityId, 10);
-    if (isNaN(safeId)) return [];
-    
-    const { data, error } = await supabase
-        .from('facility_issues')
-        .select('*')
-        .eq('facility_id', safeId);
+/**
+ * Main event initialization for View 5 Modals.
+ * Fully exported to match what view_5_grid.js imports.
+ */
+export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
+    const modal = document.getElementById('issueModal');
+    if (!modal) return;
 
-    if (error) {
-        console.error("Database Error fetching issues:", error);
-        return [];
-    }
+    // 1. Setup the Add Contact Inline Click
+    const addContactLink = document.getElementById('addInlineContactLink');
+    if (addContactLink) {
+        addContactLink.onclick = async (e) => {
+            e.preventDefault();
+            const name = prompt("Enter Contact Name:");
+            if (!name) return;
+            const role = prompt("Enter Contact Role (e.g. Manager, Tenant):") || 'Staff';
 
-    if (data && data.length > 0) {
-        return data.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-    }
+            const newContact = await insertFacilityContact({
+                facility_id: facility.id,
+                name: name,
+                role: role
+            });
 
-    return data || [];
-}
-
-export async function fetchFacilityContacts(facilityId) {
-    const safeId = parseInt(facilityId, 10);
-    if (isNaN(safeId)) return [];
-
-    // Correct target to load explicitly from facility_contacts table structure
-    const { data, error } = await supabase
-        .from('facility_contacts')
-        .select('*')
-        .eq('facility_id', safeId);
-
-    if (error) {
-        console.error("Database Error fetching facility contacts:", error);
-        return [];
-    }
-    return data || [];
-}
-
-export async function insertFacilityContact(contactPayload) {
-    const safeFacilityId = parseInt(contactPayload.facility_id, 10);
-    
-    const mappedPayload = {
-        facility_id: safeFacilityId,
-        name: contactPayload.name || '',
-        role: contactPayload.role || ''
-    };
-
-    const { data, error } = await supabase
-        .from('facility_contacts')
-        .insert([mappedPayload])
-        .select();
-
-    if (error) {
-        console.error("Database Error inserting contact:", error);
-        return null;
-    }
-    return data && data[0] ? data[0] : null;
-}
-
-export async function saveFacilityIssue(payload, id = null, linkedContactId = null) {
-    const safeFacilityId = parseInt(payload.facility_id, 10);
-    
-    // FIXED: Swapped 'initiated_by' out and mapped the incoming value to your true DB column: 'reported_by'
-    const mappedPayload = {
-        facility_id: safeFacilityId,
-        title: payload.title || 'Maintenance Request',
-        description: payload.description || '',
-        severity: payload.priority || 'Medium',
-        status: payload.status || 'Open',
-        reported_by: payload.initiated_by || payload.reported_by || 'Staff'
-    };
-
-    let result;
-    if (!id) {
-        result = await supabase
-            .from('facility_issues')
-            .insert([mappedPayload])
-            .select();
-            
-        // Junction linkage block: stitch relationship mapping inside memory rows if newly inserted
-        if (!result.error && result.data && result.data[0] && linkedContactId) {
-            const savedIssueId = result.data[0].id;
-            const { error: junctionError } = await supabase
-                .from('contact_issues')
-                .insert([{
-                    contact_id: parseInt(linkedContactId, 10),
-                    issue_id: parseInt(savedIssueId, 10)
-                }]);
-                
-            if (junctionError) {
-                console.warn("Junction linkage mapping insertion error logged:", junctionError);
+            if (newContact) {
+                await populateContactDropdown(facility.id, newContact.id);
+            } else {
+                alert("Could not save new contact parameter.");
             }
-        }
-    } else {
-        result = await supabase
-            .from('facility_issues')
-            .update(mappedPayload)
-            .eq('id', parseInt(id, 10))
-            .select();
+        };
     }
 
-    if (result.error) {
-        console.error("Database Error saving issue:", result.error);
-        return { error: result.error, data: null };
+    // 2. Setup the Save Issue Click
+    const saveBtn = document.getElementById('saveIssueBtn');
+    if (saveBtn) {
+        saveBtn.onclick = async () => {
+            const issueId = document.getElementById('issueId').value;
+            const title = document.getElementById('issueTitleInput').value.trim();
+            const desc = document.getElementById('issueDescInput').value.trim();
+            const priority = document.getElementById('issuePriorityInput').value;
+            const status = document.getElementById('issueStatusInput').value;
+            const contactSelect = document.getElementById('issueContactSelect');
+            const selectedContactId = contactSelect ? contactSelect.value : null;
+
+            if (!title || !desc) {
+                alert("Please fill out both Title and Description fields.");
+                return;
+            }
+
+            // Fallback lookup context for creator/reporter fields mapping safely
+            let reportedByName = 'Staff';
+            if (contactSelect && contactSelect.selectedIndex > 0) {
+                reportedByName = contactSelect.options[contactSelect.selectedIndex].text.split('(')[0].trim();
+            }
+
+            const payload = {
+                facility_id: facility.id,
+                title: title,
+                description: desc,
+                priority: priority,
+                status: status,
+                initiated_by: reportedByName,
+                reported_by: reportedByName
+            };
+
+            const result = await saveFacilityIssue(payload, issueId || null, selectedContactId);
+
+            if (result.error) {
+                alert("Failed to save issue details.");
+                return;
+            }
+
+            modal.style.display = 'none';
+            if (renderFacilityIssuesFn) {
+                await renderFacilityIssuesFn(facility);
+            }
+        };
     }
-    return { error: null, data: result.data && result.data[0] ? result.data[0] : null };
+
+    // 3. Setup Close Button click listeners
+    const closeBtn = document.getElementById('closeIssueModal');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
 }
 
 /**
- * Permanently deletes an issue record from table storage.
- * Handles cleaning up related contact junction linkages seamlessly.
+ * Shared utility helper function to open the modal context cleanly.
+ * Populates fields for updating or clears them completely for a new entry.
  */
-export async function deleteFacilityIssue(issueId) {
-    const safeIssueId = parseInt(issueId, 10);
-    if (isNaN(safeIssueId)) return { success: false };
+export async function openIssueModal(facility, issue = null) {
+    const modal = document.getElementById('issueModal');
+    if (!modal) return;
 
-    // 1. Clean up junction linkages first to bypass relational dependency failures
-    await supabase
-        .from('contact_issues')
-        .delete()
-        .eq('issue_id', safeIssueId);
+    // Reset inputs or set them to values of current issue object parameters
+    document.getElementById('issueId').value = issue?.id || '';
+    document.getElementById('issueTitleInput').value = issue?.title || '';
+    document.getElementById('issueDescInput').value = issue?.description || '';
+    document.getElementById('issuePriorityInput').value = issue?.severity || 'Medium';
+    document.getElementById('issueStatusInput').value = issue?.status || 'Open';
 
-    // 2. Erase core issue entry completely
-    const { error } = await supabase
-        .from('facility_issues')
-        .delete()
-        .eq('id', safeIssueId);
-
-    if (error) {
-        console.error("Database Error deleting facility issue record:", error);
-        return { success: false, error };
+    const modalTitle = document.getElementById('issueModalTitle');
+    if (modalTitle) {
+        modalTitle.innerText = issue ? "Modify Issue Parameters" : "Create Maintenance Request";
     }
 
-    return { success: true };
+    // Load available dynamic dropdown items matching current facility ID
+    await populateContactDropdown(facility.id, issue?.linked_contact_id || null);
+
+    // Initialize the associated multimedia attachment management pipeline frame elements
+    const mediaContainer = document.getElementById('issue-image-container');
+    if (mediaContainer) {
+        mediaContainer.innerHTML = '';
+        if (issue?.id) {
+            renderImageManagerSection(mediaContainer, 'issue', issue.id, {
+                facility,
+                title: 'Issue Evidence Photos',
+                onUploadSuccess: () => {
+                    console.log("Photo synced to asset bucket storage.");
+                }
+            });
+        } else {
+            mediaContainer.innerHTML = `<p style="font-size:11px; color:#6b7280; font-style:italic; margin:0;">Photos can be attached after creating the issue.</p>`;
+        }
+    }
+
+    modal.style.display = 'block';
+}
+
+/**
+ * Internal helper to safely bind structural dynamic contact records to dropdown picklist elements
+ */
+async function populateContactDropdown(facilityId, selectedContactId = null) {
+    const contactSelect = document.getElementById('issueContactSelect');
+    if (!contactSelect) return;
+
+    contactSelect.innerHTML = '<option value="">-- Choose/Assign Reporter --</option>';
+    const contacts = await fetchFacilityContacts(facilityId);
+
+    if (contacts && contacts.length > 0) {
+        contacts.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.text = `${c.name} (${c.role || 'Staff'})`;
+            if (selectedContactId && parseInt(c.id, 10) === parseInt(selectedContactId, 10)) {
+                opt.selected = true;
+            }
+            contactSelect.appendChild(opt);
+        });
+    }
 }
