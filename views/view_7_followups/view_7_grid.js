@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_grid.js
-UPDATED: 2026-06-04 08:45:00 PM
+UPDATED: 2026-06-04 08:55:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -167,7 +167,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
 
     // Modern Overlay Custom Sequence with Explicit Dispatch Intent Previews
     window.triggerNotificationPipelinePrompt = function(savedLog, currentIssue) {
-        const creator = savedLog.reported_by_text || currentIssue.reported_by || currentIssue.initiated_by || 'Staff Member';
+        const creator = savedLog.reported_by_text || currentIssue.reported_by || currentIssue.initiated_by || issueCreatorName;
         const phone = currentIssue.contact_phone || currentIssue.phone || '';
         const email = currentIssue.contact_email || currentIssue.email || '';
         const issueTitle = currentIssue.title || 'Reported Issue';
