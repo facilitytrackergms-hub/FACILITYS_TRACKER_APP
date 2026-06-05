@@ -1,12 +1,12 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-05 03:15:00 PM
+UPDATED: 2026-06-05 03:26:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchContacts, insertFacilityContact } from './view_3_data.js';
+import { fetchContacts, insertContact } from './view_3_data.js';
 import { setupContactsEvents } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
 
@@ -55,7 +55,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 03:15:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 03:26:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -112,7 +112,8 @@ export async function renderFacilityContacts(data) {
             return;
         }
 
-        const newContact = await insertFacilityContact({
+        // Changed target hook here to target internal database wrapper name
+        const newContact = await insertContact({
             facility_id: facility.id,
             name: name,
             role: role,
