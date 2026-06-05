@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_data.js
-UPDATED: 2026-06-04 08:15:00 PM
+UPDATED: 2026-06-04 09:00:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -9,10 +9,13 @@ Always keep the header at the top of current files and new files.
 import { supabase } from '../../js/supabaseClient.js';
 
 export async function fetchIssueFollowups(issueId) {
+    // Defensive check to match against column data types gracefully
+    const safeIssueId = isNaN(issueId) ? issueId : parseInt(issueId, 10);
+
     const { data, error } = await supabase
         .from('facility_issues_followup')
         .select('*')
-        .eq('related_issue', issueId)
+        .eq('related_issue', safeIssueId)
         .order('created_at', { ascending: true });
 
     if (error) {
