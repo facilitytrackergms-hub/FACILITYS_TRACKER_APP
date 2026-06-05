@@ -72,6 +72,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
             <div class="followups-stack">
                 <button id="addNewFollowupBtn" class="followup-btn">➕ Add Activity Log</button>
                 <button id="backToIssuesBtn" class="followup-btn-secondary followup-btn">⬅️ Back To Facility Issues</button>
+                <button id="deleteMainIssueBtn" class="followup-btn-danger followup-btn">🔴 Delete Issue Request</button>
             </div>
 
             <div id="followupsFeedDisplay" class="followup-feed">
@@ -136,6 +137,41 @@ export async function renderIssueFollowups(data, issueContext = null) {
 
     document.getElementById('backToIssuesBtn').onclick = () => {
         if (window.navigateTo) window.navigateTo('view_5_issues', { facility: facility });
+    };
+
+    // ACTIVE DELETION CONTROLLER HANDLER INTERACTION LAYER LOGIC
+    document.getElementById('deleteMainIssueBtn').onclick = async () => {
+        if (!issue || !issue.id) {
+            alert("Unable to locate a valid issue identifier reference.");
+            return;
+        }
+
+        const confirmDelete = confirm('Are you completely sure you want to permanently delete this issue? This will clear all recorded progress records.');
+        if (!confirmDelete) return;
+
+        try {
+            const response = await fetch(`/api/issues/${issue.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                alert('Issue Request successfully removed.');
+                if (window.navigateTo) {
+                    window.navigateTo('view_5_issues', { facility: facility });
+                } else {
+                    window.location.hash = '#view_5_issues';
+                }
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                alert(`Failed to delete issue: ${errorData.message || response.statusText}`);
+            }
+        } catch (error) {
+            console.error('Deletion operation error:', error);
+            alert('A network error occurred trying to delete this request.');
+        }
     };
 
     setupFollowupsEvents(facility, issue, renderIssueFollowups);
@@ -215,7 +251,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
 
         document.getElementById('customConfirmNoBtn').onclick = () => { confirmPopup.style.display = 'none'; };
         
-        document.getElementById('customConfirmYellowBtn').onclick = () => {
+        document.getElementById('customConfirmYesBtn').onclick = () => {
             confirmPopup.style.display = 'none';
             
             // Build the explicit context message prompt detailing exactly what is about to happen
