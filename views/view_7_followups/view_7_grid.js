@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_grid.js
-UPDATED: 2026-06-04 08:15:00 PM
+UPDATED: 2026-06-04 08:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -34,6 +34,13 @@ export async function renderIssueFollowups(data, issueContext = null) {
             .followup-meta-text { font-size:11px; color:#6b7280; flex-grow:1; text-align:right; }
             .followup-body-desc { font-size:13px; color:#1f2937; line-height:1.4; word-break:break-word; }
             .followup-thumb-img { width:100%; max-height:180px; object-fit:cover; border-radius:6px; margin-top:10px; border:1px solid #e5e7eb; }
+            
+            /* Custom Prompt overlay sheets */
+            .custom-overlay-panel { position:fixed; z-index:20000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; font-family:Arial, sans-serif; box-sizing:border-box; padding:15px; }
+            .custom-overlay-card { background:white; padding:24px; border-radius:12px; max-width:360px; width:100%; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center; box-sizing:border-box; }
+            .overlay-headline { font-size:16px; font-weight:bold; color:#00264d; text-transform:uppercase; margin:0 0 10px 0; }
+            .overlay-bodytext { font-size:13px; color:#4b5563; margin:0 0 20px 0; line-height:1.4; }
+            .overlay-action-btn { width:100%; padding:12px; border-radius:6px; border:none; font-weight:bold; font-size:12px; text-transform:uppercase; cursor:pointer; margin-bottom:8px; }
         </style>
     `;
 
@@ -49,7 +56,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
             
             <div class="followups-stack">
                 <button id="addNewFollowupBtn" class="followup-btn">➕ Add Activity Log</button>
-                <button id="backToIssuesBtn" class="followup-btn followup-btn-secondary">⬅️ Back To Facility Issues</button>
+                <button id="backToIssuesBtn" class="followup-btn-secondary followup-btn">⬅️ Back To Facility Issues</button>
             </div>
 
             <div id="followupsFeedDisplay" class="followup-feed">
@@ -58,7 +65,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
         </div>
 
         <div id="followupModal" style="display:none; position:fixed; z-index:10000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); box-sizing:border-box;">
-            <div style="background:white; max-width:380px; margin:5% auto; padding:20px; border-radius:10px; position:relative; font-family:Arial; box-sizing:border-box;">
+            <div style="background:white; max-width:380px; margin:10% auto; padding:20px; border-radius:10px; position:relative; font-family:Arial; box-sizing:border-box;">
                 <span id="closeFollowupModal" style="position:absolute; right:15px; top:10px; font-size:22px; cursor:pointer; color:#9ca3af; font-weight:bold;">&times;</span>
                 <h3 id="followupModalTitle" style="margin:0 0 5px 0; color:#00264d; font-size:16px; text-transform:uppercase;">Log Action Event</h3>
                 
@@ -85,6 +92,26 @@ export async function renderIssueFollowups(data, issueContext = null) {
                 </div>
 
                 <button id="saveFollowupBtn" style="width:100%; background:#28a745; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; text-transform:uppercase;">Save Activity Entry</button>
+            </div>
+        </div>
+
+        <div id="customConfirmPopup" class="custom-overlay-panel">
+            <div class="custom-overlay-card">
+                <div class="overlay-headline">🎉 Activity Log Saved</div>
+                <div id="customConfirmText" class="overlay-bodytext">Would you like to inform the creator of this issue right now?</div>
+                <button id="customConfirmYesBtn" class="overlay-action-btn" style="background:#00264d; color:white;">📢 Yes, Notify Creator</button>
+                <button id="customConfirmNoBtn" class="overlay-action-btn" style="background:#e5e7eb; color:#1f2937;">❌ No, Skip</button>
+            </div>
+        </div>
+
+        <div id="customMethodPopup" class="custom-overlay-panel">
+            <div class="custom-overlay-card">
+                <div class="overlay-headline">Delivery Channel</div>
+                <div class="overlay-bodytext">Choose how you want to hand off this maintenance record link:</div>
+                <button id="methodSmsBtn" class="overlay-action-btn" style="background:#28a745; color:white;">📱 Send Text Message (SMS)</button>
+                <button id="methodEmailBtn" class="overlay-action-btn" style="background:#0369a1; color:white;">📧 Send Email Update</button>
+                <button id="methodCallBtn" class="overlay-action-btn" style="background:#4b5563; color:white;">📞 Place Phone Call</button>
+                <button id="methodCancelBtn" class="overlay-action-btn" style="background:#f3f4f6; color:#6b7280; font-size:11px; margin-top:5px;">⬅️ Go Back</button>
             </div>
         </div>
     `;
@@ -129,30 +156,47 @@ export async function renderIssueFollowups(data, issueContext = null) {
         });
     }
 
+    // Modern Overlay Custom Sequence
+    window.triggerNotificationPipelinePrompt = function(savedLog, currentIssue) {
+        const creator = savedLog.reported_by_text || currentIssue.reported_by || currentIssue.initiated_by || 'Staff Member';
+        const phone = currentIssue.contact_phone || currentIssue.phone || '';
+        const email = currentIssue.contact_email || currentIssue.email || '';
+        
+        const confirmPopup = document.getElementById('customConfirmPopup');
+        const methodPopup = document.getElementById('customMethodPopup');
+        
+        document.getElementById('customConfirmText').innerText = `Activity Log Successfully Saved!\n\nWould you like to inform the creator of this issue (${creator}) right now?`;
+        confirmPopup.style.display = 'flex';
+
+        document.getElementById('customConfirmNoBtn').onclick = () => { confirmPopup.style.display = 'none'; };
+        
+        document.getElementById('customConfirmYesBtn').onclick = () => {
+            confirmPopup.style.display = 'none';
+            methodPopup.style.display = 'flex';
+        };
+
+        document.getElementById('methodCancelBtn').onclick = () => { methodPopup.style.display = 'none'; };
+
+        let msgText = `Hi ${creator}, progress update on your issue (#${currentIssue.id || 'Log'}): "${savedLog.followup_title} - ${savedLog.followup_notes_text}".`;
+        if (savedLog.followup_image_url) {
+            msgText += ` View Attached Photo Proof: ${savedLog.followup_image_url}`;
+        }
+
+        document.getElementById('methodSmsBtn').onclick = () => {
+            methodPopup.style.display = 'none';
+            window.location.href = `sms:${phone.replace(/[^0-9+]/g, '')}?body=${encodeURIComponent(msgText)}`;
+        };
+
+        document.getElementById('methodEmailBtn').onclick = () => {
+            methodPopup.style.display = 'none';
+            window.location.href = `mailto:${email}?subject=${encodeURIComponent('Maintenance Progress Update')}&body=${encodeURIComponent(msgText)}`;
+        };
+
+        document.getElementById('methodCallBtn').onclick = () => {
+            methodPopup.style.display = 'none';
+            window.location.href = `tel:${phone.replace(/[^0-9+]/g, '')}`;
+        };
+    };
+
     await loadFollowupsDisplayFeed();
 }
-
-// Global hook triggered from modal saving routine to prompt alerts cleanly
-window.triggerNotificationPipelinePrompt = function(savedLog, currentIssue) {
-    const creator = savedLog.reported_by_name || currentIssue.reported_by || currentIssue.initiated_by || 'Staff Member';
-    const phone = currentIssue.contact_phone || currentIssue.phone || '';
-    const email = currentIssue.contact_email || currentIssue.email || '';
-    
-    const wantsToNotify = confirm(`Activity Log Saved!\nWould you like to inform the creator of this issue (${creator})?`);
-    if (!wantsToNotify) return;
-
-    const method = prompt(`How would you like to notify them?\n\nType "1" for 📱 Text (SMS)\nType "2" for 📧 Email\nType "3" for 📞 Phone Call`, "1");
-    
-    let message = `Hi ${creator}, update on your issue (#${currentIssue.id || 'Log'}): "${savedLog.followup_title} - ${savedLog.followup_notes_text}".`;
-    if (savedLog.followup_image_url) {
-        message += ` View Photo Proof: ${savedLog.followup_image_url}`;
-    }
-
-    if (method === "1") {
-        window.location.href = `sms:${phone.replace(/[^0-9+]/g, '')}?body=${encodeURIComponent(message)}`;
-    } else if (method === "2") {
-        window.location.href = `mailto:${email}?subject=${encodeURIComponent('Maintenance Progress Update')}&body=${encodeURIComponent(message)}`;
-    } else if (method === "3") {
-        window.location.href = `tel:${phone.replace(/[^0-9+]/g, '')}`;
-    }
-};
