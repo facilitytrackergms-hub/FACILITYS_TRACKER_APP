@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_grid.js
-UPDATED: 2026-06-04 08:20:00 PM
+UPDATED: 2026-06-04 08:45:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -16,11 +16,15 @@ export async function renderIssueFollowups(data, issueContext = null) {
     const facility = data?.facility ? data.facility : data;
     const issue = data?.issue ? data.issue : issueContext;
 
+    // Pull the original creator's name cleanly from any available issue fields
+    const issueCreatorName = issue?.reported_by || issue?.initiated_by || issue?.reported_by_text || 'Staff Member';
+
     const styles = `
         <style>
             .followups-container { padding:20px; font-family:Arial; background:#f3f4f6; min-height:100vh; text-align:center; box-sizing:border-box; }
             .followups-title { color:#00264d; font-size:22px; text-transform:uppercase; margin:0 0 5px 0; }
-            .followups-subtitle { color:#4b5563; margin:0 0 25px 0; font-size:14px; }
+            .followups-subtitle { color:#4b5563; margin:0 0 5px 0; font-size:14px; }
+            .followups-creator-badge { color:#0369a1; font-size:13px; font-weight:bold; margin:0 0 25px 0; display:block; }
             .followups-stack { display:flex; flex-direction:column; gap:12px; max-width:400px; margin:0 auto; }
             .followup-btn { background:#00264d; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; width:100%; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
             .followup-btn:hover { background:#001a33; }
@@ -37,10 +41,11 @@ export async function renderIssueFollowups(data, issueContext = null) {
             
             /* Custom Prompt overlay sheets */
             .custom-overlay-panel { position:fixed; z-index:20000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; font-family:Arial, sans-serif; box-sizing:border-box; padding:15px; }
-            .custom-overlay-card { background:white; padding:24px; border-radius:12px; max-width:360px; width:100%; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center; box-sizing:border-box; }
-            .overlay-headline { font-size:16px; font-weight:bold; color:#00264d; text-transform:uppercase; margin:0 0 10px 0; }
+            .custom-overlay-card { background:white; padding:24px; border-radius:12px; max-width:360px; width:100%; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:left; box-sizing:border-box; }
+            .overlay-headline { font-size:16px; font-weight:bold; color:#00264d; text-transform:uppercase; margin:0 0 12px 0; text-align:center; }
             .overlay-bodytext { font-size:13px; color:#4b5563; margin:0 0 20px 0; line-height:1.4; }
-            .overlay-action-btn { width:100%; padding:12px; border-radius:6px; border:none; font-weight:bold; font-size:12px; text-transform:uppercase; cursor:pointer; margin-bottom:8px; }
+            .overlay-message-box { background:#f3f4f6; padding:12px; border-radius:6px; font-size:12px; font-family:monospace; color:#1f2937; border:1px solid #e5e7eb; margin-bottom:15px; word-break:break-word; max-height:120px; overflow-y:auto; }
+            .overlay-action-btn { width:100%; padding:12px; border-radius:6px; border:none; font-weight:bold; font-size:12px; text-transform:uppercase; cursor:pointer; margin-bottom:8px; text-align:center; }
         </style>
     `;
 
@@ -53,6 +58,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
 
             <h2 class="followups-title">Issue Logs</h2>
             <p class="followups-subtitle">Thread ID: #${issue?.id || 'N/A'} - ${issue?.title || 'Details View'}</p>
+            <span class="followups-creator-badge">👤 Created By: ${issueCreatorName}</span>
             
             <div class="followups-stack">
                 <button id="addNewFollowupBtn" class="followup-btn">➕ Add Activity Log</button>
@@ -96,7 +102,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
         </div>
 
         <div id="customConfirmPopup" class="custom-overlay-panel">
-            <div class="custom-overlay-card">
+            <div class="custom-overlay-card" style="text-align:center;">
                 <div class="overlay-headline">🎉 Activity Log Saved</div>
                 <div id="customConfirmText" class="overlay-bodytext">Would you like to inform the creator of this issue right now?</div>
                 <button id="customConfirmYesBtn" class="overlay-action-btn" style="background:#00264d; color:white;">📢 Yes, Notify Creator</button>
@@ -106,8 +112,11 @@ export async function renderIssueFollowups(data, issueContext = null) {
 
         <div id="customMethodPopup" class="custom-overlay-panel">
             <div class="custom-overlay-card">
-                <div class="overlay-headline">Delivery Channel</div>
-                <div class="overlay-bodytext">Choose how you want to hand off this maintenance record link:</div>
+                <div class="overlay-headline">📢 Delivery Pipeline Preview</div>
+                <div id="customMethodIntroText" class="overlay-bodytext" style="font-weight:bold; color:#1f2937; margin-bottom:10px;"></div>
+                <div class="overlay-bodytext" style="margin-bottom:6px; font-size:12px; font-weight:bold; text-transform:uppercase; color:#4b5563;">Outbound Message Content:</div>
+                <div id="customMessagePreviewBox" class="overlay-message-box"></div>
+                
                 <button id="methodSmsBtn" class="overlay-action-btn" style="background:#28a745; color:white;">📱 Send Text Message (SMS)</button>
                 <button id="methodEmailBtn" class="overlay-action-btn" style="background:#0369a1; color:white;">📧 Send Email Update</button>
                 <button id="methodCallBtn" class="overlay-action-btn" style="background:#4b5563; color:white;">📞 Place Phone Call</button>
@@ -156,11 +165,12 @@ export async function renderIssueFollowups(data, issueContext = null) {
         });
     }
 
-    // Modern Overlay Custom Sequence
+    // Modern Overlay Custom Sequence with Explicit Dispatch Intent Previews
     window.triggerNotificationPipelinePrompt = function(savedLog, currentIssue) {
         const creator = savedLog.reported_by_text || currentIssue.reported_by || currentIssue.initiated_by || 'Staff Member';
         const phone = currentIssue.contact_phone || currentIssue.phone || '';
         const email = currentIssue.contact_email || currentIssue.email || '';
+        const issueTitle = currentIssue.title || 'Reported Issue';
         
         const confirmPopup = document.getElementById('customConfirmPopup');
         const methodPopup = document.getElementById('customMethodPopup');
@@ -172,23 +182,31 @@ export async function renderIssueFollowups(data, issueContext = null) {
         
         document.getElementById('customConfirmYesBtn').onclick = () => {
             confirmPopup.style.display = 'none';
+            
+            // Build the explicit context message prompt detailing exactly what is about to happen
+            document.getElementById('customMethodIntroText').innerText = `You are about to notify ${creator} regarding the issue: "${issueTitle}".`;
+            
+            // Build message string preview body
+            let msgText = `Hi ${creator}, progress update on your issue (#${currentIssue.id || 'Log'}): "${savedLog.followup_title} - ${savedLog.followup_notes_text}".`;
+            if (savedLog.followup_image_url) {
+                msgText += ` View Attached Photo Proof: ${savedLog.followup_image_url}`;
+            }
+            
+            document.getElementById('customMessagePreviewBox').innerText = msgText;
             methodPopup.style.display = 'flex';
         };
 
         document.getElementById('methodCancelBtn').onclick = () => { methodPopup.style.display = 'none'; };
 
-        let msgText = `Hi ${creator}, progress update on your issue (#${currentIssue.id || 'Log'}): "${savedLog.followup_title} - ${savedLog.followup_notes_text}".`;
-        if (savedLog.followup_image_url) {
-            msgText += ` View Attached Photo Proof: ${savedLog.followup_image_url}`;
-        }
-
         document.getElementById('methodSmsBtn').onclick = () => {
             methodPopup.style.display = 'none';
+            let msgText = document.getElementById('customMessagePreviewBox').innerText;
             window.location.href = `sms:${phone.replace(/[^0-9+]/g, '')}?body=${encodeURIComponent(msgText)}`;
         };
 
         document.getElementById('methodEmailBtn').onclick = () => {
             methodPopup.style.display = 'none';
+            let msgText = document.getElementById('customMessagePreviewBox').innerText;
             window.location.href = `mailto:${email}?subject=${encodeURIComponent('Maintenance Progress Update')}&body=${encodeURIComponent(msgText)}`;
         };
 
