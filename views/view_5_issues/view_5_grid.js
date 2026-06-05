@@ -119,9 +119,9 @@ export async function renderFacilityIssues(facilityContext) {
         
         if (confirm(`Are you completely sure you want to permanently delete the issue "${targetTitle}"? This will clear all recorded progress records.`)) {
             try {
-                if (window.crudEngine && window.crudEngine.deleteRow) {
-                    await window.crudEngine.deleteRow('facility_issues_table', activeSelectedIssue.id);
-                } else if (window.deleteFacilityIssueRecord) {
+               if (window.crudEngine && window.crudEngine.deleteRow) {
+    await window.crudEngine.deleteRow('facility_issues', activeSelectedIssue.id);
+} else if (window.deleteFacilityIssueRecord) {
                     await window.deleteFacilityIssueRecord(activeSelectedIssue.id);
                 }
                 
