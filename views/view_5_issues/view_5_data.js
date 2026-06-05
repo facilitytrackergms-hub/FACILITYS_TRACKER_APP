@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_data.js
-UPDATED: 2026-06-03 06:46:00 PM
+UPDATED: 2026-06-04 08:52:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -78,7 +78,7 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
         description: payload.description || '',
         severity: payload.priority || 'Medium',
         status: payload.status || 'Open',
-        reported_by: payload.initiated_by || 'Staff'
+        reported_by: payload.initiated_by || payload.reported_by || 'Staff'
     };
 
     let result;
