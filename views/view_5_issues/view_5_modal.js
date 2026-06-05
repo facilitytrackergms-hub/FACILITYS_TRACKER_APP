@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-05 03:15:00 PM
+UPDATED: 2026-06-05 03:40:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -20,11 +20,11 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
             e.preventDefault();
             
             const currentDraft = {
-                id: document.getElementById('issueId').value,
-                title: document.getElementById('issueTitleInput').value.trim(),
-                description: document.getElementById('issueDescInput').value.trim(),
-                severity: document.getElementById('issuePriorityInput').value,
-                status: document.getElementById('issueStatusInput').value
+                id: document.getElementById('issueId')?.value || '',
+                title: document.getElementById('issueTitleInput')?.value?.trim() || '',
+                description: document.getElementById('issueDescInput')?.value?.trim() || '',
+                severity: document.getElementById('issuePriorityInput')?.value || 'Medium',
+                status: document.getElementById('issueStatusInput')?.value || 'Open'
             };
 
             modal.style.display = 'none';
@@ -42,13 +42,13 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
     const saveBtn = document.getElementById('saveIssueBtn');
     if (saveBtn) {
         saveBtn.onclick = async () => {
-            const issueId = document.getElementById('issueId').value;
-            const title = document.getElementById('issueTitleInput').value.trim();
-            const desc = document.getElementById('issueDescInput').value.trim();
-            const priority = document.getElementById('issuePriorityInput').value;
-            const status = document.getElementById('issueStatusInput').value;
-            const reporterName = document.getElementById('hiddenReporterName').value;
-            const reporterId = document.getElementById('hiddenReporterId').value;
+            const issueId = document.getElementById('issueId')?.value || '';
+            const title = document.getElementById('issueTitleInput')?.value?.trim() || '';
+            const desc = document.getElementById('issueDescInput')?.value?.trim() || '';
+            const priority = document.getElementById('issuePriorityInput')?.value || 'Medium';
+            const status = document.getElementById('issueStatusInput')?.value || 'Open';
+            const reporterName = document.getElementById('hiddenReporterName')?.value || '';
+            const reporterId = document.getElementById('hiddenReporterId')?.value || '';
 
             if (!title) {
                 alert("⚠️ WARNING: The Issue Request Title cannot be left empty.");
@@ -92,18 +92,27 @@ export async function openIssueModal(facility, issue = null, contactReporter = n
     const modal = document.getElementById('issueModal');
     if (!modal) return;
 
-    // Load either database variables or active wizard drafts
-    document.getElementById('issueId').value = issue?.id || '';
-    document.getElementById('issueTitleInput').value = issue?.title || ''; 
-    document.getElementById('issueDescInput').value = issue?.description || '';
-    document.getElementById('issuePriorityInput').value = issue?.severity || 'Medium';
-    document.getElementById('issueStatusInput').value = issue?.status || 'Open';
+    // Defensive references to catch missing DOM elements safely
+    const elIssueId = document.getElementById('issueId');
+    const elIssueTitle = document.getElementById('issueTitleInput');
+    const elIssueDesc = document.getElementById('issueDescInput');
+    const elIssuePriority = document.getElementById('issuePriorityInput');
+    const elIssueStatus = document.getElementById('issueStatusInput');
+    const elHiddenReporterName = document.getElementById('hiddenReporterName');
+    const elHiddenReporterId = document.getElementById('hiddenReporterId');
+
+    // Load either database variables or active wizard drafts safely
+    if (elIssueId) elIssueId.value = issue?.id || '';
+    if (elIssueTitle) elIssueTitle.value = issue?.title || ''; 
+    if (elIssueDesc) elIssueDesc.value = issue?.description || '';
+    if (elIssuePriority) elIssuePriority.value = issue?.severity || 'Medium';
+    if (elIssueStatus) elIssueStatus.value = issue?.status || 'Open';
 
     // Store profile reference hooks invisibly
     const repName = contactReporter?.name || issue?.reported_by || 'Staff';
     const repId = contactReporter?.id || issue?.linked_contact_id || '';
-    document.getElementById('hiddenReporterName').value = repName;
-    document.getElementById('hiddenReporterId').value = repId;
+    if (elHiddenReporterName) elHiddenReporterName.value = repName;
+    if (elHiddenReporterId) elHiddenReporterId.value = repId;
 
     const modalTitle = document.getElementById('issueModalTitle');
     if (modalTitle) {
@@ -124,6 +133,10 @@ export async function openIssueModal(facility, issue = null, contactReporter = n
         }
     }
 
-    document.getElementById('deleteIssueRequestBtn').style.display = issue?.id ? 'block' : 'none';
+    const deleteBtn = document.getElementById('deleteIssueRequestBtn');
+    if (deleteBtn) {
+        deleteBtn.style.display = issue?.id ? 'block' : 'none';
+    }
+    
     modal.style.display = 'block';
 }
