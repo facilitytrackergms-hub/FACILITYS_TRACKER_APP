@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-04 10:30:00 PM
+UPDATED: 2026-06-04 10:38:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -99,7 +99,7 @@ export async function renderFacilityIssues(facilityContext) {
         </div>
     `;
 
-    // 1. Wire up the top-level button event hooks
+    // 1. Wire up top-level interactive hooks
     document.getElementById('fileNewIssueReportBtn').onclick = () => {
         activeSelectedIssue = null;
         openIssueModal(facility, null);
@@ -111,8 +111,7 @@ export async function renderFacilityIssues(facilityContext) {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
     };
 
-    // Global unified listener setup for the deletion button to prevent asynchronous bubble leaks
-// Global unified listener setup for the deletion button to prevent asynchronous bubble leaks
+    // Upgraded global unified deletion handler to process nested dependency constraints cascaded
     document.getElementById('deleteIssueRequestBtn').onclick = async () => {
         if (!activeSelectedIssue) return;
         
@@ -120,14 +119,31 @@ export async function renderFacilityIssues(facilityContext) {
         
         if (confirm(`Are you completely sure you want to permanently delete the issue "${targetTitle}"? This will clear all recorded progress records.`)) {
             try {
-                // Use your app's built-in engine with the exact table name
                 if (window.crudEngine && window.crudEngine.deleteRow) {
+                    
+                    // STEP A: Fetch child rows to drop dependencies safely by their direct unique IDs
+                    if (window.crudEngine.getRows) {
+                        try {
+                            const followups = await window.crudEngine.getRows('facility_issues_followup');
+                            if (followups && followups.length > 0) {
+                                const linkedEntries = followups.filter(f => f.issue_id === activeSelectedIssue.id);
+                                for (const item of linkedEntries) {
+                                    await window.crudEngine.deleteRow('facility_issues_followup', item.id);
+                                }
+                            }
+                        } catch (schemaErr) {
+                            console.warn("Child follow-up records lookup skipped or empty:", schemaErr);
+                        }
+                    }
+
+                    // STEP B: Delete parent target safely from core database
                     await window.crudEngine.deleteRow('facility_issues', activeSelectedIssue.id);
+                    
                 } else if (window.deleteFacilityIssueRecord) {
                     await window.deleteFacilityIssueRecord(activeSelectedIssue.id);
                 }
                 
-                // Close overlay cleanly, then immediately re-pull clean context metrics from data tier
+                // Clear state, hide active structural layout, and re-pull view data
                 document.getElementById('issueModal').style.display = 'none';
                 await loadIssuesFeedList();
             } catch (err) {
@@ -136,10 +152,11 @@ export async function renderFacilityIssues(facilityContext) {
             }
         }
     };
+
     // 2. Initialize input interaction parameters from modal layer
     setupIssuesEvents(facility, renderFacilityIssues);
 
-    // 3. Build and render the underlying issues card elements feed async
+    // 3. Build and render underlying tracking records feed
     async function loadIssuesFeedList() {
         const feedContainer = document.getElementById('facilityIssuesFeed');
         if (!feedContainer || !facility?.id) return;
@@ -159,10 +176,7 @@ export async function renderFacilityIssues(facilityContext) {
             const card = document.createElement('div');
             card.className = 'issue-card-item';
 
-            // Check variants to clean up reporter text assignments
             const reporter = issueItem.reported_by || issueItem.initiated_by || issueItem.reported_by_text || 'Staff';
-            
-            // Extract the actual custom issue context title cleanly
             const issueTitle = issueItem.issue_title || issueItem.title || 'Maintenance Request';
 
             let dateString = 'Recent';
@@ -179,18 +193,15 @@ export async function renderFacilityIssues(facilityContext) {
                 <div class="issue-card-meta" style="margin-top:2px; color:#9ca3af;">Reported: ${dateString}</div>
             `;
 
-            // Clicking an individual card context opens the modal with updated issue titles and delete hooks
             card.onclick = () => {
                 activeSelectedIssue = issueItem;
                 openIssueModal(facility, issueItem);
                 
-                // Dynamically transform modal heading text target to explicitly show issue details title
                 const modalHeaderEl = document.getElementById('issueModalTitle');
                 if (modalHeaderEl) {
                     modalHeaderEl.innerText = issueTitle;
                 }
 
-                // Show the custom delete action button safely
                 const deleteBtn = document.getElementById('deleteIssueRequestBtn');
                 if (deleteBtn) {
                     deleteBtn.style.display = 'block';
