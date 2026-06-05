@@ -120,27 +120,8 @@ export async function renderFacilityIssues(facilityContext) {
         
         if (confirm(`Are you completely sure you want to permanently delete the issue "${targetTitle}"? This will clear all recorded progress records.`)) {
             try {
-                if (window.supabase) {
-                    // 1. First, clear out any linked child rows from the followups table to stop constraint errors
-                    await window.supabase
-                        .from('facility_issues_followup')
-                        .delete()
-                        .eq('issue_id', activeSelectedIssue.id);
-
-                    // 2. Also clear alternative followup tables just in case
-                    await window.supabase
-                        .from('issue_followups')
-                        .delete()
-                        .eq('issue_id', activeSelectedIssue.id);
-
-                    // 3. Now delete the main parent issue safely
-                    const { error } = await window.supabase
-                        .from('facility_issues')
-                        .delete()
-                        .eq('id', activeSelectedIssue.id);
-
-                    if (error) throw error;
-                } else if (window.crudEngine && window.crudEngine.deleteRow) {
+                // Use your app's built-in engine with the exact table name
+                if (window.crudEngine && window.crudEngine.deleteRow) {
                     await window.crudEngine.deleteRow('facility_issues', activeSelectedIssue.id);
                 } else if (window.deleteFacilityIssueRecord) {
                     await window.deleteFacilityIssueRecord(activeSelectedIssue.id);
