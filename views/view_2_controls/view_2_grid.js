@@ -48,10 +48,14 @@ export async function renderFacilityControls(data) {
             .info-label { font-weight:bold; color:#00264d; text-transform:uppercase; font-size:11px; display:block; margin-bottom:2px; }
             
             .divider-line { width:100%; max-width:320px; height:5px; background:#00264d; margin:20px auto; border-radius:2px; }
-            .menu-layout { display:flex; flex-direction:column; gap:12px; max-width:320px; margin:0 auto; }
-            .action-btn { position:relative; width:100%; padding:14px; background:#00264d; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:13px; text-align:center; box-sizing: border-box; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+            
+            /* Two columns layout for a cleaner, compact fit */
+            .menu-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 360px; margin: 0 auto; }
+            .action-btn { position:relative; width:100%; padding:14px 8px; background:#00264d; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:12px; text-align:center; box-sizing: border-box; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
             .badge-counter { position:absolute; top:-6px; right:-6px; background:#dc2626; color:white; font-size:11px; padding:3px 8px; border-radius: 9999px; font-weight:bold; border:2px solid white; display:none; }
-            .back-btn { margin-top:15px; background:#6b7280; }
+            
+            /* Make the back button stretch all the way across both columns */
+            .back-btn { margin-top:5px; background:#6b7280; grid-column: span 2; }
             
             /* Admin Management Overlay Styles */
             .mgmt-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 10000; box-sizing: border-box; }
