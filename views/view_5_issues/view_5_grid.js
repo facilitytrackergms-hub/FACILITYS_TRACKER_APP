@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-04 10:45:00 PM
+UPDATED: 2026-06-05 12:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -68,7 +68,7 @@ export async function renderFacilityIssues(facilityContext) {
                 <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-top:12px; margin-bottom:4px; text-transform:uppercase;">Issue Request Title</label>
                 <input type="text" id="issueTitleInput" style="width:100%; padding:9px; margin-bottom:10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;" />
 
-                <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-bottom:4px; text-transform:uppercase;">Assign / Link Contact</label>
+                <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-bottom:4px; text-transform:uppercase;">Reported By</label>
                 <div style="display:flex; gap:6px; margin-bottom:10px;">
                     <select id="issueContactSelect" style="flex-grow:1; padding:9px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; background:#f9fafb; max-width:75%;"></select>
                     <button id="addInlineContactLink" style="background:#0369a1; color:white; border:none; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; padding:0 8px;">+ New</button>
@@ -111,7 +111,6 @@ export async function renderFacilityIssues(facilityContext) {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
     };
 
-    // Upgraded global unified deletion handler to process nested dependency constraints cascaded
     document.getElementById('deleteIssueRequestBtn').onclick = async () => {
         if (!activeSelectedIssue) return;
         
@@ -119,14 +118,10 @@ export async function renderFacilityIssues(facilityContext) {
         
         if (confirm(`Are you completely sure you want to permanently delete the issue "${targetTitle}"? This will clear all recorded progress records.`)) {
             try {
-                // Directly call the imported module function from view_5_data.js
                 const response = await deleteFacilityIssue(activeSelectedIssue.id);
-                
                 if (!response.success) {
                     throw new Error(response.error ? response.error.message : "Database rejection");
                 }
-                
-                // Clear state, hide active structural layout, and re-pull view data
                 document.getElementById('issueModal').style.display = 'none';
                 await loadIssuesFeedList();
             } catch (err) {
@@ -138,6 +133,18 @@ export async function renderFacilityIssues(facilityContext) {
 
     // 2. Initialize input interaction parameters from modal layer
     setupIssuesEvents(facility, renderFacilityIssues);
+
+    // CHANGED: Intercept shortcut payload flag to open the form modal cleanly with pre-selected data fields
+    if (facilityContext?.openFormInstantly && facilityContext?.preselectedContactId) {
+        const preselectedId = facilityContext.preselectedContactId;
+        // Clean routing states context parameters out
+        delete facilityContext.openFormInstantly;
+        delete facilityContext.preselectedContactId;
+        
+        openIssueModal(facility, null, preselectedId);
+        document.getElementById('issueModalTitle').innerText = 'Maintenance Request';
+        document.getElementById('deleteIssueRequestBtn').style.display = 'none';
+    }
 
     // 3. Build and render underlying tracking records feed
     async function loadIssuesFeedList() {
