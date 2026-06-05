@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-04 07:45:00 PM
+UPDATED: 2026-06-04 08:50:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -153,6 +153,42 @@ export async function renderFacilityIssues(data) {
 
     setupIssuesEvents(facility, renderFacilityIssues, autoOpen, prefillData);
 
+    // Track active selected issue context object across module boundaries
+    let selectedIssueContext = null;
+    const baseOpenModalFn = window.openSelectedIssueInModal;
+    
+    window.openSelectedIssueInModal = function(issue) {
+        selectedIssueContext = issue;
+        if (baseOpenModalFn) {
+            baseOpenModalFn(issue);
+        } else {
+            const followUpBtn = document.getElementById('issueFollowupsBtn');
+            if (followUpBtn) followUpBtn.style.display = 'block';
+        }
+    };
+
+    // Safely configure yellow button behavior to pass complete model down the router line
+    const followUpsBtn = document.getElementById('issueFollowupsBtn');
+    if (followUpsBtn) {
+        followUpsBtn.onclick = () => {
+            if (window.navigateTo && selectedIssueContext) {
+                const modalMask = document.getElementById('issueModal');
+                if (modalMask) modalMask.style.display = 'none';
+
+                window.navigateTo('view_7_followups', {
+                    facility: facility,
+                    issue: selectedIssueContext
+                });
+            }
+        };
+    }
+
+    if (document.getElementById('backToControlsBtn')) {
+        document.getElementById('backToControlsBtn').onclick = () => {
+            if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
+        };
+    }
+
     async function loadIssuesDisplayList() {
         const feed = document.getElementById('issuesFeedDisplay');
         if (!feed) return;
@@ -187,15 +223,13 @@ export async function renderFacilityIssues(data) {
             `;
             
             card.onclick = () => {
-                if (window.openSelectedIssueInModal) {
-                    window.openSelectedIssueInModal(issue);
-                }
+                window.openSelectedIssueInModal(issue);
             };
             
             feed.appendChild(card);
         });
 
-        if (autoOpenIssueId && window.openSelectedIssueInModal) {
+        if (autoOpenIssueId) {
             let matchedIssue = issues.find(i => String(i.id) === String(autoOpenIssueId) || String(i.issue_id) === String(autoOpenIssueId));
             
             if (!matchedIssue && !isNaN(autoOpenIssueId)) {
