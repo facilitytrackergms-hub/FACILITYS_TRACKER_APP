@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-04 07:55:00 PM
+UPDATED: 2026-06-05 12:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -99,7 +99,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-04 07:55:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 12:20:00 PM
                 </div>
 
                 <div id="activeContactDetailCard" style="display:none;" class="contacts-view-detail-box"></div>
@@ -282,9 +282,14 @@ export async function renderFacilityContacts(data) {
 
         document.getElementById('editContactBtn').onclick = () => openEditContactModal(contact);
         
+        // CHANGED: Redirects cleanly and targets preselectedContact parameter payload mapping configuration
         document.getElementById('newIssueContactBtn').onclick = () => {
             if (window.navigateTo) {
-                window.navigateTo('view_5_issues', { facility: facility, preselectedContact: contact });
+                window.navigateTo('view_5_issues', { 
+                    facility: facility, 
+                    preselectedContactId: contact.id,
+                    openFormInstantly: true
+                });
             }
         };
 
