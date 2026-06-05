@@ -98,11 +98,11 @@ export async function renderFacilityControls(data) {
                         <span id="issuesTrackBadge" class="badge-counter">0</span>
                     </button>
 
-                    <button id="toContacts" class="action-btn">👥 Facility Contact Directory</button>
-                    <button id="toProjects" class="action-btn">📋 Capital Projects Tracker</button>
-                    <button id="toGallery" class="action-btn">🖼️ Shared Image Gallery</button>
+                    <button id="toContacts" class="action-btn">👥 1.Facility Contact Directory</button>
+                    <button id="toProjects" class="action-btn">📋 2.Capital Projects Tracker</button>
+                    <button id="toGallery" class="action-btn">🖼️ 3.Shared Image Gallery</button>
                     
-                    <button id="backDash" class="action-btn back-btn">⬅️ Back to Dashboard</button>
+                    <button id="backDash" class="action-btn back-btn">⬅️ 4.Back to Dashboard</button>
                 </div>
             </div>
 
