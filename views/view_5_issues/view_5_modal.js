@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-04 09:00:00 PM
+UPDATED: 2026-06-05 12:20:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -40,7 +40,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
         };
     }
 
-    // 2. Setup the Save Issue Click
+    // 2. Setup the Save Issue Click with explicit empty title validation warning pop-up
     const saveBtn = document.getElementById('saveIssueBtn');
     if (saveBtn) {
         saveBtn.onclick = async () => {
@@ -52,12 +52,17 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
             const contactSelect = document.getElementById('issueContactSelect');
             const selectedContactId = contactSelect ? contactSelect.value : null;
 
-            if (!title || !desc) {
-                alert("Please fill out both Title and Description fields.");
+            // Strict Validation: check for empty title box first and throw warning pop-up alert
+            if (!title) {
+                alert("⚠️ WARNING: The Issue Request Title cannot be left empty. Please input a specific title description before saving.");
                 return;
             }
 
-            // Fallback lookup context for creator/reporter fields mapping safely
+            if (!desc) {
+                alert("Please fill out the Description field.");
+                return;
+            }
+
             let reportedByName = 'Staff';
             if (contactSelect && contactSelect.selectedIndex > 0) {
                 reportedByName = contactSelect.options[contactSelect.selectedIndex].text.split('(')[0].trim();
@@ -100,13 +105,14 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
  * Shared utility helper function to open the modal context cleanly.
  * Populates fields for updating or clears them completely for a new entry.
  */
-export async function openIssueModal(facility, issue = null) {
+export async function openIssueModal(facility, issue = null, preselectContactId = null) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
 
     // Reset inputs or set them to values of current issue object parameters
+    // CHANGED: Title textbox is strictly empty string by default
     document.getElementById('issueId').value = issue?.id || '';
-    document.getElementById('issueTitleInput').value = issue?.title || '';
+    document.getElementById('issueTitleInput').value = issue?.title || ''; 
     document.getElementById('issueDescInput').value = issue?.description || '';
     document.getElementById('issuePriorityInput').value = issue?.severity || 'Medium';
     document.getElementById('issueStatusInput').value = issue?.status || 'Open';
@@ -116,8 +122,11 @@ export async function openIssueModal(facility, issue = null) {
         modalTitle.innerText = issue ? "Modify Issue Parameters" : "Create Maintenance Request";
     }
 
+    // Determine target contact ID to select by default inside dropdown selection sequence
+    const targetContactSelection = issue ? (issue.linked_contact_id || null) : preselectContactId;
+
     // Load available dynamic dropdown items matching current facility ID
-    await populateContactDropdown(facility.id, issue?.linked_contact_id || null);
+    await populateContactDropdown(facility.id, targetContactSelection);
 
     // Initialize the associated multimedia attachment management pipeline frame elements
     const mediaContainer = document.getElementById('issue-image-container');
@@ -128,7 +137,7 @@ export async function openIssueModal(facility, issue = null) {
                 facility,
                 title: 'Issue Evidence Photos',
                 onUploadSuccess: () => {
-                    console.log("Photo synced to asset bucket storage.");
+                    console.log("Photo synced to asset storage bucket.");
                 }
             });
         } else {
