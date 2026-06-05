@@ -6,7 +6,7 @@ STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { MESSAGES } from '../../js/messages.js';
+
 import { fetchFacilities } from './view_1_data.js';
 import { setupFacilitiesEvents } from './view_1_modal.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
