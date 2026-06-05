@@ -116,12 +116,20 @@ export async function renderFacilityIssues(facilityContext) {
         if (!activeSelectedIssue) return;
         
         const targetTitle = activeSelectedIssue.issue_title || activeSelectedIssue.title || 'Maintenance Request';
-        
-        if (confirm(`Are you completely sure you want to permanently delete the issue "${targetTitle}"? This will clear all recorded progress records.`)) {
+  if (confirm(`Are you completely sure you want to permanently delete the issue "${targetTitle}"? This will clear all recorded progress records.`)) {
             try {
-               if (window.crudEngine && window.crudEngine.deleteRow) {
-    await window.crudEngine.deleteRow('facility_issues', activeSelectedIssue.id);
-} else if (window.deleteFacilityIssueRecord) {
+                // 1. Force try the crudEngine with your exact database table name
+                if (window.crudEngine && window.crudEngine.deleteRow) {
+                    await window.crudEngine.deleteRow('facility_issues', activeSelectedIssue.id);
+                } 
+                
+                // 2. Force the custom fallback function to run against your database too
+                if (window.supabase) {
+                    await window.supabase
+                        .from('facility_issues')
+                        .delete()
+                        .eq('id', activeSelectedIssue.id);
+                } else if (window.deleteFacilityIssueRecord) {
                     await window.deleteFacilityIssueRecord(activeSelectedIssue.id);
                 }
                 
