@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_data.js
-UPDATED: 2026-06-04 09:00:00 PM
+UPDATED: 2026-06-04 09:12:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -48,7 +48,7 @@ export async function saveIssueFollowup(payload, id = null) {
 }
 
 export async function deleteIssueFollowup(id) {
-    if (!id) return { error: 'Missing row entry ID.', data: null };
+    if (!id) return false;
 
     const result = await supabase
         .from('facility_issues_followup')
@@ -58,7 +58,7 @@ export async function deleteIssueFollowup(id) {
 
     if (result.error) {
         console.error("Database Error removing follow-up entry:", result.error);
-        return { error: result.error, data: null };
+        return false;
     }
-    return { error: null, data: result.data };
+    return true;
 }
