@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-04 09:22:00 PM
+UPDATED: 2026-06-04 09:34:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -31,6 +31,8 @@ export async function renderFacilityIssues(facilityContext) {
             .issue-card-badge { position: absolute; right: 15px; top: 15px; background: #fff3cd; color: #856404; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
             .issue-btn-back { background: #00264d; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; text-transform: uppercase; width: 100%; max-width: 400px; }
             .issue-btn-back:hover { background: #001a33; }
+            .issue-modal-btn-danger { background: #dc2626; color: white; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; text-transform: uppercase; width: 100%; margin-top: 8px; box-sizing: border-box; }
+            .issue-modal-btn-danger:hover { background: #b91c1c; }
         </style>
     `;
 
@@ -89,6 +91,7 @@ export async function renderFacilityIssues(facilityContext) {
                 <div id="issue-image-container" style="margin-bottom:15px;"></div>
 
                 <button id="saveIssueBtn" style="width:100%; background:#28a745; color:white; border:none; padding:11px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px; text-transform:uppercase;">Save Request</button>
+                <button id="deleteIssueRequestBtn" class="issue-modal-btn-danger" style="display:none;">🗑️ Delete Request</button>
             </div>
         </div>
     `;
@@ -96,6 +99,8 @@ export async function renderFacilityIssues(facilityContext) {
     // 1. Wire up the top-level button event hooks
     document.getElementById('fileNewIssueReportBtn').onclick = () => {
         openIssueModal(facility, null);
+        document.getElementById('issueModalTitle').innerText = 'Maintenance Request';
+        document.getElementById('deleteIssueRequestBtn').style.display = 'none';
     };
 
     document.getElementById('backToControlsBtn').onclick = () => {
@@ -145,10 +150,37 @@ export async function renderFacilityIssues(facilityContext) {
                 <div class="issue-card-meta" style="margin-top:2px; color:#9ca3af;">Reported: ${dateString}</div>
             `;
 
-            // Clicking an individual card context reroutes seamlessly into the View 7 activity dashboard
+            // Clicking an individual card context opens the modal with updated issue titles and delete hooks
             card.onclick = () => {
-                if (window.navigateTo) {
-                    window.navigateTo('view_7_followups', { facility: facility, issue: issueItem });
+                openIssueModal(facility, issueItem);
+                
+                // Dynamically transform modal heading text target to explicitly show issue details title
+                const modalHeaderEl = document.getElementById('issueModalTitle');
+                if (modalHeaderEl) {
+                    modalHeaderEl.innerText = issueTitle;
+                }
+
+                // Show and hook up the custom delete action button
+                const deleteBtn = document.getElementById('deleteIssueRequestBtn');
+                if (deleteBtn) {
+                    deleteBtn.style.display = 'block';
+                    deleteBtn.onclick = async () => {
+                        if (confirm(`Are you completely sure you want to permanently delete the issue "${issueTitle}"? This will clear all recorded progress records.`)) {
+                            try {
+                                if (window.crudEngine && window.crudEngine.deleteRow) {
+                                    await window.crudEngine.deleteRow('facility_issues_table', issueItem.id);
+                                } else if (window.deleteFacilityIssueRecord) {
+                                    await window.deleteFacilityIssueRecord(issueItem.id);
+                                }
+                                
+                                // Close the open overlay grid context safely and refresh layout
+                                document.getElementById('issueModal').style.display = 'none';
+                                await loadIssuesFeedList();
+                            } catch (err) {
+                                alert("Failed to successfully remove the selected maintenance issue database entry.");
+                            }
+                        }
+                    };
                 }
             };
 
