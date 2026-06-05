@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_grid.js
-UPDATED: 2026-06-04 09:15:00 PM
+UPDATED: 2026-06-04 09:27:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -19,6 +19,9 @@ export async function renderIssueFollowups(data, issueContext = null) {
     // Pull the original creator's name cleanly from any available issue fields
     const issueCreatorName = issue?.reported_by || issue?.initiated_by || issue?.reported_by_text || 'Staff Member';
 
+    // Extract the dynamic problem/issue title cleanly instead of a fallback string
+    const dynamicIssueTitle = issue?.issue_title || issue?.title || 'Maintenance Request';
+
     const styles = `
         <style>
             .followups-container { padding:20px; font-family:Arial; background:#f3f4f6; min-height:100vh; text-align:center; box-sizing:border-box; }
@@ -28,8 +31,10 @@ export async function renderIssueFollowups(data, issueContext = null) {
             .followups-stack { display:flex; flex-direction:column; gap:12px; max-width:400px; margin:0 auto; }
             .followup-btn { background:#00264d; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; width:100%; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
             .followup-btn:hover { background:#001a33; }
-            .followup-btn-secondary { background:#4b5563; color:white; margin-top:8px; }
+            .followup-btn-secondary { background:#4b5563; color:white; margin-top:0px; }
             .followup-btn-secondary:hover { background:#374151; }
+            .followup-btn-danger { background:#dc2626; color:white; margin-top:4px; }
+            .followup-btn-danger:hover { background:#b91c1c; }
             .followup-feed { margin-top:25px; text-align:left; display:flex; flex-direction:column; gap:10px; max-width:400px; margin-left:auto; margin-right:auto; }
             .followup-card { background:white; padding:15px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); border-left:4px solid #00264d; cursor:pointer; transition:transform 0.1s ease; }
             .followup-card:hover { transform:translateY(-1px); box-shadow:0 3px 6px rgba(0,0,0,0.12); }
@@ -61,12 +66,13 @@ export async function renderIssueFollowups(data, issueContext = null) {
             </div>
 
             <h2 class="followups-title">Issue Logs</h2>
-            <p class="followups-subtitle">Thread ID: #${issue?.id || 'N/A'} - ${issue?.title || 'Details View'}</p>
+            <p class="followups-subtitle">Thread ID: #${issue?.id || 'N/A'} - ${dynamicIssueTitle}</p>
             <span class="followups-creator-badge">👤 Created By: ${issueCreatorName}</span>
             
             <div class="followups-stack">
                 <button id="addNewFollowupBtn" class="followup-btn">➕ Add Activity Log</button>
                 <button id="backToIssuesBtn" class="followup-btn-secondary followup-btn">⬅️ Back To Facility Issues</button>
+                <button id="deleteEntireIssueBtn" class="followup-btn-danger followup-btn">🗑️ Delete Issue Request</button>
             </div>
 
             <div id="followupsFeedDisplay" class="followup-feed">
@@ -131,6 +137,28 @@ export async function renderIssueFollowups(data, issueContext = null) {
 
     document.getElementById('backToIssuesBtn').onclick = () => {
         if (window.navigateTo) window.navigateTo('view_5_issues', { facility: facility });
+    };
+
+    // Wire up the new comprehensive Issue deletion handler
+    document.getElementById('deleteEntireIssueBtn').onclick = async () => {
+        if (!issue?.id) return;
+        if (confirm(`Are you completely sure you want to permanently delete this entire maintenance request thread along with all historical logs? This action cannot be undone.`)) {
+            try {
+                // Leverage database removal layer via custom implementation hooks if available
+                if (window.crudEngine && window.crudEngine.deleteRow) {
+                    await window.crudEngine.deleteRow('facility_issues_table', issue.id);
+                } else if (window.deleteFacilityIssueRecord) {
+                    await window.deleteFacilityIssueRecord(issue.id);
+                }
+                
+                // Reroute cleanly back to standard issues grid context overview
+                if (window.navigateTo) {
+                    window.navigateTo('view_5_issues', { facility: facility });
+                }
+            } catch (err) {
+                alert("Error encountered trying to delete the standard facility issue context header.");
+            }
+        }
     };
 
     setupFollowupsEvents(facility, issue, renderIssueFollowups);
@@ -210,7 +238,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
 
         document.getElementById('customConfirmNoBtn').onclick = () => { confirmPopup.style.display = 'none'; };
         
-        document.getElementById('customConfirmYesBtn').onclick = () => {
+        document.getElementById('customConfirmYellowBtn').onclick = () => {
             confirmPopup.style.display = 'none';
             
             // Build the explicit context message prompt detailing exactly what is about to happen
