@@ -1,13 +1,13 @@
 /* =================================================
 FILE: views/view_2_controls/view_2_grid.js
-UPDATED: 2026-06-04 06:05:00 PM
+UPDATED: 2026-06-04 09:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchFacilityIssues, fetchSingleFacility, updateFacilityDetails, deleteFacilityRecord, uploadFacilityImage } from './view_2_data.js?v=2026_v6';
-import { setupControlsEvents } from './view_2_modal.js?v=2026_v6';
+import { fetchFacilityIssues, fetchSingleFacility, updateFacilityDetails, deleteFacilityRecord, uploadFacilityImage } from './view_2_data.js';
+import { setupControlsEvents } from './view_2_modal.js';
 
 export async function renderFacilityControls(data) {
     const app = document.getElementById('app');
@@ -137,7 +137,7 @@ export async function renderFacilityControls(data) {
             </div>
 
             <div class="footer-tag">
-                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-04 06:05:00 PM
+                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-04 09:15:00 PM
             </div>
         </div>
     `;
@@ -169,7 +169,6 @@ export async function renderFacilityControls(data) {
         saveMgmtBtn.textContent = "⏳ Synchronizing Updates...";
         saveMgmtBtn.disabled = true;
 
-        // Process profile banner image modifications if a file is staged
         if (editMgmtFile.files && editMgmtFile.files[0]) {
             await uploadFacilityImage(facility.id, editMgmtFile.files[0]);
         }
@@ -177,7 +176,6 @@ export async function renderFacilityControls(data) {
         const success = await updateFacilityDetails(facility.id, updatedName, updatedAddress, updatedPhone);
         if (success) {
             mgmtOverlay.style.display = 'none';
-            // Refresh screen view context with freshly updated metadata state
             renderFacilityControls({ id: facility.id });
         } else {
             alert("Database write error encountered updating your record details.");
@@ -193,27 +191,4 @@ export async function renderFacilityControls(data) {
             deleteMgmtBtn.disabled = true;
             
             const success = await deleteFacilityRecord(facility.id);
-            if (success) {
-                mgmtOverlay.style.display = 'none';
-                document.getElementById('backDash').click();
-            } else {
-                alert("Failed to delete record from table context registry.");
-                deleteMgmtBtn.textContent = "🗑️ Delete Facility Entirely";
-                deleteMgmtBtn.disabled = false;
-            }
-        }
-    };
-
-    async function loadBadges() {
-        if (!facility?.id) return;
-        const issues = await fetchFacilityIssues(facility.id);
-        const openIssues = issues.filter(i => i.status && i.status.toLowerCase() !== 'closed');
-        const badgeElement = document.getElementById('issuesTrackBadge');
-        if (badgeElement) {
-            badgeElement.style.display = openIssues.length > 0 ? 'inline-block' : 'none';
-            badgeElement.textContent = openIssues.length;
-        }
-    }
-    
-    await loadBadges();
-}
+            if (
