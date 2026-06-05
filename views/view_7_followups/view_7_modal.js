@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_modal.js
-UPDATED: 2026-06-04 08:20:00 PM
+UPDATED: 2026-06-04 08:45:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -91,13 +91,16 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
                 return;
             }
 
+            // Cleanly look across all potential database field variants for original reporter name
+            const originalReporter = issue?.reported_by || issue?.initiated_by || issue?.reported_by_text || 'Staff Member';
+
             // Carry original contact data into the row record mapping pipeline
             const payload = {
                 related_issue: issue.id,
                 followup_title: type,
                 followup_notes_text: desc,
                 initiated_by_text: by || 'Staff',
-                reported_by_text: issue.reported_by || issue.initiated_by || 'Staff Member',
+                reported_by_text: originalReporter,
                 followup_image_url: imageUrl || null
             };
 
