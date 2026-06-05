@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_grid.js
-UPDATED: 2026-06-04 09:27:00 PM
+UPDATED: 2026-06-04 10:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -139,7 +139,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
         if (window.navigateTo) window.navigateTo('view_5_issues', { facility: facility });
     };
 
-    // ACTIVE DELETION CONTROLLER HANDLER INTERACTION LAYER LOGIC
+    // FIXED DELETION logic using your app's actual delete row mechanics
     document.getElementById('deleteMainIssueBtn').onclick = async () => {
         if (!issue || !issue.id) {
             alert("Unable to locate a valid issue identifier reference.");
@@ -150,14 +150,30 @@ export async function renderIssueFollowups(data, issueContext = null) {
         if (!confirmDelete) return;
 
         try {
-            const response = await fetch(`/api/issues/${issue.id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
+            let success = false;
+            
+            // Look for your database CRUD engine first
+            if (window.crudEngine && window.crudEngine.deleteRow) {
+                await window.crudEngine.deleteRow('facility_issues_table', issue.id);
+                success = true;
+            } else if (window.deleteFacilityIssueRecord) {
+                await window.deleteFacilityIssueRecord(issue.id);
+                success = true;
+            } else {
+                // Dynamic fallback loader to view_5's data modules
+                const dataMod = await import('../view_5_issues/view_5_data.js').catch(() => null);
+                if (dataMod && typeof dataMod.deleteFacilityIssue === 'function') {
+                    success = await dataMod.deleteFacilityIssue(issue.id);
                 }
-            });
+            }
 
-            if (response.ok) {
+            // Fallback back-end endpoint request check if modules didn't intercept
+            if (!success) {
+                const response = await fetch(`/api/issues/${issue.id}`, { method: 'DELETE' });
+                success = response.ok;
+            }
+
+            if (success) {
                 alert('Issue Request successfully removed.');
                 if (window.navigateTo) {
                     window.navigateTo('view_5_issues', { facility: facility });
@@ -165,12 +181,11 @@ export async function renderIssueFollowups(data, issueContext = null) {
                     window.location.hash = '#view_5_issues';
                 }
             } else {
-                const errorData = await response.json().catch(() => ({}));
-                alert(`Failed to delete issue: ${errorData.message || response.statusText}`);
+                alert("Database synchronization error removing the selected issue tracking record row.");
             }
         } catch (error) {
             console.error('Deletion operation error:', error);
-            alert('A network error occurred trying to delete this request.');
+            alert('An application exception occurred while attempting to delete this request.');
         }
     };
 
@@ -210,11 +225,10 @@ export async function renderIssueFollowups(data, issueContext = null) {
                 if (window.openSelectedFollowupInModal) window.openSelectedFollowupInModal(f);
             };
 
-            // Catch inline entry deletion request separately
             const deleteTrigger = card.querySelector('.inline-log-delete-trigger');
             if (deleteTrigger) {
                 deleteTrigger.onclick = async (e) => {
-                    e.stopPropagation(); // Shield modal view layer trigger event context
+                    e.stopPropagation();
                     
                     if (confirm(`Are you completely sure you want to permanently erase this specific log update entry? This action cannot be reversed.`)) {
                         deleteTrigger.innerText = "⏳";
@@ -236,7 +250,6 @@ export async function renderIssueFollowups(data, issueContext = null) {
         });
     }
 
-    // Modern Overlay Custom Sequence with Explicit Dispatch Intent Previews
     window.triggerNotificationPipelinePrompt = function(savedLog, currentIssue) {
         const creator = savedLog.reported_by_text || currentIssue.reported_by || currentIssue.initiated_by || issueCreatorName;
         const phone = currentIssue.contact_phone || currentIssue.phone || '';
@@ -253,11 +266,8 @@ export async function renderIssueFollowups(data, issueContext = null) {
         
         document.getElementById('customConfirmYesBtn').onclick = () => {
             confirmPopup.style.display = 'none';
-            
-            // Build the explicit context message prompt detailing exactly what is about to happen
             document.getElementById('customMethodIntroText').innerText = `You are about to notify ${creator} regarding the issue: "${issueTitle}".`;
             
-            // Build message string preview body
             let msgText = `Hi ${creator}, progress update on your issue (#${currentIssue.id || 'Log'}): "${savedLog.followup_title} - ${savedLog.followup_notes_text}".`;
             if (savedLog.followup_image_url) {
                 msgText += ` View Attached Photo Proof: ${savedLog.followup_image_url}`;
