@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-04 09:12:00 PM
+UPDATED: 2026-06-04 09:22:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -125,7 +125,12 @@ export async function renderFacilityIssues(facilityContext) {
             const card = document.createElement('div');
             card.className = 'issue-card-item';
 
-            const reporter = issueItem.reported_by || issueItem.initiated_by || 'Staff';
+            // Check variants to clean up reporter text assignments
+            const reporter = issueItem.reported_by || issueItem.initiated_by || issueItem.reported_by_text || 'Staff';
+            
+            // Extract the actual custom issue context title cleanly
+            const issueTitle = issueItem.issue_title || issueItem.title || 'Maintenance Request';
+
             let dateString = 'Recent';
             if (issueItem.created_at) {
                 try {
@@ -135,7 +140,7 @@ export async function renderFacilityIssues(facilityContext) {
 
             card.innerHTML = `
                 <span class="issue-card-badge">${issueItem.status || 'Open'}</span>
-                <div class="issue-card-title">${issueItem.title || 'Maintenance Item'}</div>
+                <div class="issue-card-title">${issueTitle}</div>
                 <div class="issue-card-meta">Priority: <strong>${issueItem.severity || 'Medium'}</strong> | By: ${reporter}</div>
                 <div class="issue-card-meta" style="margin-top:2px; color:#9ca3af;">Reported: ${dateString}</div>
             `;
