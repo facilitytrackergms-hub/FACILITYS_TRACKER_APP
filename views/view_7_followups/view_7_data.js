@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_data.js
-UPDATED: 2026-06-04 02:35:00 AM
+UPDATED: 2026-06-04 08:05:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -10,7 +10,7 @@ import { supabase } from '../../js/supabaseClient.js';
 
 export async function fetchIssueFollowups(issueId) {
     const { data, error } = await supabase
-        .from('facility_issues_followup') // 🌟 FIXED: Changed to your actual Supabase table name
+        .from('facility_issues_followup')
         .select('*')
         .eq('related_issue', issueId)
         .order('created_at', { ascending: true });
@@ -26,13 +26,13 @@ export async function saveIssueFollowup(payload, id = null) {
     let result;
     if (id) {
         result = await supabase
-            .from('facility_issues_followup') // 🌟 FIXED: Changed to your actual Supabase table name
+            .from('facility_issues_followup')
             .update(payload)
             .eq('id', id)
             .select();
     } else {
         result = await supabase
-            .from('facility_issues_followup') // 🌟 FIXED: Changed to your actual Supabase table name
+            .from('facility_issues_followup')
             .insert([payload])
             .select();
     }
@@ -51,7 +51,7 @@ export async function deleteIssueFollowup(id) {
     if (!id) return { error: 'Missing row entry ID targeting key constraint.', data: null };
 
     const result = await supabase
-        .from('facility_issues_followup') // 🌟 FIXED: Changed to your actual Supabase table name
+        .from('facility_issues_followup')
         .delete()
         .eq('id', id)
         .select();
