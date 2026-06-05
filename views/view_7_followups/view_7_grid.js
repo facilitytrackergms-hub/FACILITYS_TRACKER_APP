@@ -139,7 +139,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
         if (window.navigateTo) window.navigateTo('view_5_issues', { facility: facility });
     };
 
-    // FIXED DELETION logic using your app's actual delete row mechanics
+    // FIXED DELETION logic + view clearing router mechanics
     document.getElementById('deleteMainIssueBtn').onclick = async () => {
         if (!issue || !issue.id) {
             alert("Unable to locate a valid issue identifier reference.");
@@ -175,10 +175,24 @@ export async function renderIssueFollowups(data, issueContext = null) {
 
             if (success) {
                 alert('Issue Request successfully removed.');
+                
+                // Clear state row configurations from parent data stores if present
+                if (window.facilityIssuesData) {
+                    window.facilityIssuesData = window.facilityIssuesData.filter(item => item.id !== issue.id);
+                }
+
                 if (window.navigateTo) {
-                    window.navigateTo('view_5_issues', { facility: facility });
+                    // Navigate back and force complete re-render context payload execution
+                    window.navigateTo('view_5_issues', { facility: facility, forceRefresh: true, reload: true });
+                    
+                    // Safe timeout window fallback to clear layout DOM if view caching engine is used
+                    setTimeout(() => {
+                        const badRow = document.querySelector(`[data-id="${issue.id}"], tr[id="${issue.id}"]`);
+                        if (badRow) badRow.remove();
+                    }, 150);
                 } else {
                     window.location.hash = '#view_5_issues';
+                    window.location.reload();
                 }
             } else {
                 alert("Database synchronization error removing the selected issue tracking record row.");
@@ -213,7 +227,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
                 <div class="followup-card-header" style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="followup-type-badge">${f.followup_title || 'Comment'}</span>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="followup-meta-text">By: <strong>${f.initiated_by_text || issueCreatorName}</strong></span>
+                        <span class="followup-meta-text">By: <strong>${f.reported_by_text || f.initiated_by_text || issueCreatorName}</strong></span>
                         <button class="inline-log-delete-trigger" title="Delete Log Entry">🗑️</button>
                     </div>
                 </div>
