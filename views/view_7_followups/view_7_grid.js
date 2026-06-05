@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_7_followups/view_7_grid.js
-UPDATED: 2026-06-04 02:00:00 AM
+UPDATED: 2026-06-04 08:01:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -93,11 +93,38 @@ export async function renderIssueFollowups(data, issueContext = null) {
         </div>
     `;
 
+    // Wired button navigation
     document.getElementById('backToIssuesBtn').onclick = () => {
         if (window.navigateTo) {
             window.navigateTo('view_5_issues', { facility: facility });
         }
     };
+
+    // Toggle Modal Opening
+    const modalWrapper = document.getElementById('followupModal');
+    document.getElementById('addNewFollowupBtn').onclick = () => {
+        document.getElementById('followupId').value = '';
+        document.getElementById('actionByInput').value = '';
+        document.getElementById('descriptionInput').value = '';
+        document.getElementById('actionTypeInput').value = 'Comment';
+        document.getElementById('deleteFollowupBtn').style.display = 'none';
+        document.getElementById('followupModalTitle').innerText = 'Log Action Event';
+        modalWrapper.style.display = 'block';
+    };
+
+    document.getElementById('closeFollowupModal').onclick = () => {
+        modalWrapper.style.display = 'none';
+    };
+
+    // Intercept Modal Save Trigger to present notification options seamlessly
+    document.getElementById('saveFollowupBtn').addEventListener('click', () => {
+        setTimeout(() => {
+            const isModalStillOpen = modalWrapper.style.display === 'block';
+            if (!isModalStillOpen) {
+                handlePostSaveNotificationPipeline(issue);
+            }
+        }, 800);
+    });
 
     setupFollowupsEvents(facility, issue, renderIssueFollowups);
 
@@ -118,18 +145,57 @@ export async function renderIssueFollowups(data, issueContext = null) {
             card.className = 'followup-card';
             card.innerHTML = `
                 <div class="followup-card-header">
-                    <span class="followup-type-badge">${f.action_type || 'Comment'}</span>
-                    <span class="followup-meta-text">By: <strong>${f.action_by || 'N/A'}</strong> on ${f.timestamp ? new Date(f.timestamp).toLocaleDateString() : 'N/A'}</span>
+                    <span class="followup-type-badge">${f.action_type || f.followup_title || 'Comment'}</span>
+                    <span class="followup-meta-text">By: <strong>${f.action_by || f.initiated_by_text || 'N/A'}</strong> on ${f.timestamp || f.created_at ? new Date(f.timestamp || f.created_at).toLocaleDateString() : 'N/A'}</span>
                 </div>
-                <div class="followup-body-desc">${f.description || ''}</div>
+                <div class="followup-body-desc">${f.description || f.followup_notes_text || ''}</div>
             `;
             card.onclick = () => {
                 if (window.openSelectedFollowupInModal) {
                     window.openSelectedFollowupInModal(f);
+                } else {
+                    document.getElementById('followupId').value = f.id || '';
+                    document.getElementById('actionTypeInput').value = f.action_type || 'Comment';
+                    document.getElementById('actionByInput').value = f.action_by || f.initiated_by_text || '';
+                    document.getElementById('descriptionInput').value = f.description || f.followup_notes_text || '';
+                    document.getElementById('deleteFollowupBtn').style.display = 'block';
+                    document.getElementById('followupModalTitle').innerText = 'Edit Action Log';
+                    modalWrapper.style.display = 'block';
                 }
             };
             feed.appendChild(card);
         });
+    }
+
+    // Smart Pipeline Checklist implementation
+    function handlePostSaveNotificationPipeline(activeIssue) {
+        const creatorName = activeIssue?.reported_by || activeIssue?.initiated_by || 'Staff Member';
+        
+        const notifyPrompt = confirm(`Activity Log Saved!\nWould you like to inform the creator of this issue (${creatorName})?`);
+        if (!notifyPrompt) return;
+
+        const methodPicker = prompt(
+            `How would you like to notify them?\n\nType "1" for 📱 Text (SMS)\nType "2" for 📧 Email\nType "3" for 📞 Phone Call`, 
+            "1"
+        );
+
+        const todayTimestamp = new Date().toLocaleDateString();
+        const notificationMessageBody = `Hi ${creatorName}, here is a quick maintenance update regarding your reported issue (#${activeIssue?.id || 'Update'}). Status Logged on ${todayTimestamp}: "${activeIssue?.title || 'Details Tracker'}".`;
+
+        // Safe Fallback lookup parsing context
+        const contactPhone = activeIssue?.contact_phone || activeIssue?.phone || '';
+        const contactEmail = activeIssue?.contact_email || activeIssue?.email || '';
+
+        if (methodPicker === "1") {
+            // Native Device Hook up for SMS
+            window.location.href = `sms:${contactPhone.replace(/[^0-9+]/g, '')}?body=${encodeURIComponent(notificationMessageBody)}`;
+        } else if (methodPicker === "2") {
+            // Native Device Hook up for Mailboxes
+            window.location.href = `mailto:${contactEmail}?subject=${encodeURIComponent('Maintenance Thread Progress Update')}&body=${encodeURIComponent(notificationMessageBody)}`;
+        } else if (methodPicker === "3") {
+            // Direct Dialer Device Line
+            window.location.href = `tel:${contactPhone.replace(/[^0-9+]/g, '')}`;
+        }
     }
 
     await loadFollowupsDisplayFeed();
