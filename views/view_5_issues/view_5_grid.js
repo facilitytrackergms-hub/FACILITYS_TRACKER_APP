@@ -15,6 +15,9 @@ export async function renderFacilityIssues(facilityContext) {
 
     // Normalize facility object context structure cleanly
     const facility = facilityContext?.facility ? facilityContext.facility : facilityContext;
+    
+    // Track the currently active selected issue object for deletion context scoping
+    let activeSelectedIssue = null;
 
     const styles = `
         <style>
@@ -98,6 +101,7 @@ export async function renderFacilityIssues(facilityContext) {
 
     // 1. Wire up the top-level button event hooks
     document.getElementById('fileNewIssueReportBtn').onclick = () => {
+        activeSelectedIssue = null;
         openIssueModal(facility, null);
         document.getElementById('issueModalTitle').innerText = 'Maintenance Request';
         document.getElementById('deleteIssueRequestBtn').style.display = 'none';
@@ -105,6 +109,29 @@ export async function renderFacilityIssues(facilityContext) {
 
     document.getElementById('backToControlsBtn').onclick = () => {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
+    };
+
+    // Global unified listener setup for the deletion button to prevent asynchronous bubble leaks
+    document.getElementById('deleteIssueRequestBtn').onclick = async () => {
+        if (!activeSelectedIssue) return;
+        
+        const targetTitle = activeSelectedIssue.issue_title || activeSelectedIssue.title || 'Maintenance Request';
+        
+        if (confirm(`Are you completely sure you want to permanently delete the issue "${targetTitle}"? This will clear all recorded progress records.`)) {
+            try {
+                if (window.crudEngine && window.crudEngine.deleteRow) {
+                    await window.crudEngine.deleteRow('facility_issues_table', activeSelectedIssue.id);
+                } else if (window.deleteFacilityIssueRecord) {
+                    await window.deleteFacilityIssueRecord(activeSelectedIssue.id);
+                }
+                
+                // Close overlay cleanly, then immediately re-pull clean context metrics from data tier
+                document.getElementById('issueModal').style.display = 'none';
+                await loadIssuesFeedList();
+            } catch (err) {
+                alert("Failed to successfully remove the selected maintenance issue database entry.");
+            }
+        }
     };
 
     // 2. Initialize input interaction parameters from modal layer
@@ -152,6 +179,7 @@ export async function renderFacilityIssues(facilityContext) {
 
             // Clicking an individual card context opens the modal with updated issue titles and delete hooks
             card.onclick = () => {
+                activeSelectedIssue = issueItem;
                 openIssueModal(facility, issueItem);
                 
                 // Dynamically transform modal heading text target to explicitly show issue details title
@@ -160,27 +188,10 @@ export async function renderFacilityIssues(facilityContext) {
                     modalHeaderEl.innerText = issueTitle;
                 }
 
-                // Show and hook up the custom delete action button
+                // Show the custom delete action button safely
                 const deleteBtn = document.getElementById('deleteIssueRequestBtn');
                 if (deleteBtn) {
                     deleteBtn.style.display = 'block';
-                    deleteBtn.onclick = async () => {
-                        if (confirm(`Are you completely sure you want to permanently delete the issue "${issueTitle}"? This will clear all recorded progress records.`)) {
-                            try {
-                                if (window.crudEngine && window.crudEngine.deleteRow) {
-                                    await window.crudEngine.deleteRow('facility_issues_table', issueItem.id);
-                                } else if (window.deleteFacilityIssueRecord) {
-                                    await window.deleteFacilityIssueRecord(issueItem.id);
-                                }
-                                
-                                // Close the open overlay grid context safely and refresh layout
-                                document.getElementById('issueModal').style.display = 'none';
-                                await loadIssuesFeedList();
-                            } catch (err) {
-                                alert("Failed to successfully remove the selected maintenance issue database entry.");
-                            }
-                        }
-                    };
                 }
             };
 
