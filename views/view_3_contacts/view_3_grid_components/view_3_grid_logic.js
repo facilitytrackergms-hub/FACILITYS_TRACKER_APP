@@ -45,6 +45,8 @@ VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
 LAST UPDATED : 2026-06-06 @ 06:00 PM
 ================================================================*/
+const __FILENAME = 'view_3_grid_logic.js';
+
 import { fetchContacts, insertContact, deleteContact } from '../view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from '../view_3_modal.js';
 import { fetchFacilityIssues } from '../../view_5_issues/view_5_data.js';
