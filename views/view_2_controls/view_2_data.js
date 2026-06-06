@@ -57,7 +57,6 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
 ================================================================
-const __FILENAME = 'view_2_data.js';
 
 1. STRICT ADHERENCE: Always follow these rules without exception.
 
@@ -103,8 +102,8 @@ const __FILENAME = 'view_2_data.js';
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
 ================================================================*/
+const __FILENAME = 'view_2_data.js';
 
-// Paste your specific file's import statements and source code here...
 import { supabase } from '../../js/supabaseClient.js';
 
 /**
