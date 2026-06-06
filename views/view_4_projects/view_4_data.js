@@ -1,50 +1,24 @@
-/* =================================================
-FILE: views/view_4_projects/view_4_data.js
-UPDATED: 2026-06-02 05:50:00 PM
+/*================================================================
+FILE METADATA
+================================================================
+FILE NAME    : view_4_data.js
+SUPABASE TBL : facility_projects
+VIEW NAME    : [Insert View Name - e.g., Add New Facility]
+POP-UP TITLE : [Insert Pop-Up Title - e.g., Create Directory Entry]
+LAST UPDATED : 2026-06-06 @ 08:37 AM
+================================================================
+AI CODING RULES & CONSTRAINTS (Read before making any changes)
+================================================================
+1. STRICT ADHERENCE: Always follow these rules without exception.
 
-STRICT HEADER RULE:
-Do not ever remove or change this header section.
-Always keep the header at the top of current files and new files.
-================================================= */
-const __FILENAME = 'view_4_data.js';
+2. MISSING METADATA HANDLING: If any fields in the FILE METADATA 
+   section above are generic placeholders or missing, the AI must 
+   immediately read the provided source code below to determine the 
+   correct tables/views/titles. CRITICAL FOR FILE NAME: Look strictly 
+   at the user's prompt text or comments for the exact sequential 
+   filename (e.g., view_2_data.js). NEVER invent, guess, or substitute 
+   a descriptive semantic name (like facility_data_service.js) based 
+   on the code context. If the exact filename cannot be verified, 
+   leave the placeholder intact or ask the user.
 
-import { supabase } from '../../js/supabaseClient.js';
-
-export async function fetchFacilityProjects(facilityId) {
-    // Converting table name and query constraints to strict lowercase
-    const { data, error } = await supabase
-        .from('facility_projects')
-        .select('*')
-        .eq('facility_id', facilityId);
-
-    if (error) {
-        console.error("Database Error:", error);
-        return [];
-    }
-    return data || [];
-}
-
-export async function insertFacilityProject(payload) {
-    // Enforcing strict lowercase mapping for all data columns
-    const cleanPayload = {
-        project_title: payload.project_title,
-        project_name: payload.project_name,
-        budget: payload.budget,
-        notes: payload.notes,
-        facility_id: payload.facility_id,
-        facilityid: payload.facilityid,
-        active_status: payload.active_status,
-        created_at: payload.created_at
-    };
-
-    const { data, error } = await supabase
-        .from('facility_projects')
-        .insert([cleanPayload])
-        .select();
-
-    if (error) {
-        console.error("Database Error:", error);
-        throw error;
-    }
-    return data;
-}
+3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules
