@@ -6,6 +6,7 @@ STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
+const __FILENAME = 'view_3_grid.js';
 import { fetchContacts, insertContact, deleteContact } from './view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
