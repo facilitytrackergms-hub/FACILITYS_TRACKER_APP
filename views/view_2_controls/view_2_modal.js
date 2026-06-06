@@ -5,7 +5,7 @@ FILE NAME    : view_2_modal.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Controls
 POP-UP TITLE : Facility Navigation Dashboard
-LAST UPDATED : 2026-06-06 @ 05:17 AM
+LAST UPDATED : 2026-06-06 @ 05:20 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -16,10 +16,11 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
    immediately read the provided source code below to determine the 
    correct tables/views/titles. CRITICAL FOR FILE NAME: Look strictly 
    at the user's prompt text or comments for the exact sequential 
-   filename (e.g., view_2_data.js). NEVER invent, guess, or substitute 
-   a descriptive semantic name (like facility_data_service.js) based 
-   on the code context. If the exact filename cannot be verified, 
-   leave the placeholder intact or ask the user.
+   filename (e.g., view_2_modal.js). NEVER invent, guess, or substitute 
+   a descriptive semantic name based on the code context. ALERT: Do 
+   NOT confuse parent directories or subfolder names (e.g., view_2_controls.js/) 
+   with the actual script file filename. If the exact filename cannot 
+   be verified, leave the placeholder intact or ask the user.
 
 3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
    in this header unless explicitly asked by the user.
