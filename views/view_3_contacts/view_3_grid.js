@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-05 09:14:00 PM
+UPDATED: 2026-06-05 09:18:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -37,11 +37,11 @@ export async function renderFacilityContacts(data) {
             .thumbnail-name { font-weight:bold; color:#00264d; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; margin-top:5px; }
             .thumbnail-role { font-size:12px; color:#6b7280; margin-top:2px; }
             
-            /* Detailed Card Display Styles */
-            .detail-view-card { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:15px; margin-top:15px; text-align:left; display:none; }
-            .detail-row { margin-bottom:10px; font-size:14px; color:#4b5563; }
-            .detail-label { font-weight:bold; color:#00264d; font-size:12px; text-transform:uppercase; display:block; }
-            .detail-link { color:#10b981; text-decoration:none; font-weight:600; }
+            /* Clean Full Profile Dedicated Screen View Panel Styles */
+            .detail-view-card { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:20px; text-align:left; display:none; }
+            .detail-row { margin-bottom:14px; font-size:15px; color:#4b5563; }
+            .detail-label { font-weight:bold; color:#00264d; font-size:12px; text-transform:uppercase; display:block; margin-bottom:2px; }
+            .detail-link { color:#10b981; text-decoration:none; font-weight:600; font-size:16px; }
             .detail-link:hover { text-decoration:underline; }
 
             .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
@@ -57,26 +57,32 @@ export async function renderFacilityContacts(data) {
         ${styles}
         <div class="contacts-view-container" id="mainContactsContainer">
             <div class="contacts-card-wrapper">
-                <h1 class="contacts-view-title">Facility Directory</h1>
-                <p class="contacts-view-subtitle">${facility?.name || ''}</p>
+                
+                <h1 class="contacts-view-title" id="viewHeaderTitle">Facility Directory</h1>
+                <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
 
-                <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 09:14:00 PM
+                <div class="view-build-stamp" id="viewBuildStampInfo">
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 09:18:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
                     <button id="manualContactTriggerBtn" class="contacts-view-btn btn-emerald">➕ Add New Contact</button>
                     <div id="contactsGridElement" class="contacts-grid-layout">Loading...</div>
-                    
-                    <div id="contactDetailPane" class="detail-view-card">
-                        <h4 id="detailName" style="margin:0 0 10px 0; color:#00264d;">Select a contact</h4>
-                        <div class="detail-row"><span class="detail-label">Role</span><span id="detailRole"></span></div>
-                        <div class="detail-row"><span class="detail-label">Phone</span><a id="detailPhoneLink" class="detail-link" href=""></a></div>
-                        <div class="detail-row"><span class="detail-label">Email</span><a id="detailEmailLink" class="detail-link" href=""></a></div>
-                        <div class="detail-row"><span class="detail-label">Notes</span><span id="detailNotes"></span></div>
+                    <button id="backBtn" class="contacts-view-btn btn-navy">⬅️ Back to Controls</button>
+                </div>
+                
+                <div id="contactDetailPane" class="detail-view-card">
+                    <div style="display:flex; justify-content:center; margin-bottom:15px;">
+                        <img id="detailAvatar" src="" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid #e5e7eb;" />
                     </div>
-
-                    <button id="backBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Back to Controls</button>
+                    <h3 id="detailName" style="margin:0 0 15px 0; text-align:center; color:#00264d; font-size:20px;">Contact Profile</h3>
+                    
+                    <div class="detail-row"><span class="detail-label">Role / Job Title</span><span id="detailRole"></span></div>
+                    <div class="detail-row"><span class="detail-label">Direct Phone Line</span><a id="detailPhoneLink" class="detail-link" href=""></a></div>
+                    <div class="detail-row"><span class="detail-label">Email Address</span><a id="detailEmailLink" class="detail-link" href=""></a></div>
+                    <div class="detail-row"><span class="detail-label">Internal Operations Notes</span><span id="detailNotes"></span></div>
+                    
+                    <button id="closeDetailPaneBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Return to Directory</button>
                 </div>
             </div>
 
@@ -157,6 +163,14 @@ export async function renderFacilityContacts(data) {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
     };
 
+    // View state switcher logic to return to grid list screen
+    document.getElementById('closeDetailPaneBtn').onclick = () => {
+        document.getElementById('contactDetailPane').style.display = 'none';
+        document.getElementById('directorySelectionLayout').style.display = 'block';
+        document.getElementById('viewBuildStampInfo').style.display = 'block';
+        document.getElementById('viewHeaderTitle').innerText = "Facility Directory";
+    };
+
     if (data?.openFormInstantly) {
         document.getElementById('manualContactModal').style.display = 'flex';
     }
@@ -194,8 +208,15 @@ export async function renderFacilityContacts(data) {
                         cachedIssueForm: cachedIssueForm
                     });
                 } else {
-                    // Populate and display the read-only section below the grid
-                    const pane = document.getElementById('contactDetailPane');
+                    // Step 1: Hide current grid overview panels cleanly
+                    document.getElementById('directorySelectionLayout').style.display = 'none';
+                    document.getElementById('viewBuildStampInfo').style.display = 'none';
+                    
+                    // Step 2: Swap layout heading title text context safely
+                    document.getElementById('viewHeaderTitle').innerText = "Contact Profile";
+
+                    // Step 3: Populate deep variables into dedicated screen view form layouts
+                    document.getElementById('detailAvatar').src = c.image_url || fallbackAvatar;
                     document.getElementById('detailName').innerText = c.name;
                     document.getElementById('detailRole').innerText = c.role || 'Staff';
                     
@@ -220,7 +241,9 @@ export async function renderFacilityContacts(data) {
                     }
 
                     document.getElementById('detailNotes').innerText = c.notes || 'No custom details left.';
-                    pane.style.display = 'block';
+                    
+                    // Step 4: Render dedicated screen active panel state visible
+                    document.getElementById('contactDetailPane').style.display = 'block';
                 }
             };
 
