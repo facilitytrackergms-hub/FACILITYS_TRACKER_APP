@@ -50,7 +50,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
   12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
-================================================================*/  
+
 ================================================================
 */
 const __FILENAME = 'view_1_modal.js';
