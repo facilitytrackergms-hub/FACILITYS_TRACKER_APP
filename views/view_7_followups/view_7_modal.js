@@ -1,10 +1,10 @@
 /*================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : [Insert File Name - e.g., view_1_data.js]
-SUPABASE TBL : [Insert Table Name - e.g., facilities]
-VIEW NAME    : [Insert View Name - e.g., Add New Facility]
-POP-UP TITLE : [Insert Pop-Up Title - e.g., Create Directory Entry]
+FILE NAME    : view_7_modal.js
+SUPABASE TBL : issue_followups
+VIEW NAME    : Log Action Event / Modify Follow-up Entry
+POP-UP TITLE : Follow-up Entry Modal
 LAST UPDATED : 2026-06-06 @ 05:09 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
@@ -67,6 +67,21 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
     // Cleanly look across all potential database field variants for original reporter name
     const originalReporter = issue?.reported_by || issue?.initiated_by || issue?.reported_by_text || 'Staff Member';
 
+    // Helper function to append or update UI identifier tags dynamically (Rule 8)
+    function applyUIIdentifierTag(titleElement) {
+        if (!titleElement) return;
+        let infoTag = document.getElementById('view_7_modal_ui_tag');
+        if (!infoTag) {
+            infoTag = document.createElement('div');
+            infoTag.id = 'view_7_modal_ui_tag';
+            infoTag.style.fontSize = '10px';
+            infoTag.style.color = '#888';
+            infoTag.style.marginTop = '4px';
+            titleElement.appendChild(infoTag);
+        }
+        infoTag.innerText = `Source: ${__FILENAME} | Updated: 2026-06-06 05:09 AM`;
+    }
+
     function openBlankFollowupModal() {
         document.getElementById('followupId').value = '';
         document.getElementById('followupImageUrl').value = '';
@@ -75,7 +90,10 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
         document.getElementById('descriptionInput').value = '';
         
         const modalTitle = document.getElementById('followupModalTitle');
-        if (modalTitle) modalTitle.innerText = "Log Action Event";
+        if (modalTitle) {
+            modalTitle.innerText = "Log Action Event";
+            applyUIIdentifierTag(modalTitle);
+        }
         
         const imgSec = document.getElementById('followup-image-section');
         const imgCont = document.getElementById('followup-image-container');
@@ -103,7 +121,10 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
         document.getElementById('descriptionInput').value = followup.followup_notes_text || '';
 
         const modalTitle = document.getElementById('followupModalTitle');
-        if (modalTitle) modalTitle.innerText = "Modify Follow-up Entry";
+        if (modalTitle) {
+            modalTitle.innerText = "Modify Follow-up Entry";
+            applyUIIdentifierTag(modalTitle);
+        }
         
         const imageSection = document.getElementById('followup-image-section');
         const imageContainer = document.getElementById('followup-image-container');
@@ -142,7 +163,8 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
             const imageUrl = document.getElementById('followupImageUrl').value;
 
             if (!desc) {
-                alert("Description text summary fields are required.");
+                // Rule 10: Appended a distinct visible tag referencing its component context
+                alert("[view_7_modal - Validation Error] Description text summary fields are required.");
                 return;
             }
 
@@ -159,7 +181,8 @@ export function setupFollowupsEvents(facility, issue, renderIssueFollowupsFn) {
             const result = await saveIssueFollowup(payload, id || null);
             
             if (result.error) {
-                alert("Could not sync followup metrics parameters.");
+                // Rule 10: Appended a distinct visible tag referencing its component context
+                alert("[view_7_modal - Sync Error] Could not sync followup metrics parameters.");
                 return;
             }
 
