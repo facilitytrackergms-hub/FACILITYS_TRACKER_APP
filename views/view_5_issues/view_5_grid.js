@@ -1,206 +1,160 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_grid.js
-UPDATED: 2026-06-05 12:20:00 PM
+UPDATED: 2026-06-05 09:25:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchFacilityIssues, deleteFacilityIssue } from './view_5_data.js';
-import { setupIssuesEvents, openIssueModal } from './view_5_modal.js';
+import { fetchFacilityIssues, insertFacilityIssue } from './view_5_data.js';
 
-export async function renderFacilityIssues(facilityContext) {
+export async function renderFacilityIssues(data) {
     const app = document.getElementById('app');
     if (!app) return;
 
-    // Normalize facility object context structure cleanly
-    const facility = facilityContext?.facility ? facilityContext.facility : facilityContext;
-    
-    // Track the currently active selected issue object for deletion context scoping
-    let activeSelectedIssue = null;
+    const facility = data?.facility ? data.facility : data;
 
     const styles = `
         <style>
-            .issues-container { padding: 20px; font-family: Arial, sans-serif; background: #f3f4f6; min-height: 100vh; text-align: center; box-sizing: border-box; }
-            .issues-title { color: #00264d; font-size: 22px; text-transform: uppercase; margin: 0 0 5px 0; }
-            .issues-subtitle { color: #4b5563; margin: 0 0 20px 0; font-size: 14px; text-transform: uppercase; }
-            .issue-btn-main { background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; text-transform: uppercase; width: 100%; max-width: 400px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            .issue-btn-main:hover { background: #218838; }
-            .issue-list-feed { display: flex; flex-direction: column; gap: 12px; max-width: 400px; margin: 0 auto 25px auto; text-align: left; }
-            .issue-card-item { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #00264d; cursor: pointer; position: relative; }
-            .issue-card-item:hover { transform: translateY(-1px); box-shadow: 0 3px 6px rgba(0,0,0,0.12); }
-            .issue-card-title { font-size: 15px; font-weight: bold; color: #00264d; margin: 0 0 4px 0; }
-            .issue-card-meta { font-size: 11px; color: #6b7280; }
-            .issue-card-badge { position: absolute; right: 15px; top: 15px; background: #fff3cd; color: #856404; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-            .issue-btn-back { background: #00264d; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; text-transform: uppercase; width: 100%; max-width: 400px; }
-            .issue-btn-back:hover { background: #001a33; }
-            .issue-modal-btn-danger { background: #dc2626; color: white; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; text-transform: uppercase; width: 100%; margin-top: 8px; box-sizing: border-box; }
-            .issue-modal-btn-danger:hover { background: #b91c1c; }
+            .issues-view-container { padding:20px; font-family:Arial; min-height:100vh; background:#f3f4f6; text-align:center; box-sizing:border-box; }
+            .issues-card-wrapper { max-width:500px; margin:0 auto; background:white; border-radius:12px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
+            .issues-view-title { color:#00264d; font-size:24px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; }
+            .issues-view-subtitle { color:#6b7280; font-size:14px; margin-bottom:20px; }
+            .issues-view-btn { width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; text-transform:uppercase; box-sizing:border-box; }
+            .btn-navy { background:#00264d; color:white; }
+            .btn-emerald { background:#10b981; color:white; margin-bottom:12px; }
+            .btn-gray { background:#9ca3af; color:white; }
+            .issues-list-layout { margin:20px 0; text-align:left; display:flex; flex-direction:column; gap:10px; }
+            .issue-list-item { background:#f9fafb; border:1px solid #e5e7eb; padding:15px; border-radius:8px; cursor:pointer; }
+            .issue-list-title { font-weight:bold; color:#00264d; font-size:15px; }
+            .issue-list-meta { font-size:12px; color:#6b7280; margin-top:4px; }
+            
+            .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
+            .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; }
+            .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
+            .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
+            .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
+            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
         </style>
     `;
 
     app.innerHTML = `
         ${styles}
-        <div class="issues-container">
-            <div style="background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 6px 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; margin-bottom: 20px; display: inline-block;">
-                📍 Base View: VIEW_5_ISSUES (Facility Issue Tracker Grid)
-            </div>
+        <div class="issues-view-container">
+            <div class="issues-card-wrapper">
+                <h1 class="issues-view-title">Maintenance Requests</h1>
+                <p class="issues-view-subtitle">${facility?.name || ''}</p>
 
-            <h2 class="issues-title">Standard Facility Issues</h2>
-            <p class="issues-subtitle">${facility?.name || 'GMS'}</p>
-
-            <button id="fileNewIssueReportBtn" class="issue-btn-main">➕ File New Issue Report</button>
-
-            <div id="facilityIssuesFeed" class="issue-list-feed">
-                <span style="color:#6b7280; font-size:13px; font-style:italic; text-align:center;">Loading tracking items...</span>
-            </div>
-
-            <button id="backToControlsBtn" class="issue-btn-back">⬅️ Back To Controls</button>
-        </div>
-
-        <div id="issueModal" style="display:none; position:fixed; z-index:10000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); box-sizing:border-box;">
-            <div style="background:white; max-width:380px; margin:8% auto; padding:20px; border-radius:10px; position:relative; font-family:Arial; box-sizing:border-box;">
-                <span id="closeIssueModal" style="position:absolute; right:15px; top:10px; font-size:22px; cursor:pointer; color:#9ca3af; font-weight:bold;">&times;</span>
-                <h3 id="issueModalTitle" style="margin:0 0 5px 0; color:#00264d; font-size:16px; text-transform:uppercase;">Maintenance Request</h3>
-                
-                <input type="hidden" id="issueId" />
-                
-                <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-top:12px; margin-bottom:4px; text-transform:uppercase;">Issue Request Title</label>
-                <input type="text" id="issueTitleInput" style="width:100%; padding:9px; margin-bottom:10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;" />
-
-                <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-bottom:4px; text-transform:uppercase;">Reported By</label>
-                <div style="display:flex; gap:6px; margin-bottom:10px;">
-                    <select id="issueContactSelect" style="flex-grow:1; padding:9px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; background:#f9fafb; max-width:75%;"></select>
-                    <button id="addInlineContactLink" style="background:#0369a1; color:white; border:none; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; padding:0 8px;">+ New</button>
+                <div class="view-build-stamp">
+                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-05 09:25:00 PM
                 </div>
 
-                <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-bottom:4px; text-transform:uppercase;">Priority Severity</label>
-                <select id="issuePriorityInput" style="width:100%; padding:9px; margin-bottom:10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; background:#f9fafb;">
-                    <option value="Low">Low Priority</option>
-                    <option value="Medium">Medium Severity</option>
-                    <option value="High">High Urgency</option>
-                </select>
+                <button id="addIssueTriggerBtn" class="issues-view-btn btn-emerald">➕ Create Maintenance Request</button>
+                <div id="issuesListElement" class="issues-list-layout">Loading issues...</div>
+                <button id="backToControlsBtn" class="issues-view-btn btn-navy">⬅️ Back to Controls</button>
+            </div>
 
-                <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-bottom:4px; text-transform:uppercase;">Workflow Status</label>
-                <select id="issueStatusInput" style="width:100%; padding:9px; margin-bottom:10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; background:#f9fafb;">
-                    <option value="Open">Open / Unresolved</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Closed / Resolved</option>
-                </select>
+            <div id="issueFormModal" class="modal-mask">
+                <div class="modal-shell">
+                    <h3 class="modal-shell-title">Report Maintenance Issue</h3>
+                    
+                    <label class="form-field-label">Issue Title / Subject</label>
+                    <input type="text" id="issueFormTitle" class="form-field-input" placeholder="e.g. Broken AC in Lounge">
 
-                <label style="display:block; font-size:11px; font-weight:bold; color:#374151; margin-bottom:4px; text-transform:uppercase;">Problem Description</label>
-                <textarea id="issueDescInput" rows="3" style="width:100%; padding:9px; margin-bottom:12px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; font-family:Arial; box-sizing:border-box; resize:vertical;"></textarea>
+                    <label class="form-field-label">Description / Details</label>
+                    <textarea id="issueFormDesc" class="form-field-input" style="height:70px; resize:none;"></textarea>
 
-                <div id="issue-image-container" style="margin-bottom:15px;"></div>
+                    <label class="form-field-label">Reported By</label>
+                    <input type="text" id="issueFormReporter" class="form-field-input" placeholder="Your Full Name">
 
-                <button id="saveIssueBtn" style="width:100%; background:#28a745; color:white; border:none; padding:11px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px; text-transform:uppercase;">Save Request</button>
-                <button id="deleteIssueRequestBtn" class="issue-modal-btn-danger" style="display:none;">🗑️ Delete Request</button>
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                        <button id="submitIssueFormBtn" class="issues-view-btn btn-navy">Submit Request</button>
+                        <button id="closeIssueFormBtn" class="issues-view-btn btn-gray">Cancel</button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
 
-    // 1. Wire up top-level interactive hooks
-    document.getElementById('fileNewIssueReportBtn').onclick = () => {
-        activeSelectedIssue = null;
-        openIssueModal(facility, null);
-        document.getElementById('issueModalTitle').innerText = 'Maintenance Request';
-        document.getElementById('deleteIssueRequestBtn').style.display = 'none';
+    const modal = document.getElementById('issueFormModal');
+
+    document.getElementById('addIssueTriggerBtn').onclick = () => {
+        document.getElementById('issueFormTitle').value = '';
+        document.getElementById('issueFormDesc').value = '';
+        document.getElementById('issueFormReporter').value = '';
+        modal.style.display = 'flex';
+    };
+
+    document.getElementById('closeIssueFormBtn').onclick = () => {
+        modal.style.display = 'none';
     };
 
     document.getElementById('backToControlsBtn').onclick = () => {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
     };
 
-    document.getElementById('deleteIssueRequestBtn').onclick = async () => {
-        if (!activeSelectedIssue) return;
-        
-        const targetTitle = activeSelectedIssue.issue_title || activeSelectedIssue.title || 'Maintenance Request';
-        
-        if (confirm(`Are you completely sure you want to permanently delete the issue "${targetTitle}"? This will clear all recorded progress records.`)) {
-            try {
-                const response = await deleteFacilityIssue(activeSelectedIssue.id);
-                if (!response.success) {
-                    throw new Error(response.error ? response.error.message : "Database rejection");
-                }
-                document.getElementById('issueModal').style.display = 'none';
-                await loadIssuesFeedList();
-            } catch (err) {
-                console.error("Database Delete Error Details:", err);
-                alert("Failed to successfully remove the selected maintenance issue database entry.");
-            }
-        }
-    };
+    document.getElementById('submitIssueFormBtn').onclick = async () => {
+        const title = document.getElementById('issueFormTitle').value.trim();
+        const desc = document.getElementById('issueFormDesc').value.trim();
+        const reporter = document.getElementById('issueFormReporter').value.trim();
 
-    // 2. Initialize input interaction parameters from modal layer
-    setupIssuesEvents(facility, renderFacilityIssues);
-
-    // CHANGED: Intercept shortcut payload flag to open the form modal cleanly with pre-selected data fields
-    if (facilityContext?.openFormInstantly && facilityContext?.preselectedContactId) {
-        const preselectedId = facilityContext.preselectedContactId;
-        // Clean routing states context parameters out
-        delete facilityContext.openFormInstantly;
-        delete facilityContext.preselectedContactId;
-        
-        openIssueModal(facility, null, preselectedId);
-        document.getElementById('issueModalTitle').innerText = 'Maintenance Request';
-        document.getElementById('deleteIssueRequestBtn').style.display = 'none';
-    }
-
-    // 3. Build and render underlying tracking records feed
-    async function loadIssuesFeedList() {
-        const feedContainer = document.getElementById('facilityIssuesFeed');
-        if (!feedContainer || !facility?.id) return;
-
-        const issues = await fetchFacilityIssues(facility.id);
-        feedContainer.innerHTML = '';
-
-        if (!issues || issues.length === 0) {
-            feedContainer.innerHTML = `
-                <div style="text-align:center; padding:20px; background:white; border-radius:8px; color:#6b7280; font-size:13px;">
-                    No tracked issues documented for this facility.
-                </div>`;
+        if (!title || !reporter) {
+            alert("Subject and Reporter fields are required.");
             return;
         }
 
-        issues.forEach(issueItem => {
-            const card = document.createElement('div');
-            card.className = 'issue-card-item';
+        const inserted = await insertFacilityIssue({
+            facility_id: facility.id,
+            title: title,
+            description: desc,
+            reported_by: reporter,
+            status: 'Open'
+        });
 
-            const reporter = issueItem.reported_by || issueItem.initiated_by || issueItem.reported_by_text || 'Staff';
-            const issueTitle = issueItem.issue_title || issueItem.title || 'Maintenance Request';
+        if (inserted) {
+            modal.style.display = 'none';
+            await loadIssuesListData();
+        } else {
+            alert("Could not register maintenance request data.");
+        }
+    };
 
-            let dateString = 'Recent';
-            if (issueItem.created_at) {
-                try {
-                    dateString = new Date(issueItem.created_at).toLocaleDateString();
-                } catch (e) {}
-            }
+    async function loadIssuesListData() {
+        if (!facility?.id) return;
+        const listElement = document.getElementById('issuesListElement');
+        if (!listElement) return;
 
-            card.innerHTML = `
-                <span class="issue-card-badge">${issueItem.status || 'Open'}</span>
-                <div class="issue-card-title">${issueTitle}</div>
-                <div class="issue-card-meta">Priority: <strong>${issueItem.severity || 'Medium'}</strong> | By: ${reporter}</div>
-                <div class="issue-card-meta" style="margin-top:2px; color:#9ca3af;">Reported: ${dateString}</div>
+        const issues = await fetchFacilityIssues(facility.id);
+        listElement.innerHTML = '';
+
+        if (!issues || issues.length === 0) {
+            listElement.innerHTML = '<div style="text-align:center; color:#9ca3af; font-size:14px; padding:20px;">No ongoing requests logged.</div>';
+            return;
+        }
+
+        issues.forEach(issue => {
+            const row = document.createElement('div');
+            row.className = 'issue-list-item';
+            row.innerHTML = `
+                <div class="issue-list-title">${issue.title}</div>
+                <div class="issue-list-meta">Status: <b>${issue.status || 'Open'}</b> | Reported by: ${issue.reported_by || 'Unknown'}</div>
             `;
-
-            card.onclick = () => {
-                activeSelectedIssue = issueItem;
-                openIssueModal(facility, issueItem);
-                
-                const modalHeaderEl = document.getElementById('issueModalTitle');
-                if (modalHeaderEl) {
-                    modalHeaderEl.innerText = issueTitle;
-                }
-
-                const deleteBtn = document.getElementById('deleteIssueRequestBtn');
-                if (deleteBtn) {
-                    deleteBtn.style.display = 'block';
-                }
-            };
-
-            feedContainer.appendChild(card);
+            listElement.appendChild(row);
         });
     }
 
-    await loadIssuesFeedList();
+    // FIXED: Intercept contextual payloads sent from the profile view
+    if (data?.openFormInstantly) {
+        document.getElementById('issueFormTitle').value = '';
+        document.getElementById('issueFormDesc').value = '';
+        
+        // Auto-assign the reporter input value cleanly 
+        if (data?.prefilledReporterName) {
+            document.getElementById('issueFormReporter').value = data.prefilledReporterName;
+        }
+        
+        modal.style.display = 'flex';
+    }
+
+    await loadIssuesListData();
 }
