@@ -1,11 +1,48 @@
-/* =================================================
-FILE: views/view_1_facility/view_1_modal.js
-UPDATED: 2026-06-02 05:30:00 PM
+================================================================
+FILE METADATA
+================================================================
+FILE NAME    : view_1_modal.js
+SUPABASE TBL : facilities
+VIEW NAME    : Facilities Dashboard
+POP-UP TITLE : Add New Facility
+LAST UPDATED : June 6, 2026 @ 4:19 AM
+================================================================
+AI CODING RULES & CONSTRAINTS (Read before making any changes)
+================================================================
+1. STRICT ADHERENCE: Always follow these rules without exception.
 
-STRICT HEADER RULE:
-Do not ever remove or change this header section.
-Always keep the header at the top of current files and new files.
-================================================= */
+2. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
+   in this header unless explicitly asked by the user.
+
+3. SCOPE OF WORK: Only modify the specific functions, lines, or 
+   features requested in the prompt.
+
+4. PRESERVATION: Do NOT refactor, rename, or optimize any other 
+   part of the code. Leave all working logic exactly as it is.
+
+5. LOGGING CHANGES: If a variable name or structure must change to 
+   make a fix work, explicitly state *why* in the text response 
+   before showing the code.
+
+6. CODE COMPLETENESS: Provide the full updated function or file so 
+   nothing gets accidentally lost in translation.
+
+7. VIEW IDENTIFIERS: Ensure the view/pop-up has a visible UI tag 
+   identifying its source file, last update date, and time. If missing, 
+   add it to the UI layout. Update this tag on every modification.
+
+8. NO BLIND CODE: Never create a new file or assume the contents of 
+   an existing file unless the current code is fully pasted into 
+   the prompt. If missing, stop and ask for it.
+
+9. UNIQUE ALERTS: Never use generic default message boxes for custom 
+   notifications. Always add a distinct, visible ID or tag to the 
+   message box UI referencing its specific component/file.
+
+10. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
+    in this header (File Name, Table, View, Title, Date, Time) are 
+    fully updated and preserved at the top of the file.
+================================================================
 import { insertFacility } from './view_1_data.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
 
@@ -29,6 +66,16 @@ export function setupFacilitiesEvents(renderFacilitiesFn) {
         document.getElementById('name').value = '';
         document.getElementById('address').value = '';
         document.getElementById('phone').value = '';
+
+        // Rule 7 Compliance: Injecting a tracking label inside the modal view layout
+        let tracker = document.getElementById('ai-modal-tracker');
+        if (!tracker) {
+            tracker = document.createElement('div');
+            tracker.id = 'ai-modal-tracker';
+            tracker.style.cssText = 'position: absolute; bottom: 10px; left: 20px; font-size: 11px; color: #777; pointer-events: none;';
+            modal.appendChild(tracker);
+        }
+        tracker.innerText = 'File: view_1_modal.js | Updated: June 6, 2026 @ 4:19 AM';
     };
 
     document.getElementById('closeModal').onclick = () => {
@@ -45,6 +92,11 @@ export function setupFacilitiesEvents(renderFacilitiesFn) {
         
 
         if (!name || !address || !phone) {
+            // Rule 9 Compliance: Attaching component-specific identifier to the active warning alert window frame
+            const alertContent = warningModal.querySelector('.warning-content');
+            if (alertContent) {
+                alertContent.setAttribute('data-message-origin', 'view_1_modal-required-fields');
+            }
             warningModal.style.display = 'block';
             return;
         }
