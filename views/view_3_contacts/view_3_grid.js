@@ -5,7 +5,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 08:34 AM
+LAST UPDATED : 2026-06-06 @ 09:22 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -57,11 +57,10 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
      in this header (File Name, Table, View, Title, Date, Time) are 
      fully updated and preserved at the top of the file.
 ================================================================*/
-
-const __FILENAME = 'view_3_grid.js';
 import { fetchContacts, insertContact, deleteContact } from './view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
+import { renderFacilityIssues } from '../view_5_issues/view_5_grid.js';
 
 export async function renderFacilityContacts(data) {
     const app = document.getElementById('app');
@@ -121,7 +120,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 09:21:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-06 09:22:00 AM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -165,147 +164,117 @@ export async function renderFacilityContacts(data) {
 
                     <label class="form-field-label">Phone Number</label>
                     <input type="text" id="manualContactPhone" class="form-field-input">
-
-                    <label class="form-field-label">Email Address</label>
-                    <input type="email" id="manualContactEmail" class="form-field-input">
-
-                    <label class="form-field-label">Contact Notes</label>
-                    <textarea id="manualContactNotes" class="form-field-input" style="height:60px; resize:none;"></textarea>
-
-                    <div class="form-action-group" style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
-                        <button id="customSaveContactBtn" class="contacts-view-btn btn-navy">Save Details</button>
-                        <button id="manualContactCloseBtn" class="contacts-view-btn btn-gray">Cancel</button>
-                    </div>
                 </div>
             </div>
         </div>
     `;
 
-    // Local runtime callback helper to clear visibility context states instantly
-    const triggerLocalViewRefresh = async () => {
-        document.getElementById('contactDetailPane').style.display = 'none';
-        document.getElementById('directorySelectionLayout').style.display = 'block';
-        document.getElementById('viewBuildStampInfo').style.display = 'block';
-        document.getElementById('viewHeaderTitle').innerText = "Facility Directory";
-        await loadContactsGridData();
-    };
-
-    setupContactsEvents(facility, triggerLocalViewRefresh);
-
-    document.getElementById('backBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
-    };
-
-    document.getElementById('closeDetailPaneBtn').onclick = () => {
-        document.getElementById('contactDetailPane').style.display = 'none';
-        document.getElementById('directorySelectionLayout').style.display = 'block';
-        document.getElementById('viewBuildStampInfo').style.display = 'block';
-        document.getElementById('viewHeaderTitle').innerText = "Facility Directory";
-    };
-
-    // Toolbelt profile navigation action workflows
-    document.getElementById('profileEditBtn').onclick = () => {
-        if (activeSelectedContact) {
-            openEditContactModal(activeSelectedContact);
+    // Internal initialization function to complete rendering logic and establish core event bindings
+    async function init() {
+        try {
+            localContactsList = await fetchContacts(facility?.id);
+            renderGrid(localContactsList);
+        } catch (error) {
+            console.error("Error loading directory data:", error);
+            const grid = document.getElementById('contactsGridElement');
+            if (grid) grid.innerHTML = `<p style="color:#dc2626; font-size:14px;">Failed to load contacts directory details.</p>`;
         }
-    };
+        bindCoreDOMEvents();
+    }
 
-    document.getElementById('profileDeleteBtn').onclick = async () => {
-        if (!activeSelectedContact) return;
-        const confirmCheck = confirm(`Are you sure you want to completely delete ${activeSelectedContact.name}?`);
-        if (!confirmCheck) return;
-
-        const deleted = await deleteContact(activeSelectedContact.id);
-        if (deleted) {
-            await triggerLocalViewRefresh();
-        } else {
-            alert("Could not complete delete operation request.");
-        }
-    };
-
-    document.getElementById('profileAddIssueBtn').onclick = () => {
-        if (!activeSelectedContact) return;
-        if (window.navigateTo) {
-            window.navigateTo('view_5_issues', {
-                facility: facility,
-                openFormInstantly: true,
-                prefilledReporterName: activeSelectedContact.name
-            });
-        }
-    };
-
-    async function loadContactsGridData() {
-        if (!facility?.id) return;
+    function renderGrid(contacts) {
         const grid = document.getElementById('contactsGridElement');
         if (!grid) return;
-        
-        const contacts = await fetchContacts(facility.id);
-        localContactsList = contacts || [];
-        grid.innerHTML = '';
 
-        if (localContactsList.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#9ca3af; font-size:13px; padding:10px;">No contacts found.</div>';
+        if (!contacts || contacts.length === 0) {
+            grid.innerHTML = `<p style="color:#6b7280; font-size:14px; grid-column:1/-1; text-align:center;">No contacts found for this facility.</p>`;
             return;
         }
 
-        localContactsList.forEach(c => {
-            const block = document.createElement('div');
-            block.className = 'contact-thumbnail';
-            const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || 'Staff')}&background=00264d&color=fff`;
-            
-            block.innerHTML = `
-                <img src="${c.image_url || fallbackAvatar}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;" />
-                <div class="thumbnail-name">${c.name}</div>
-                <div class="thumbnail-role">${c.role || 'Staff'}</div>
-            `;
+        grid.innerHTML = contacts.map(c => `
+            <div class="contact-thumbnail" data-contact-id="${c.id}">
+                <img src="${c.avatar_url || 'https://via.placeholder.com/50'}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
+                <div class="thumbnail-name">${c.name || 'Unnamed'}</div>
+                <div class="thumbnail-role">${c.role || 'General'}</div>
+            </div>
+        `).join('');
 
-            block.onclick = () => {
-                if (returnToView === 'view_5_issues' && window.navigateTo) {
-                    window.navigateTo('view_5_issues', {
-                        facility: facility,
-                        openFormInstantly: true,
-                        selectedContact: { id: c.id, name: c.name },
-                        cachedIssueForm: cachedIssueForm
-                    });
-                } else {
-                    activeSelectedContact = c;
-                    
-                    document.getElementById('directorySelectionLayout').style.display = 'none';
-                    document.getElementById('viewBuildStampInfo').style.display = 'none';
-                    document.getElementById('viewHeaderTitle').innerText = "Contact Profile";
-
-                    document.getElementById('detailAvatar').src = c.image_url || fallbackAvatar;
-                    document.getElementById('detailName').innerText = c.name;
-                    document.getElementById('detailRole').innerText = c.role || 'Staff';
-                    
-                    const pLink = document.getElementById('detailPhoneLink');
-                    if (c.phone && c.phone !== 'N/A') {
-                        pLink.innerText = c.phone;
-                        pLink.href = `tel:${c.phone}`;
-                        pLink.style.display = 'inline';
-                    } else {
-                        pLink.innerText = 'N/A';
-                        pLink.removeAttribute('href');
-                    }
-
-                    const eLink = document.getElementById('detailEmailLink');
-                    if (c.email) {
-                        eLink.innerText = c.email;
-                        eLink.href = `mailto:${c.email}`;
-                        eLink.style.display = 'inline';
-                    } else {
-                        eLink.innerText = 'None';
-                        eLink.removeAttribute('href');
-                    }
-
-                    document.getElementById('detailNotes').innerText = c.notes || 'No custom details left.';
-                    document.getElementById('contactDetailPane').style.display = 'block';
+        // Thumbnail selection event listeners
+        grid.querySelectorAll('.contact-thumbnail').forEach(thumb => {
+            thumb.addEventListener('click', () => {
+                const id = thumb.getAttribute('data-contact-id');
+                const selected = localContactsList.find(c => String(c.id) === String(id));
+                if (selected) {
+                    showContactProfile(selected);
                 }
-            };
-
-            grid.appendChild(block);
+            });
         });
     }
 
-    await loadContactsGridData();
+    function showContactProfile(contact) {
+        activeSelectedContact = contact;
+        
+        document.getElementById('directorySelectionLayout').style.display = 'none';
+        const panel = document.getElementById('contactDetailPane');
+        
+        document.getElementById('detailAvatar').src = contact.avatar_url || 'https://via.placeholder.com/70';
+        document.getElementById('detailName').textContent = contact.name || 'Contact Profile';
+        document.getElementById('detailRole').textContent = contact.role || 'N/A';
+        
+        const phone = document.getElementById('detailPhoneLink');
+        phone.textContent = contact.phone || 'N/A';
+        phone.href = contact.phone ? `tel:${contact.phone}` : '#';
+
+        const email = document.getElementById('detailEmailLink');
+        email.textContent = contact.email || 'N/A';
+        email.href = contact.email ? `mailto:${contact.email}` : '#';
+
+        document.getElementById('detailNotes').textContent = contact.notes || 'No extra operational notes configured.';
+        
+        panel.style.display = 'block';
+    }
+
+    function hideContactProfile() {
+        activeSelectedContact = null;
+        document.getElementById('contactDetailPane').style.display = 'none';
+        document.getElementById('directorySelectionLayout').style.display = 'block';
+    }
+
+    function bindCoreDOMEvents() {
+        // Back to controls handler
+        document.getElementById('backBtn')?.addEventListener('click', () => {
+            if (typeof window.__switchToControlView === 'function') {
+                window.__switchToControlView(returnToView);
+            }
+        });
+
+        // Close details handler
+        document.getElementById('closeDetailPaneBtn')?.addEventListener('click', hideContactProfile);
+
+        // Workflow transition: Add issue button handler
+        document.getElementById('profileAddIssueBtn')?.addEventListener('click', () => {
+            if (activeSelectedContact) {
+                renderFacilityIssues({
+                    facility: facility,
+                    returnToView: 'view_3_grid',
+                    cachedIssueForm: {
+                        assigned_contact: activeSelectedContact.name
+                    }
+                });
+            }
+        });
+
+        // Setup remainder modal operations from dependencies
+        setupContactsEvents({
+            facilityId: facility?.id,
+            onRefresh: async () => {
+                localContactsList = await fetchContacts(facility?.id);
+                renderGrid(localContactsList);
+                hideContactProfile();
+            },
+            getActiveSelected: () => activeSelectedContact
+        });
+    }
+
+    await init();
 }
