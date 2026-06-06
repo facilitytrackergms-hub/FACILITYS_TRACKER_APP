@@ -1,11 +1,11 @@
 /*================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : [Insert File Name - e.g., view_1_data.js]
-SUPABASE TBL : [Insert Table Name - e.g., facilities]
-VIEW NAME    : [Insert View Name - e.g., Add New Facility]
-POP-UP TITLE : [Insert Pop-Up Title - e.g., Create Directory Entry]
-LAST UPDATED : 2026-06-06 @ 05:09 AM
+FILE NAME    : view_6_modal.js
+SUPABASE TBL : facilities
+VIEW NAME    : Gallery Image Manager
+POP-UP TITLE : Facility Asset Documents
+LAST UPDATED : 2026-06-06 @ 08:52 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -65,8 +65,20 @@ export function setupGalleryEvents(facility) {
     const wrapper = document.getElementById('galleryImageManager');
     if (!wrapper) return;
 
+    // Inject visible UI tag tracking source file and last update metadata (Rule 8)
+    const uiTagId = 'ui-tag-view-6-modal';
+    let uiTag = document.getElementById(uiTagId);
+    if (!uiTag) {
+        uiTag = document.createElement('div');
+        uiTag.id = uiTagId;
+        uiTag.style.cssText = 'font-size: 11px; color: #888; padding: 5px 20px; border-bottom: 1px solid #eee; text-align: right;';
+        wrapper.parentNode.insertBefore(uiTag, wrapper);
+    }
+    uiTag.textContent = `Source: ${__FILENAME} | Last Updated: 2026-06-06 @ 08:52 AM`;
+
     if (!facility || !facility.id) {
-        wrapper.innerHTML = '<div style="padding:20px; color:red; font-weight:bold;">Error: Invalid facility configuration payload context.</div>';
+        // Unique alert referencing specific component/file layout (Rule 10)
+        wrapper.innerHTML = '<div id="alert-err-view-6-modal" style="padding:20px; color:red; font-weight:bold;">Error [view_6_modal]: Invalid facility configuration payload context.</div>';
     } else {
         // Mount image manager attachment directly under targeted metadata conditions
         renderImageManagerSection(wrapper, 'facility', facility.id, { 
