@@ -57,6 +57,15 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
      in this header (File Name, Table, View, Title, Date, Time) are 
      fully updated and preserved at the top of the file.
 ================================================================*/
+
+FILE: views/view_3_contacts/view_3_grid.js
+UPDATED: 2026-06-05 09:21:00 PM
+
+STRICT HEADER RULE:
+Do not ever remove or change this header section.
+Always keep the header at the top of current files and new files.
+================================================= */
+const __FILENAME = 'view_3_grid.js';
 import { fetchContacts, insertContact, deleteContact } from './view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
@@ -119,7 +128,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-06 08:34:00 AM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 09:21:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -162,4 +171,148 @@ export async function renderFacilityContacts(data) {
                     <input type="text" id="manualContactRole" class="form-field-input">
 
                     <label class="form-field-label">Phone Number</label>
-                    <input type="text" id="manualContactPhone" class="form-field-input
+                    <input type="text" id="manualContactPhone" class="form-field-input">
+
+                    <label class="form-field-label">Email Address</label>
+                    <input type="email" id="manualContactEmail" class="form-field-input">
+
+                    <label class="form-field-label">Contact Notes</label>
+                    <textarea id="manualContactNotes" class="form-field-input" style="height:60px; resize:none;"></textarea>
+
+                    <div class="form-action-group" style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                        <button id="customSaveContactBtn" class="contacts-view-btn btn-navy">Save Details</button>
+                        <button id="manualContactCloseBtn" class="contacts-view-btn btn-gray">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Local runtime callback helper to clear visibility context states instantly
+    const triggerLocalViewRefresh = async () => {
+        document.getElementById('contactDetailPane').style.display = 'none';
+        document.getElementById('directorySelectionLayout').style.display = 'block';
+        document.getElementById('viewBuildStampInfo').style.display = 'block';
+        document.getElementById('viewHeaderTitle').innerText = "Facility Directory";
+        await loadContactsGridData();
+    };
+
+    setupContactsEvents(facility, triggerLocalViewRefresh);
+
+    document.getElementById('backBtn').onclick = () => {
+        if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
+    };
+
+    document.getElementById('closeDetailPaneBtn').onclick = () => {
+        document.getElementById('contactDetailPane').style.display = 'none';
+        document.getElementById('directorySelectionLayout').style.display = 'block';
+        document.getElementById('viewBuildStampInfo').style.display = 'block';
+        document.getElementById('viewHeaderTitle').innerText = "Facility Directory";
+    };
+
+    // Toolbelt profile navigation action workflows
+    document.getElementById('profileEditBtn').onclick = () => {
+        if (activeSelectedContact) {
+            openEditContactModal(activeSelectedContact);
+        }
+    };
+
+    document.getElementById('profileDeleteBtn').onclick = async () => {
+        if (!activeSelectedContact) return;
+        const confirmCheck = confirm(`Are you sure you want to completely delete ${activeSelectedContact.name}?`);
+        if (!confirmCheck) return;
+
+        const deleted = await deleteContact(activeSelectedContact.id);
+        if (deleted) {
+            await triggerLocalViewRefresh();
+        } else {
+            alert("Could not complete delete operation request.");
+        }
+    };
+
+    document.getElementById('profileAddIssueBtn').onclick = () => {
+        if (!activeSelectedContact) return;
+        if (window.navigateTo) {
+            window.navigateTo('view_5_issues', {
+                facility: facility,
+                openFormInstantly: true,
+                prefilledReporterName: activeSelectedContact.name
+            });
+        }
+    };
+
+    async function loadContactsGridData() {
+        if (!facility?.id) return;
+        const grid = document.getElementById('contactsGridElement');
+        if (!grid) return;
+        
+        const contacts = await fetchContacts(facility.id);
+        localContactsList = contacts || [];
+        grid.innerHTML = '';
+
+        if (localContactsList.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#9ca3af; font-size:13px; padding:10px;">No contacts found.</div>';
+            return;
+        }
+
+        localContactsList.forEach(c => {
+            const block = document.createElement('div');
+            block.className = 'contact-thumbnail';
+            const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || 'Staff')}&background=00264d&color=fff`;
+            
+            block.innerHTML = `
+                <img src="${c.image_url || fallbackAvatar}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;" />
+                <div class="thumbnail-name">${c.name}</div>
+                <div class="thumbnail-role">${c.role || 'Staff'}</div>
+            `;
+
+            block.onclick = () => {
+                if (returnToView === 'view_5_issues' && window.navigateTo) {
+                    window.navigateTo('view_5_issues', {
+                        facility: facility,
+                        openFormInstantly: true,
+                        selectedContact: { id: c.id, name: c.name },
+                        cachedIssueForm: cachedIssueForm
+                    });
+                } else {
+                    activeSelectedContact = c;
+                    
+                    document.getElementById('directorySelectionLayout').style.display = 'none';
+                    document.getElementById('viewBuildStampInfo').style.display = 'none';
+                    document.getElementById('viewHeaderTitle').innerText = "Contact Profile";
+
+                    document.getElementById('detailAvatar').src = c.image_url || fallbackAvatar;
+                    document.getElementById('detailName').innerText = c.name;
+                    document.getElementById('detailRole').innerText = c.role || 'Staff';
+                    
+                    const pLink = document.getElementById('detailPhoneLink');
+                    if (c.phone && c.phone !== 'N/A') {
+                        pLink.innerText = c.phone;
+                        pLink.href = `tel:${c.phone}`;
+                        pLink.style.display = 'inline';
+                    } else {
+                        pLink.innerText = 'N/A';
+                        pLink.removeAttribute('href');
+                    }
+
+                    const eLink = document.getElementById('detailEmailLink');
+                    if (c.email) {
+                        eLink.innerText = c.email;
+                        eLink.href = `mailto:${c.email}`;
+                        eLink.style.display = 'inline';
+                    } else {
+                        eLink.innerText = 'None';
+                        eLink.removeAttribute('href');
+                    }
+
+                    document.getElementById('detailNotes').innerText = c.notes || 'No custom details left.';
+                    document.getElementById('contactDetailPane').style.display = 'block';
+                }
+            };
+
+            grid.appendChild(block);
+        });
+    }
+
+    await loadContactsGridData();
+}
