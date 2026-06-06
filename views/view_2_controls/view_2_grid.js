@@ -101,7 +101,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
 ================================================================/*
-
+const __FILENAME = 'view_2_grid.js';
 // Paste your specific file's import statements and source code here...
 import { fetchFacilityIssues, fetchSingleFacility, updateFacilityDetails, deleteFacilityRecord, uploadFacilityImage } from './view_2_data.js';
 import { setupControlsEvents } from './view_2_modal.js';
