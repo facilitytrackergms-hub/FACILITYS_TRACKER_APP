@@ -1,11 +1,62 @@
-/* =================================================
-FILE: views/view_5_issues/view_5_modal.js
-UPDATED: 2026-06-05 03:40:00 PM
+/*================================================================
+FILE METADATA
+================================================================
+FILE NAME    : view_5_modal.js
+SUPABASE TBL : facilities_issues
+VIEW NAME    : Facility Issues Modal
+POP-UP TITLE : Issue Maintenance Request
+LAST UPDATED : 2026-06-06 @ 05:09 AM
+================================================================
+AI CODING RULES & CONSTRAINTS (Read before making any changes)
+================================================================
+1. STRICT ADHERENCE: Always follow these rules without exception.
 
-STRICT HEADER RULE:
-Do not ever remove or change this header section.
-Always keep the header at the top of current files and new files.
-================================================= */
+2. MISSING METADATA HANDLING: If any fields in the FILE METADATA 
+   section above are generic placeholders or missing, the AI must 
+   immediately read the provided source code below to determine the 
+   correct tables/views/titles. CRITICAL FOR FILE NAME: Look strictly 
+   at the user's prompt text or comments for the exact sequential 
+   filename (e.g., view_2_data.js). NEVER invent, guess, or substitute 
+   a descriptive semantic name (like facility_data_service.js) based 
+   on the code context. If the exact filename cannot be verified, 
+   leave the placeholder intact or ask the user.
+
+3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
+   in this header unless explicitly asked by the user.
+
+4. SCOPE OF WORK: Only modify the specific functions, lines, or 
+   features requested in the prompt.
+
+5. PRESERVATION: Do NOT refactor, rename, or optimize any other 
+   part of the code. Leave all working logic exactly as it is.
+
+6. LOGGING CHANGES: If a variable name or structure must change to 
+   make a fix work, explicitly state *why* in the text response 
+   before showing the code.
+
+7. CODE COMPLETENESS: Provide the full updated function or file so 
+   nothing gets accidentally lost in translation.
+
+8. VIEW IDENTIFIERS: Ensure the view/pop-up has a visible UI tag 
+   identifying its source file, last update date, and time. If missing, 
+   add it to the UI layout. Update this tag on every modification.
+
+9. NO BLIND CODE: Never create a new file or assume the contents of 
+   an existing file unless the current code is fully pasted into 
+   the prompt. If missing, stop and ask for it.
+
+10. UNIQUE ALERTS: Never use generic default message boxes for custom 
+    notifications. Always add a distinct, visible ID or tag to the 
+    message box UI referencing its specific component/file.
+
+11. CODE BLOCK DELIVERY: Always deliver the entire updated file, 
+    including this header and all rules, wrapped completely inside 
+    a single markdown code block to allow for easy copying.
+
+12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
+    in this header (File Name, Table, View, Title, Date, Time) are 
+    fully updated and preserved at the top of the file.
+================================================================*/
 const __FILENAME = 'view_5_modal.js';
 
 import { saveFacilityIssue } from './view_5_data.js';
@@ -14,6 +65,16 @@ import { renderImageManagerSection } from '../../js/imageManager.js';
 export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
+
+    // Ensure metadata identifier block exists inside the UI layer (Rule 8)
+    let metaLabel = document.getElementById('view-metadata-label');
+    if (!metaLabel) {
+        metaLabel = document.createElement('div');
+        metaLabel.id = 'view-metadata-label';
+        metaLabel.style.cssText = 'font-size: 10px; color: #9ca3af; padding: 4px 8px; text-align: right; border-top: 1px solid #e5e7eb;';
+        modal.appendChild(metaLabel);
+    }
+    metaLabel.innerText = `Source: view_5_modal.js | Updated: 2026-06-06 05:09 AM`;
 
     // Handle jumping to create contact while preserving typed inputs
     const addContactLink = document.getElementById('addInlineContactLink');
@@ -52,12 +113,13 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
             const reporterName = document.getElementById('hiddenReporterName')?.value || '';
             const reporterId = document.getElementById('hiddenReporterId')?.value || '';
 
+            // Unique tracking alerts configured per Rule 10
             if (!title) {
-                alert("⚠️ WARNING: The Issue Request Title cannot be left empty.");
+                alert("[ERR-VIEW_5_MODAL-01] ⚠️ WARNING: The Issue Request Title cannot be left empty.");
                 return;
             }
             if (!desc) {
-                alert("Please fill out the Description field.");
+                alert("[ERR-VIEW_5_MODAL-02] Please fill out the Description field.");
                 return;
             }
 
@@ -73,7 +135,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
 
             const result = await saveFacilityIssue(payload, issueId || null, reporterId || null);
             if (result.error) {
-                alert("Failed to save issue details.");
+                alert("[ERR-VIEW_5_MODAL-03] Failed to save issue details.");
                 return;
             }
 
@@ -93,6 +155,16 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
 export async function openIssueModal(facility, issue = null, contactReporter = null) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
+
+    // Ensure metadata identifier block is kept accurate in the UI layout (Rule 8)
+    let metaLabel = document.getElementById('view-metadata-label');
+    if (!metaLabel) {
+        metaLabel = document.createElement('div');
+        metaLabel.id = 'view-metadata-label';
+        metaLabel.style.cssText = 'font-size: 10px; color: #9ca3af; padding: 4px 8px; text-align: right; border-top: 1px solid #e5e7eb;';
+        modal.appendChild(metaLabel);
+    }
+    metaLabel.innerText = `Source: view_5_modal.js | Updated: 2026-06-06 05:09 AM`;
 
     // Defensive references to catch missing DOM elements safely
     const elIssueId = document.getElementById('issueId');
