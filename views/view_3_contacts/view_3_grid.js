@@ -1,13 +1,13 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-05 03:15:00 PM
+UPDATED: 2026-06-05 09:14:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchContacts, insertContact } from './view_3_data.js'; // FIXED: Changed insertFacilityContact to insertContact
-import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
+import { fetchContacts, insertContact } from './view_3_data.js';
+import { setupContactsEvents } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
 
 export async function renderFacilityContacts(data) {
@@ -36,13 +36,19 @@ export async function renderFacilityContacts(data) {
             .contact-thumbnail:hover { transform:translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
             .thumbnail-name { font-weight:bold; color:#00264d; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; margin-top:5px; }
             .thumbnail-role { font-size:12px; color:#6b7280; margin-top:2px; }
+            
+            /* Detailed Card Display Styles */
+            .detail-view-card { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:15px; margin-top:15px; text-align:left; display:none; }
+            .detail-row { margin-bottom:10px; font-size:14px; color:#4b5563; }
+            .detail-label { font-weight:bold; color:#00264d; font-size:12px; text-transform:uppercase; display:block; }
+            .detail-link { color:#10b981; text-decoration:none; font-weight:600; }
+            .detail-link:hover { text-decoration:underline; }
+
             .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
             .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; }
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
-            .camera-action-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
-            .camera-status-text { font-size:13px; font-weight:500; color:#4b5563; }
             .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
         </style>
     `;
@@ -55,13 +61,22 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 03:15:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 09:14:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
                     <button id="manualContactTriggerBtn" class="contacts-view-btn btn-emerald">➕ Add New Contact</button>
                     <div id="contactsGridElement" class="contacts-grid-layout">Loading...</div>
-                    <button id="backBtn" class="contacts-view-btn btn-navy">⬅️ Back to Controls</button>
+                    
+                    <div id="contactDetailPane" class="detail-view-card">
+                        <h4 id="detailName" style="margin:0 0 10px 0; color:#00264d;">Select a contact</h4>
+                        <div class="detail-row"><span class="detail-label">Role</span><span id="detailRole"></span></div>
+                        <div class="detail-row"><span class="detail-label">Phone</span><a id="detailPhoneLink" class="detail-link" href=""></a></div>
+                        <div class="detail-row"><span class="detail-label">Email</span><a id="detailEmailLink" class="detail-link" href=""></a></div>
+                        <div class="detail-row"><span class="detail-label">Notes</span><span id="detailNotes"></span></div>
+                    </div>
+
+                    <button id="backBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Back to Controls</button>
                 </div>
             </div>
 
@@ -69,6 +84,7 @@ export async function renderFacilityContacts(data) {
                 <div class="modal-shell">
                     <h3 class="modal-shell-title" id="modalTemplateTitle">Create Directory Entry</h3>
                     <input type="hidden" id="editingContactId" value="">
+                    <input type="hidden" id="manualContactImage" value="">
                     
                     <label class="form-field-label">Full Name</label>
                     <input type="text" id="manualContactName" class="form-field-input">
@@ -99,7 +115,6 @@ export async function renderFacilityContacts(data) {
     let rawIssues = [];
     try { if (facility?.id) rawIssues = await fetchFacilityIssues(facility.id); } catch(e) {}
 
-    // Overwrite the normal save behavior to catch workflows coming from an active issue report
     document.getElementById('customSaveContactBtn').onclick = async () => {
         const name = document.getElementById('manualContactName').value.trim();
         const role = document.getElementById('manualContactRole').value.trim() || 'Staff';
@@ -112,7 +127,6 @@ export async function renderFacilityContacts(data) {
             return;
         }
 
-        // FIXED: Using valid exported schema adapter function
         const newContact = await insertContact({
             facility_id: facility.id,
             name: name,
@@ -124,8 +138,6 @@ export async function renderFacilityContacts(data) {
 
         if (newContact) {
             document.getElementById('manualContactModal').style.display = 'none';
-            
-            // Loop back straight to original issue request form if flagged
             if (returnToView === 'view_5_issues' && window.navigateTo) {
                 window.navigateTo('view_5_issues', {
                     facility: facility,
@@ -182,7 +194,33 @@ export async function renderFacilityContacts(data) {
                         cachedIssueForm: cachedIssueForm
                     });
                 } else {
-                    openEditContactModal(c);
+                    // Populate and display the read-only section below the grid
+                    const pane = document.getElementById('contactDetailPane');
+                    document.getElementById('detailName').innerText = c.name;
+                    document.getElementById('detailRole').innerText = c.role || 'Staff';
+                    
+                    const pLink = document.getElementById('detailPhoneLink');
+                    if (c.phone && c.phone !== 'N/A') {
+                        pLink.innerText = c.phone;
+                        pLink.href = `tel:${c.phone}`;
+                        pLink.style.display = 'inline';
+                    } else {
+                        pLink.innerText = 'N/A';
+                        pLink.removeAttribute('href');
+                    }
+
+                    const eLink = document.getElementById('detailEmailLink');
+                    if (c.email) {
+                        eLink.innerText = c.email;
+                        eLink.href = `mailto:${c.email}`;
+                        eLink.style.display = 'inline';
+                    } else {
+                        eLink.innerText = 'None';
+                        eLink.removeAttribute('href');
+                    }
+
+                    document.getElementById('detailNotes').innerText = c.notes || 'No custom details left.';
+                    pane.style.display = 'block';
                 }
             };
 
