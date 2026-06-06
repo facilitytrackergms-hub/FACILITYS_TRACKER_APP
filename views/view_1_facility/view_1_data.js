@@ -1,10 +1,10 @@
 ================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : [Insert File Name - e.g., view_1_data.js]
-SUPABASE TBL : [Insert Table Name - e.g., facilities]
-VIEW NAME    : [Insert View Name - e.g., Add New Facility]
-POP-UP TITLE : [Insert Pop-Up Title - e.g., Create Directory Entry]
+FILE NAME    : view_1_data.js
+SUPABASE TBL : facilities
+VIEW NAME    : Add New Facility
+POP-UP TITLE : Create Directory Entry
 LAST UPDATED : 2026-06-06 @ 04:50 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
