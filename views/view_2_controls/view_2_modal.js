@@ -58,6 +58,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
 ================================================================*/
+const __FILENAME = 'view_2_modal.js';
 import { supabase } from '../../js/supabaseClient.js';
 
 export function setupControlsEvents(data) {
