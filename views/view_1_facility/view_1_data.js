@@ -1,11 +1,11 @@
 ================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : facilities_service.js
-SUPABASE TBL : facilities
-VIEW NAME    : Facilities Management
-POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 04:44 AM
+FILE NAME    : [Insert File Name - e.g., view_1_data.js]
+SUPABASE TBL : [Insert Table Name - e.g., facilities]
+VIEW NAME    : [Insert View Name - e.g., Add New Facility]
+POP-UP TITLE : [Insert Pop-Up Title - e.g., Create Directory Entry]
+LAST UPDATED : 2026-06-06 @ 04:50 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
