@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 12:25 PM
+LAST UPDATED : 2026-06-06 @ 05:32 PM
 ================================================================*/
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
@@ -85,7 +85,7 @@ export async function renderFacilityContacts(data) {
             .profile-actions-toolbar .contacts-view-btn { padding:8px 12px; font-size:12px; }
 
             .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
-            .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; }
+            .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; max-height:90vh; overflow-y:auto; }
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
@@ -102,7 +102,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 12:25:00 PM
+                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 05:32:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -138,6 +138,13 @@ export async function renderFacilityContacts(data) {
                     <input type="hidden" id="editingContactId" value="">
                     <input type="hidden" id="manualContactImage" value="">
                     
+                    <label class="form-field-label">Profile Photo</label>
+                    <div style="display:flex; gap:10px; align-items:center; margin-top:4px; margin-bottom:8px;">
+                        <button type="button" id="cameraTriggerBtn" class="contacts-view-btn btn-navy" style="margin:0; padding:10px; width:auto; white-space:nowrap;">📸 Open Camera</button>
+                        <span id="cameraStatusText" style="font-size:11px; color:#6b7280; font-style:italic;">No photo captured</span>
+                        <input type="file" id="manualContactImageFile" accept="image/*" capture="environment" style="display:none;">
+                    </div>
+
                     <label class="form-field-label">Full Name</label>
                     <input type="text" id="manualContactName" class="form-field-input">
 
@@ -146,6 +153,17 @@ export async function renderFacilityContacts(data) {
 
                     <label class="form-field-label">Phone Number</label>
                     <input type="text" id="manualContactPhone" class="form-field-input">
+
+                    <label class="form-field-label">Email Address</label>
+                    <input type="email" id="manualContactEmail" class="form-field-input">
+
+                    <label class="form-field-label">Operational Notes</label>
+                    <input type="text" id="manualContactNotes" class="form-field-input">
+
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                        <button id="saveContactBtn" class="contacts-view-btn btn-navy">Save Entry</button>
+                        <button id="cancelContactModalBtn" class="contacts-view-btn btn-gray">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>
