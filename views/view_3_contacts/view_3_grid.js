@@ -6,7 +6,7 @@ STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchContacts, insertFacilityContact } from './view_3_data.js';
+import { fetchContacts, insertContact } from './view_3_data.js';
 import { setupContactsEvents } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
 
@@ -112,7 +112,7 @@ export async function renderFacilityContacts(data) {
             return;
         }
 
-        const newContact = await insertFacilityContact({
+        const newContact = await insertContact({
             facility_id: facility.id,
             name: name,
             role: role,
