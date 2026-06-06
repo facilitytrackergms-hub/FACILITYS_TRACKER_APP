@@ -1,11 +1,11 @@
 /*================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : [Insert File Name - e.g., view_1_data.js]
-SUPABASE TBL : [Insert Table Name - e.g., facilities]
-VIEW NAME    : [Insert View Name - e.g., Add New Facility]
-POP-UP TITLE : [Insert Pop-Up Title - e.g., Create Directory Entry]
-LAST UPDATED : 2026-06-06 @ 05:09 AM
+FILE NAME    : view_8_grid.js
+SUPABASE TBL : facilities
+VIEW NAME    : Facility Report
+POP-UP TITLE : N/A
+LAST UPDATED : 2026-06-06 @ 09:00 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -81,7 +81,7 @@ export async function renderReports(data) {
             </div>
 
             <div style="margin-top:40px; font-size:10px; color:#94a3b8; border-top:1px solid #e5e7eb; padding-top:10px;">
-                File: views/view_8_reports/view_8_grid.js | Updated: 2026-06-03 07:10:00 PM
+                File: view_8_grid.js | Updated: 2026-06-06 09:00:00 AM
             </div>
         </div>
     `;
