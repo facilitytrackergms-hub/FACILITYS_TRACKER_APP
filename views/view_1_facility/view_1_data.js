@@ -1,4 +1,4 @@
-================================================================
+/*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_1_data.js
@@ -52,7 +52,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
-================================================================
+================================================================*/
 
 // Paste your specific file's import statements and source code here...
 import { supabase } from '../../js/supabaseClient.js';
