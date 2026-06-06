@@ -41,9 +41,16 @@ export async function fetchContacts(facilityId) {
  */
 export async function insertContact(contactPayload) {
     try {
+        // Fallback Mapping: If the modal UI is still passing 'name', remap it safely to 'contact_name'
+        const normalizedPayload = { ...contactPayload };
+        if ('name' in normalizedPayload) {
+            normalizedPayload.contact_name = normalizedPayload.name;
+            delete normalizedPayload.name;
+        }
+
         const { data, error } = await supabase
             .from('contacts')
-            .insert([contactPayload])
+            .insert([normalizedPayload])
             .select();
 
         if (error) {
@@ -67,9 +74,16 @@ export async function updateContact(contactId, updatePayload) {
     try {
         if (!contactId) return null;
 
+        // Fallback Mapping: Ensure legacy 'name' parameter doesn't crash updates
+        const normalizedPayload = { ...updatePayload };
+        if ('name' in normalizedPayload) {
+            normalizedPayload.contact_name = normalizedPayload.name;
+            delete normalizedPayload.name;
+        }
+
         const { data, error } = await supabase
             .from('contacts')
-            .update(updatePayload)
+            .update(normalizedPayload)
             .eq('id', contactId)
             .select();
 
