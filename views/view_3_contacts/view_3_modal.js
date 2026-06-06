@@ -1,5 +1,5 @@
 /*================================================================
-AUTOMATED PATH UPDATE INSTRUCTION
+AUTOMATED PATH UPDATE INSTRUCTION  view_3_modal.js
 ================================================================
 NEW ROOT DIRECTORY FOR COMPONENT:
 FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/
@@ -19,7 +19,7 @@ FILE NAME    : view_3_modal.js
 SUPABASE TBL : contacts
 VIEW NAME    : Modify Contact Details
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 05:19 PM
+LAST UPDATED : 2026-06-06 @ 06:43 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -75,11 +75,13 @@ const __FILENAME = 'view_3_modal.js';
 import { insertContact, updateContact } from './view_3_data.js';
 import { supabase } from '../../js/supabaseClient.js';
 
-export function setupContactsEvents(facility, refreshCallback) {
+export function setupContactsEvents({ facilityId, onRefresh, getActiveSelected }) {
     const modal = document.getElementById('manualContactModal');
-    const closeBtn = document.getElementById('manualContactCloseBtn');
-    const saveBtn = document.getElementById('customSaveContactBtn');
+    const closeBtn = document.getElementById('cancelContactModalBtn');
+    const saveBtn = document.getElementById('saveContactBtn');
     const triggerBtn = document.getElementById('manualContactTriggerBtn');
+    const cameraBtn = document.getElementById('cameraTriggerBtn');
+    const fileInput = document.getElementById('manualContactImageFile');
 
     // Rule 8: UI Source Tracker Tag Management
     updateUiMetadataTag();
@@ -89,13 +91,19 @@ export function setupContactsEvents(facility, refreshCallback) {
             clearFormFields();
             document.getElementById('modalTemplateTitle').innerText = "Create Directory Entry";
             document.getElementById('editingContactId').value = "";
-            modal.style.display = 'flex';
+            if (modal) modal.style.display = 'flex';
         };
     }
 
     if (closeBtn) {
         closeBtn.onclick = () => {
-            modal.style.display = 'none';
+            if (modal) modal.style.display = 'none';
+        };
+    }
+
+    if (cameraBtn && fileInput) {
+        cameraBtn.onclick = () => {
+            fileInput.click();
         };
     }
 
@@ -115,7 +123,7 @@ export function setupContactsEvents(facility, refreshCallback) {
             }
 
             const payload = {
-                facility_id: Number(facility.id),
+                facility_id: Number(facilityId),
                 name,
                 role: role || 'Staff',
                 phone: phone || 'N/A',
@@ -134,8 +142,8 @@ export function setupContactsEvents(facility, refreshCallback) {
             }
 
             if (success) {
-                modal.style.display = 'none';
-                if (refreshCallback) await refreshCallback(facility);
+                if (modal) modal.style.display = 'none';
+                if (onRefresh) await onRefresh();
             } else {
                 showUniqueAlert("alert_view_3_modal_save_failed", "Could not process directory database save request.");
             }
@@ -186,7 +194,7 @@ function updateUiMetadataTag() {
         const modalContent = document.querySelector('#manualContactModal .modal-content') || document.getElementById('manualContactModal');
         if (modalContent) modalContent.appendChild(tag);
     }
-    tag.innerText = `Source: view_3_modal.js | Updated: 2026-06-06 05:19 PM`;
+    tag.innerText = `Source: view_3_modal.js | Updated: 2026-06-06 06:43 PM`;
 }
 
 /**
