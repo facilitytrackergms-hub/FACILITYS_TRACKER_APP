@@ -45,6 +45,8 @@ VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
 LAST UPDATED : 2026-06-06 @ 05:32 PM
 ================================================================*/
+const __FILENAME = 'view_3_grid.js';
+
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
 export async function renderFacilityContacts(data) {
