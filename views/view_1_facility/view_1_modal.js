@@ -3,9 +3,9 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_1_modal.js
 SUPABASE TBL : facilities
-VIEW NAME    : Facilities Dashboard
-POP-UP TITLE : Add New Facility
-LAST UPDATED : June 6, 2026 @ 4:19 AM
+VIEW NAME    : Add New Facility
+POP-UP TITLE : Facility Image / Add New Facility
+LAST UPDATED : 2026-06-06 @ 04:32 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -39,10 +39,15 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
    notifications. Always add a distinct, visible ID or tag to the 
    message box UI referencing its specific component/file.
 
-10. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
+10. CODE BLOCK DELIVERY: Always deliver the entire updated file, 
+    including this header and all rules, wrapped completely inside 
+    a single markdown code block to allow for easy copying.
+
+11. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
 ================================================================
+
 import { insertFacility } from './view_1_data.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
 
@@ -75,7 +80,7 @@ export function setupFacilitiesEvents(renderFacilitiesFn) {
             tracker.style.cssText = 'position: absolute; bottom: 10px; left: 20px; font-size: 11px; color: #777; pointer-events: none;';
             modal.appendChild(tracker);
         }
-        tracker.innerText = 'File: view_1_modal.js | Updated: June 6, 2026 @ 4:19 AM';
+        tracker.innerText = 'File: view_1_modal.js | Updated: 2026-06-06 @ 04:32 AM';
     };
 
     document.getElementById('closeModal').onclick = () => {
@@ -111,6 +116,12 @@ export function setupFacilitiesEvents(renderFacilitiesFn) {
             imageSection.style.display = 'block';
             imageMount.innerHTML = '';
             renderImageManagerSection(imageMount, 'facility', createdFacility.id, { title: 'Facility Image' });
+            
+            // Keep tracker label up to date if view updates post-save
+            let tracker = document.getElementById('ai-modal-tracker');
+            if (tracker) {
+                tracker.innerText = 'File: view_1_modal.js | Updated: 2026-06-06 @ 04:32 AM';
+            }
         }
     }
 
