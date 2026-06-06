@@ -6,6 +6,8 @@ STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
+const __FILENAME = 'view_5_modal.js';
+
 import { saveFacilityIssue } from './view_5_data.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
 
