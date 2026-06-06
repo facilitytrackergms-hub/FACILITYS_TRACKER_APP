@@ -6,6 +6,9 @@ STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
+const __FILENAME = 'view_4_grid.js';
+
+
 import { fetchFacilityProjects } from './view_4_data.js';
 import { setupProjectsEvents } from './view_4_modal.js';
 
