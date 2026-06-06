@@ -1,12 +1,12 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-05 08:45:00 PM
+UPDATED: 2026-06-05 03:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchContacts, insertContact } from './view_3_data.js';
+import { fetchContacts, insertFacilityContact } from './view_3_data.js';
 import { setupContactsEvents } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
 
@@ -37,17 +37,13 @@ export async function renderFacilityContacts(data) {
             .thumbnail-name { font-weight:bold; color:#00264d; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; margin-top:5px; }
             .thumbnail-role { font-size:12px; color:#6b7280; margin-top:2px; }
             .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
-            .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:440px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; }
+            .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; }
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
             .camera-action-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
             .camera-status-text { font-size:13px; font-weight:500; color:#4b5563; }
             .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
-            
-            /* Enhanced 5-column button row grid */
-            .modal-action-row-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 20px; }
-            .modal-action-row-grid .contacts-view-btn { padding: 10px 2px; font-size: 10px; text-align: center; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; height: 52px; line-height: 1.2; }
         </style>
     `;
 
@@ -59,7 +55,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 08:45:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 03:15:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -89,12 +85,9 @@ export async function renderFacilityContacts(data) {
                     <label class="form-field-label">Contact Notes</label>
                     <textarea id="manualContactNotes" class="form-field-input" style="height:60px; resize:none;"></textarea>
 
-                    <div class="modal-action-row-grid">
-                        <button id="customSaveContactBtn" class="contacts-view-btn btn-navy">💾 Save</button>
-                        <button id="manualContactCloseBtn" class="contacts-view-btn btn-gray">❌ Cancel</button>
-                        <button id="createNewIssueBtn" class="contacts-view-btn btn-emerald" style="visibility: hidden;">⚠️ Issue</button>
-                        <button id="viewIssuesLogBtn" class="contacts-view-btn btn-navy" style="background:#1e3a8a; visibility: hidden;">📋 Log</button>
-                        <button id="deleteContactBtn" class="contacts-view-btn btn-gray" style="background:#dc2626; visibility: hidden;">🗑️ Delete</button>
+                    <div class="form-action-group" style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                        <button id="customSaveContactBtn" class="contacts-view-btn btn-navy">Save Details</button>
+                        <button id="manualContactCloseBtn" class="contacts-view-btn btn-gray">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -106,32 +99,7 @@ export async function renderFacilityContacts(data) {
     let rawIssues = [];
     try { if (facility?.id) rawIssues = await fetchFacilityIssues(facility.id); } catch(e) {}
 
-    const triggerBtn = document.getElementById('manualContactTriggerBtn');
-    if (triggerBtn) {
-        triggerBtn.onclick = () => {
-            document.getElementById('modalTemplateTitle').innerText = "Create Directory Entry";
-            document.getElementById('editingContactId').value = '';
-            document.getElementById('manualContactName').value = '';
-            document.getElementById('manualContactRole').value = '';
-            document.getElementById('manualContactPhone').value = '';
-            document.getElementById('manualContactEmail').value = '';
-            document.getElementById('manualContactNotes').value = '';
-            
-            if (document.getElementById('createNewIssueBtn')) document.getElementById('createNewIssueBtn').style.visibility = 'hidden';
-            if (document.getElementById('viewIssuesLogBtn')) document.getElementById('viewIssuesLogBtn').style.visibility = 'hidden';
-            if (document.getElementById('deleteContactBtn')) document.getElementById('deleteContactBtn').style.visibility = 'hidden';
-            
-            document.getElementById('manualContactModal').style.display = 'flex';
-        };
-    }
-
-    const closeBtn = document.getElementById('manualContactCloseBtn');
-    if (closeBtn) {
-        closeBtn.onclick = () => {
-            document.getElementById('manualContactModal').style.display = 'none';
-        };
-    }
-
+    // Overwrite the normal save behavior to catch workflows coming from an active issue report
     document.getElementById('customSaveContactBtn').onclick = async () => {
         const name = document.getElementById('manualContactName').value.trim();
         const role = document.getElementById('manualContactRole').value.trim() || 'Staff';
@@ -144,7 +112,7 @@ export async function renderFacilityContacts(data) {
             return;
         }
 
-        const newContact = await insertContact({
+        const newContact = await insertFacilityContact({
             facility_id: facility.id,
             name: name,
             role: role,
@@ -156,6 +124,7 @@ export async function renderFacilityContacts(data) {
         if (newContact) {
             document.getElementById('manualContactModal').style.display = 'none';
             
+            // Loop back straight to original issue request form if flagged
             if (returnToView === 'view_5_issues' && window.navigateTo) {
                 window.navigateTo('view_5_issues', {
                     facility: facility,
@@ -204,46 +173,15 @@ export async function renderFacilityContacts(data) {
             `;
 
             block.onclick = () => {
-                document.getElementById('modalTemplateTitle').innerText = "Modify Contact Details";
-                document.getElementById('editingContactId').value = c.id;
-                document.getElementById('manualContactName').value = c.name || '';
-                document.getElementById('manualContactRole').value = c.role || '';
-                document.getElementById('manualContactPhone').value = c.phone || '';
-                document.getElementById('manualContactEmail').value = c.email || '';
-                document.getElementById('manualContactNotes').value = c.notes || '';
-
-                // RESTORED & OPTIMIZED: Instruct view_5 to open the request form instantly and auto-fill the contact name
-                const createNewIssueBtn = document.getElementById('createNewIssueBtn');
-                if (createNewIssueBtn) {
-                    createNewIssueBtn.style.visibility = 'visible';
-                    createNewIssueBtn.onclick = () => {
-                        if (window.navigateTo) {
-                            window.navigateTo('view_5_issues', {
-                                facility: facility,
-                                openFormInstantly: true, // Tells view_5 to open the form immediately (3rd image)
-                                selectedContact: { id: c.id, name: c.name } // Passes down the direct name to auto-fill "Reported By"
-                            });
-                        }
-                    };
+                // If a user clicks an existing contact while a draft issue is active, pass them back as the reporter
+                if (returnToView === 'view_5_issues' && window.navigateTo) {
+                    window.navigateTo('view_5_issues', {
+                        facility: facility,
+                        openFormInstantly: true,
+                        selectedContact: { id: c.id, name: c.name },
+                        cachedIssueForm: cachedIssueForm
+                    });
                 }
-
-                const viewIssuesLogBtn = document.getElementById('viewIssuesLogBtn');
-                if (viewIssuesLogBtn) {
-                    viewIssuesLogBtn.style.visibility = 'visible';
-                    viewIssuesLogBtn.onclick = () => {
-                        if (window.openContactIssuesModal) {
-                            const matchedIssues = rawIssues.filter(i => String(i.initiated_by).toLowerCase() === String(c.name).toLowerCase());
-                            window.openContactIssuesModal(matchedIssues, facility.id, c.name);
-                        }
-                    };
-                }
-
-                const deleteContactBtn = document.getElementById('deleteContactBtn');
-                if (deleteContactBtn) {
-                    deleteContactBtn.style.visibility = 'visible';
-                }
-
-                document.getElementById('manualContactModal').style.display = 'flex';
             };
 
             grid.appendChild(block);
