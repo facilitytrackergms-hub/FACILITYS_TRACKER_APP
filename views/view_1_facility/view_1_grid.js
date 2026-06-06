@@ -1,29 +1,53 @@
 ================================================================
-FILE NAME: view_1_grid.js
+FILE METADATA
 ================================================================
-SUPABASE TABLE: facilities
-================================================================
-VIEW NAME: Facilities Dashboard
-================================================================
-POP-UP TITLE: Add New Facility
-================================================================
-FILE INFO:
-- Date: June 6, 2026
-- Time: 3:57 AM
+FILE NAME    : view_1_grid.js
+SUPABASE TBL : facilities
+VIEW NAME    : Facilities Dashboard
+POP-UP TITLE : Add New Facility
+LAST UPDATED : 2026-06-06 @ 04:35 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
 1. STRICT ADHERENCE: Always follow these rules without exception.
-2. NO UNSANCTIONED CHANGES: Never change, remove, or modify any of the rules in this header unless explicitly asked by the user.
-3. SCOPE OF WORK: Only modify the specific functions, lines, or features requested in the prompt.
-4. PRESERVATION: Do NOT refactor, rename, or optimize any other part of the code unless explicitly asked. Leave all working logic exactly as it is.
-5. LOGGING CHANGES: If you must change a variable name or structure to make the requested fix work, explicitly state *why* in your text response before showing the code.
-6. CODE COMPLETENESS: Provide the full updated function or file so nothing gets accidentally lost in translation.
-7. VIEW IDENTIFIERS: Check if the view or pop-up has a visible UI tag/label identifying its specific source file (e.g., view_1_data.js, grid, or modal file), last update date, and time. If it does not exist, add it to the UI layout so it is visible when opened. Update this tag automatically on every modification.
-8. NO BLIND CODE/FILES: Never create a new file or assume the contents of an existing file unless the current code has been fully pasted into the prompt. If it has not been pasted, stop and ask for it.
-9. UNIQUE MESSAGE BOX IDENTIFIERS: Never use plain, generic default message boxes for custom notifications or alerts. Always add a distinct, visible ID or tag element to the message box UI that explicitly references the specific component or file it belongs to so it can be uniquely identified.
-10. AUTOMATIC HEADER METADATA COLLECTION: Whenever making an update to a file, ensure that all fields in this header (File Name, Supabase Table, View Name, Pop-Up Title, Date, and Time) are correctly collected, filled out, and preserved at the top of the code delivery.
+
+2. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
+   in this header unless explicitly asked by the user.
+
+3. SCOPE OF WORK: Only modify the specific functions, lines, or 
+   features requested in the prompt.
+
+4. PRESERVATION: Do NOT refactor, rename, or optimize any other 
+   part of the code. Leave all working logic exactly as it is.
+
+5. LOGGING CHANGES: If a variable name or structure must change to 
+   make a fix work, explicitly state *why* in the text response 
+   before showing the code.
+
+6. CODE COMPLETENESS: Provide the full updated function or file so 
+   nothing gets accidentally lost in translation.
+
+7. VIEW IDENTIFIERS: Ensure the view/pop-up has a visible UI tag 
+   identifying its source file, last update date, and time. If missing, 
+   add it to the UI layout. Update this tag on every modification.
+
+8. NO BLIND CODE: Never create a new file or assume the contents of 
+   an existing file unless the current code is fully pasted into 
+   the prompt. If missing, stop and ask for it.
+
+9. UNIQUE ALERTS: Never use generic default message boxes for custom 
+   notifications. Always add a distinct, visible ID or tag to the 
+   message box UI referencing its specific component/file.
+
+10. CODE BLOCK DELIVERY: Always deliver the entire updated file, 
+    including this header and all rules, wrapped completely inside 
+    a single markdown code block to allow for easy copying.
+
+11. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
+    in this header (File Name, Table, View, Title, Date, Time) are 
+    fully updated and preserved at the top of the file.
 ================================================================
+
 import { fetchFacilities } from './view_1_data.js';
 import { setupFacilitiesEvents } from './view_1_modal.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
@@ -96,7 +120,7 @@ export async function renderFacilities() {
             </div>
 
             <div style="margin-top: 50px; font-size: 0.8em; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
-                File: views/view_1_facility/view_1_grid.js | Updated: June 6, 2026 - 3:57 AM
+                File: views/view_1_facility/view_1_grid.js | Updated: 2026-06-06 @ 04:35 AM
             </div>
         </div>
     `;
