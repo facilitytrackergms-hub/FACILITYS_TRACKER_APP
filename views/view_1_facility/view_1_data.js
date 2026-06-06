@@ -54,7 +54,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     fully updated and preserved at the top of the file.
 ================================================================*/
 
-// Paste your specific file's import statements and source code here...
+const __FILENAME = 'view_1_data.js';
 import { supabase } from '../../js/supabaseClient.js';
 
 export async function fetchFacilities() {
