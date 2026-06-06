@@ -1,10 +1,10 @@
 /*================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : [Insert File Name - e.g., view_1_data.js]
+FILE NAME    : view_7_grid.js
 SUPABASE TBL : [Insert Table Name - e.g., facilities]
-VIEW NAME    : [Insert View Name - e.g., Add New Facility]
-POP-UP TITLE : [Insert Pop-Up Title - e.g., Create Directory Entry]
+VIEW NAME    : VIEW_7_FOLLOWUPS (Logs Dashboard)
+POP-UP TITLE : Log Action Event
 LAST UPDATED : 2026-06-06 @ 05:09 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
@@ -115,7 +115,7 @@ export async function renderIssueFollowups(data, issueContext = null) {
         ${styles}
         <div class="followups-container">
             <div style="background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; padding: 6px 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; margin-bottom: 20px; display: inline-block;">
-                📍 Base View: VIEW_7_FOLLOWUPS (Logs Dashboard)
+                📍 Base View: VIEW_7_FOLLOWUPS (Logs Dashboard) | Updated: 2026-06-06 @ 05:09 AM via view_7_grid.js
             </div>
 
             <h2 class="followups-title">Issue Logs</h2>
