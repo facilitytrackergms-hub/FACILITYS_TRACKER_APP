@@ -58,13 +58,6 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
      fully updated and preserved at the top of the file.
 ================================================================*/
 
-FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-05 09:21:00 PM
-
-STRICT HEADER RULE:
-Do not ever remove or change this header section.
-Always keep the header at the top of current files and new files.
-================================================= */
 const __FILENAME = 'view_3_grid.js';
 import { fetchContacts, insertContact, deleteContact } from './view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
