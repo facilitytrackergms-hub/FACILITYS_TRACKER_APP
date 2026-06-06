@@ -6,8 +6,8 @@ STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchContacts, insertFacilityContact } from './view_3_data.js';
-import { setupContactsEvents, openEditContactModal } from './view_3_modal.js'; // FIXED: Imported openEditContactModal
+import { fetchContacts, insertContact } from './view_3_data.js'; // FIXED: Changed insertFacilityContact to insertContact
+import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
 
 export async function renderFacilityContacts(data) {
@@ -112,7 +112,8 @@ export async function renderFacilityContacts(data) {
             return;
         }
 
-        const newContact = await insertFacilityContact({
+        // FIXED: Using valid exported schema adapter function
+        const newContact = await insertContact({
             facility_id: facility.id,
             name: name,
             role: role,
@@ -172,7 +173,6 @@ export async function renderFacilityContacts(data) {
                 <div class="thumbnail-role">${c.role || 'Staff'}</div>
             `;
 
-            // FIXED: Handle both workflow navigation AND local modal popups
             block.onclick = () => {
                 if (returnToView === 'view_5_issues' && window.navigateTo) {
                     window.navigateTo('view_5_issues', {
@@ -182,7 +182,6 @@ export async function renderFacilityContacts(data) {
                         cachedIssueForm: cachedIssueForm
                     });
                 } else {
-                    // Normal browsing mode: open the edit contact details modal!
                     openEditContactModal(c);
                 }
             };
