@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 12:25 PM
+LAST UPDATED : 2026-06-06 @ 05:32 PM
 ================================================================*/
 import { fetchContacts, insertContact, deleteContact } from '../view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from '../view_3_modal.js';
@@ -82,7 +82,7 @@ function renderGrid(contacts) {
 
     grid.innerHTML = contacts.map(c => `
         <div class="contact-thumbnail" data-contact-id="${c.id}">
-            <img src="${c.avatar_url || 'https://via.placeholder.com/50'}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
+            <img src="${c.avatar_url || c.image_url || 'https://via.placeholder.com/50'}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
             <div class="thumbnail-name">${c.name || 'Unnamed'}</div>
             <div class="thumbnail-role">${c.role || 'General'}</div>
         </div>
@@ -105,7 +105,7 @@ function showContactProfile(contact) {
     document.getElementById('directorySelectionLayout').style.display = 'none';
     const panel = document.getElementById('contactDetailPane');
     
-    document.getElementById('detailAvatar').src = contact.avatar_url || 'https://via.placeholder.com/70';
+    document.getElementById('detailAvatar').src = contact.avatar_url || contact.image_url || 'https://via.placeholder.com/70';
     document.getElementById('detailName').textContent = contact.name || 'Contact Profile';
     document.getElementById('detailRole').textContent = contact.role || 'N/A';
     
@@ -149,6 +149,45 @@ function bindCoreDOMEvents() {
         }
     });
 
+    // Wire up listeners for modal open actions
+    document.getElementById('manualContactTriggerBtn')?.addEventListener('click', () => {
+        const modal = document.getElementById('manualContactModal');
+        if (modal) {
+            document.getElementById('editingContactId').value = '';
+            document.getElementById('manualContactImage').value = '';
+            document.getElementById('manualContactName').value = '';
+            document.getElementById('manualContactRole').value = '';
+            document.getElementById('manualContactPhone').value = '';
+            document.getElementById('manualContactEmail').value = '';
+            document.getElementById('manualContactNotes').value = '';
+            
+            const statusTxt = document.getElementById('cameraStatusText');
+            if (statusTxt) statusTxt.innerText = "No photo captured";
+            
+            modal.style.display = 'flex';
+        }
+    });
+
+    document.getElementById('profileEditBtn')?.addEventListener('click', () => {
+        if (activeSelectedContact) {
+            openEditContactModal(activeSelectedContact);
+        }
+    });
+
+    document.getElementById('profileDeleteBtn')?.addEventListener('click', async () => {
+        if (activeSelectedContact && confirm("Are you sure you want to remove this contact entry?")) {
+            const success = await deleteContact(activeSelectedContact.id);
+            if (success) {
+                localContactsList = await fetchContacts(viewContext.facility?.id);
+                renderGrid(localContactsList);
+                hideContactProfile();
+            } else {
+                alert("[ERR-VIEW_3_LOGIC] Could not clear contact record.");
+            }
+        }
+    });
+
+    // Execute standard event attachment setup 
     setupContactsEvents({
         facilityId: viewContext.facility?.id,
         onRefresh: async () => {
