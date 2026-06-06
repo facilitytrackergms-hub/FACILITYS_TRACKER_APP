@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_5_issues/view_5_data.js
-UPDATED: 2026-06-04 08:52:00 PM
+UPDATED: 2026-06-06 06:14:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -144,3 +144,6 @@ export async function deleteFacilityIssue(issueId) {
 
     return { success: true };
 }
+
+// ALIAS EXPORT: Satisfies view_5_grid.js expecting 'insertFacilityIssue' 
+export { saveFacilityIssue as insertFacilityIssue };
