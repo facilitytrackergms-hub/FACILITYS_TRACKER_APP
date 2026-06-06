@@ -6,6 +6,8 @@ STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
+const __FILENAME = 'view_8_modal.js';
+
 import { fetchReportIssues, fetchIssueFollowups, fetchFacilityImages } from './view_8_data.js';
 
 export async function renderReports(data) {
