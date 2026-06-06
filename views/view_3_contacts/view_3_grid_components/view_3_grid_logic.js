@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 07:12 PM
+LAST UPDATED : 2026-06-06 @ 07:19 PM
 ================================================================*/
 const __FILENAME = 'view_3_grid_logic.js';
 
@@ -62,12 +62,10 @@ function getSanitizedAvatar(url) {
     if (!url || typeof url !== 'string') {
         return OFFLINE_AVATAR_IMAGE;
     }
-    
     const cleanedUrl = url.trim().toLowerCase();
     if (cleanedUrl === '' || cleanedUrl === 'undefined' || cleanedUrl === 'null' || cleanedUrl.includes('via.placeholder.com')) {
         return OFFLINE_AVATAR_IMAGE;
     }
-    
     return url;
 }
 
@@ -92,30 +90,47 @@ function renderGrid(contacts) {
     const grid = document.getElementById('contactsGridElement');
     if (!grid) return;
 
+    grid.innerHTML = '';
+
     if (!contacts || contacts.length === 0) {
         grid.innerHTML = `<p style="color:#6b7280; font-size:14px; grid-column:1/-1; text-align:center;">No contacts found for this facility.</p>`;
         return;
     }
 
-    grid.innerHTML = contacts.map(c => {
+    contacts.forEach(c => {
         const secureUrl = getSanitizedAvatar(c.avatar_url || c.image_url);
-        return `
-            <div class="contact-thumbnail" data-contact-id="${c.id}">
-                <img src="${secureUrl}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
-                <div class="thumbnail-name">${c.name || 'Unnamed'}</div>
-                <div class="thumbnail-role">${c.role || 'General'}</div>
-            </div>
-        `;
-    }).join('');
 
-    grid.querySelectorAll('.contact-thumbnail').forEach(thumb => {
-        thumb.addEventListener('click', () => {
-            const id = thumb.getAttribute('data-contact-id');
-            const selected = localContactsList.find(c => String(c.id) === String(id));
+        const card = document.createElement('div');
+        card.className = 'contact-thumbnail';
+        card.setAttribute('data-contact-id', c.id);
+
+        const img = document.createElement('img');
+        img.src = secureUrl;
+        img.style.width = '50px';
+        img.style.height = '50px';
+        img.style.borderRadius = '50%';
+        img.style.objectFit = 'cover';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'thumbnail-name';
+        nameDiv.textContent = c.name || 'Unnamed';
+
+        const roleDiv = document.createElement('div');
+        roleDiv.className = 'thumbnail-role';
+        roleDiv.textContent = c.role || 'General';
+
+        card.appendChild(img);
+        card.appendChild(nameDiv);
+        card.appendChild(roleDiv);
+
+        card.addEventListener('click', () => {
+            const selected = localContactsList.find(item => String(item.id) === String(c.id));
             if (selected) {
                 showContactProfile(selected);
             }
         });
+
+        grid.appendChild(card);
     });
 }
 
