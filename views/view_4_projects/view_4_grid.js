@@ -1,10 +1,10 @@
 /*================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : [Insert File Name - e.g., view_1_data.js]
-SUPABASE TBL : [Insert Table Name - e.g., facilities]
-VIEW NAME    : [Insert View Name - e.g., Add New Facility]
-POP-UP TITLE : [Insert Pop-Up Title - e.g., Create Directory Entry]
+FILE NAME    : view_4_grid.js
+SUPABASE TBL : facilities
+VIEW NAME    : Active Projects Tracker
+POP-UP TITLE : New Project Entry
 LAST UPDATED : 2026-06-06 @ 05:09 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
@@ -75,7 +75,7 @@ export async function renderPendingProjects(data) {
 
     const styles = `
         <style>
-            .projects-container { padding:20px; font-family:Arial; background:#f3f4f6; min-height:100vh; text-align:center; box-sizing:border-box; }
+            .projects-container { position:relative; padding:20px; font-family:Arial; background:#f3f4f6; min-height:100vh; text-align:center; box-sizing:border-box; padding-bottom:60px; }
             .projects-header-title { color:#00264d; font-size:22px; text-transform:uppercase; margin-bottom:5px; }
             .projects-header-sub { color:#4b5563; margin-bottom:25px; }
             .projects-layout-stack { display:flex; flex-direction:column; gap:15px; max-width:400px; margin:0 auto; }
@@ -93,6 +93,7 @@ export async function renderPendingProjects(data) {
             .project-form-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .project-form-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
             .project-form-actions { display:flex; flex-direction:column; gap:8px; margin-top:20px; }
+            .ui-metadata-tag-view4 { position:absolute; bottom:10px; right:15px; font-size:10px; color:#9ca3af; font-family:monospace; text-align:right; pointer-events:none; }
         </style>
     `;
 
@@ -128,6 +129,10 @@ export async function renderPendingProjects(data) {
                         <button id="projectTrackCloseBtn" class="project-action-btn project-btn-gray">Cancel</button>
                     </div>
                 </div>
+            </div>
+
+            <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
+                Source: view_4_grid.js | Updated: 2026-06-06 05:09 AM
             </div>
         </div>
     `;
