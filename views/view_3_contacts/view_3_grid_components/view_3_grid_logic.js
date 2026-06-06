@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 07:06 PM
+LAST UPDATED : 2026-06-06 @ 07:12 PM
 ================================================================*/
 const __FILENAME = 'view_3_grid_logic.js';
 
@@ -59,9 +59,15 @@ let viewContext = null;
 const OFFLINE_AVATAR_IMAGE = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100" fill="%239ca3af"><circle cx="50" cy="50" r="50" fill="%23e5e7eb"/><circle cx="50" cy="40" r="20"/><path d="M20,80 C20,60 80,60 80,80 Z"/></svg>`;
 
 function getSanitizedAvatar(url) {
-    if (!url || typeof url !== 'string' || url.trim() === '' || url === 'undefined' || url.includes('via.placeholder.com')) {
+    if (!url || typeof url !== 'string') {
         return OFFLINE_AVATAR_IMAGE;
     }
+    
+    const cleanedUrl = url.trim().toLowerCase();
+    if (cleanedUrl === '' || cleanedUrl === 'undefined' || cleanedUrl === 'null' || cleanedUrl.includes('via.placeholder.com')) {
+        return OFFLINE_AVATAR_IMAGE;
+    }
+    
     return url;
 }
 
