@@ -47,7 +47,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
 ================================================================
-
+// Paste your specific file's import statements and source code here...
 import { fetchFacilities } from './view_1_data.js';
 import { setupFacilitiesEvents } from './view_1_modal.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
