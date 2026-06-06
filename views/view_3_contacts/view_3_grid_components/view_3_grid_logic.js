@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 05:32 PM
+LAST UPDATED : 2026-06-06 @ 05:35 PM
 ================================================================*/
 import { fetchContacts, insertContact, deleteContact } from '../view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from '../view_3_modal.js';
@@ -53,6 +53,19 @@ import { renderFacilityIssues } from '../../view_5_issues/view_5_grid.js';
 let localContactsList = [];
 let activeSelectedContact = null;
 let viewContext = null;
+
+// Inline SVG Data URL definition used when a placeholder URL is detected or missing entirely
+const SAFE_AVATAR_FALLBACK = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100" fill="%239ca3af"><circle cx="50" cy="50" r="50" fill="%23e5e7eb"/><circle cx="50" cy="40" r="20"/><path d="M20,80 C20,60 80,60 80,80 Z"/></svg>`;
+
+/**
+ * Sanitizes URLs to safeguard against broken connections to known placeholder domains
+ */
+function cleanAvatarUrl(url) {
+    if (!url || url.includes('via.placeholder.com')) {
+        return SAFE_AVATAR_FALLBACK;
+    }
+    return url;
+}
 
 export async function initializeGridLogic(context) {
     viewContext = context;
@@ -80,13 +93,17 @@ function renderGrid(contacts) {
         return;
     }
 
-    grid.innerHTML = contacts.map(c => `
-        <div class="contact-thumbnail" data-contact-id="${c.id}">
-            <img src="${c.avatar_url || c.image_url || 'https://via.placeholder.com/50'}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
-            <div class="thumbnail-name">${c.name || 'Unnamed'}</div>
-            <div class="thumbnail-role">${c.role || 'General'}</div>
-        </div>
-    `).join('');
+    grid.innerHTML = contacts.map(c => {
+        const sourceUrl = c.avatar_url || c.image_url || '';
+        const safeUrl = cleanAvatarUrl(sourceUrl);
+        return `
+            <div class="contact-thumbnail" data-contact-id="${c.id}">
+                <img src="${safeUrl}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
+                <div class="thumbnail-name">${c.name || 'Unnamed'}</div>
+                <div class="thumbnail-role">${c.role || 'General'}</div>
+            </div>
+        `;
+    }).join('');
 
     grid.querySelectorAll('.contact-thumbnail').forEach(thumb => {
         thumb.addEventListener('click', () => {
@@ -105,7 +122,8 @@ function showContactProfile(contact) {
     document.getElementById('directorySelectionLayout').style.display = 'none';
     const panel = document.getElementById('contactDetailPane');
     
-    document.getElementById('detailAvatar').src = contact.avatar_url || contact.image_url || 'https://via.placeholder.com/70';
+    const sourceUrl = contact.avatar_url || contact.image_url || '';
+    document.getElementById('detailAvatar').src = cleanAvatarUrl(sourceUrl);
     document.getElementById('detailName').textContent = contact.name || 'Contact Profile';
     document.getElementById('detailRole').textContent = contact.role || 'N/A';
     
