@@ -200,7 +200,7 @@ export async function renderFacilityIssues(data) {
         });
     }
 
-    // FIXED: Intercept contextual payloads sent from the profile view
+   // FIXED: Intercept contextual payloads sent from the profile view
     if (data?.openFormInstantly) {
         document.getElementById('issueFormTitle').value = '';
         document.getElementById('issueFormDesc').value = '';
@@ -216,6 +216,7 @@ export async function renderFacilityIssues(data) {
     await loadIssuesListData();
 }
 
+/*================================================================
 ACTION REQUIRED BY AI:
 1. Scan this file for any import statements or paths pointing to 'view_3_grid.js'.
 2. Update those paths so they correctly target the new folder and split files:
