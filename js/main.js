@@ -1,6 +1,20 @@
-/* =================================================
+/*================================================================
+AUTOMATED PATH UPDATE INSTRUCTION
+================================================================
+NEW ROOT DIRECTORY FOR COMPONENT:
+FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/
+
+ACTION REQUIRED BY AI:
+1. Scan this file for any import statements or paths pointing to 'view_3_grid.js'.
+2. Update those paths so they correctly target the new folder and split files:
+   - view_3_grid.js
+   - view_3_grid_logic.js
+3. Ensure all other local relative paths (../) are mathematically adjusted 
+   to account for the deeper directory depth of the new folder level.
+4. Run the LINE COUNT AUDIT before writing code.
+================================================================*/   /* =================================================
 FILE: main.js
-UPDATED: 2026-06-04 05:30:00 PM
+UPDATED: 2026-06-06 05:16:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -41,7 +55,7 @@ window.navigateTo = async (view, context = {}) => {
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_contacts') {
-            const { renderFacilityContacts } = await import(`../views/view_3_contacts/view_3_grid.js${cb}`);
+            const { renderFacilityContacts } = await import(`../views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
             await renderFacilityContacts(context);
         }
         else if (view === 'view_4_projects') {
