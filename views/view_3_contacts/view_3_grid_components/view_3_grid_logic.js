@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 05:38 PM
+LAST UPDATED : 2026-06-06 @ 05:42 PM
 ================================================================*/
 import { fetchContacts, insertContact, deleteContact } from '../view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from '../view_3_modal.js';
@@ -54,15 +54,15 @@ let localContactsList = [];
 let activeSelectedContact = null;
 let viewContext = null;
 
-// Clean, memory-loaded vector avatar to prevent network placeholders from leaking into style attributes
-const LOCAL_VECTOR_AVATAR = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100" fill="%239ca3af"><circle cx="50" cy="50" r="50" fill="%23e5e7eb"/><circle cx="50" cy="40" r="20"/><path d="M20,80 C20,60 80,60 80,80 Z"/></svg>`;
+// Local offline baseline SVG avatar data string to handle connection drops smoothly
+const OFFLINE_AVATAR_IMAGE = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100" fill="%239ca3af"><circle cx="50" cy="50" r="50" fill="%23e5e7eb"/><circle cx="50" cy="40" r="20"/><path d="M20,80 C20,60 80,60 80,80 Z"/></svg>`;
 
 /**
- * Validates and falls back safely if the URL string points to a broken or missing asset
+ * Validates target asset urls and switches to a local fallback if an external placeholder link is detected
  */
-function getSafeAvatar(url) {
-    if (!url || url.trim() === '' || url.includes('via.placeholder.com')) {
-        return LOCAL_VECTOR_AVATAR;
+function getSanitizedAvatar(url) {
+    if (!url || typeof url !== 'string' || url.trim() === '' || url.includes('via.placeholder.com')) {
+        return OFFLINE_AVATAR_IMAGE;
     }
     return url;
 }
@@ -94,11 +94,11 @@ function renderGrid(contacts) {
     }
 
     grid.innerHTML = contacts.map(c => {
-        // Sanitize image parameters explicitly to defend HTML layout borders
-        const validatedUrl = getSafeAvatar(c.avatar_url || c.image_url);
+        // Evaluate dynamic sources outside the template layout context to safeguard HTML boundaries
+        const secureUrl = getSanitizedAvatar(c.avatar_url || c.image_url);
         return `
             <div class="contact-thumbnail" data-contact-id="${c.id}">
-                <img src="${validatedUrl}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
+                <img src="${secureUrl}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
                 <div class="thumbnail-name">${c.name || 'Unnamed'}</div>
                 <div class="thumbnail-role">${c.role || 'General'}</div>
             </div>
@@ -122,8 +122,8 @@ function showContactProfile(contact) {
     document.getElementById('directorySelectionLayout').style.display = 'none';
     const panel = document.getElementById('contactDetailPane');
     
-    const profileUrl = getSafeAvatar(contact.avatar_url || contact.image_url);
-    document.getElementById('detailAvatar').src = profileUrl;
+    const contextUrl = getSanitizedAvatar(contact.avatar_url || contact.image_url);
+    document.getElementById('detailAvatar').src = contextUrl;
     document.getElementById('detailName').textContent = contact.name || 'Contact Profile';
     document.getElementById('detailRole').textContent = contact.role || 'N/A';
     
