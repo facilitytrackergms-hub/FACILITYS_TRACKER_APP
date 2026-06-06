@@ -46,8 +46,11 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 11. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
-================================================================
-*/
+    
+12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
+    in this header (File Name, Table, View, Title, Date, Time) are 
+    fully updated and preserved at the top of the file.
+================================================================*/
 const __FILENAME = 'view_1_grid.js';
 import { fetchFacilities } from './view_1_data.js';
 import { setupFacilitiesEvents } from './view_1_modal.js';
