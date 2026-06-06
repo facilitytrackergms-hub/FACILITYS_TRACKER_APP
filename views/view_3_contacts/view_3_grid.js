@@ -1,12 +1,62 @@
-/* =================================================
-FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-05 09:21:00 PM
+/*================================================================
+FILE METADATA
+================================================================
+FILE NAME    : view_3_grid.js
+SUPABASE TBL : contacts
+VIEW NAME    : Facility Directory
+POP-UP TITLE : Create Directory Entry
+LAST UPDATED : 2026-06-06 @ 08:34 AM
+================================================================
+AI CODING RULES & CONSTRAINTS (Read before making any changes)
+================================================================
+1. STRICT ADHERENCE: Always follow these rules without exception.
 
-STRICT HEADER RULE:
-Do not ever remove or change this header section.
-Always keep the header at the top of current files and new files.
-================================================= */
-const __FILENAME = 'view_3_grid.js';
+2. MISSING METADATA HANDLING: If any fields in the FILE METADATA 
+   section above are generic placeholders or missing, the AI must 
+   immediately read the provided source code below to determine the 
+   correct tables/views/titles. CRITICAL FOR FILE NAME: Look strictly 
+   at the user's prompt text or comments for the exact sequential 
+   filename (e.g., view_2_data.js). NEVER invent, guess, or substitute 
+   a descriptive semantic name (like facility_data_service.js) based 
+   on the code context. If the exact filename cannot be verified, 
+   leave the placeholder intact or ask the user.
+
+3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
+   in this header unless explicitly asked by the user.
+
+4. SCOPE OF WORK: Only modify the specific functions, lines, or 
+   features requested in the prompt.
+
+5. PRESERVATION: Do NOT refactor, rename, or optimize any other 
+   part of the code. Leave all working logic exactly as it is.
+
+6. LOGGING CHANGES: If a variable name or structure must change to 
+   make a fix work, explicitly state *why* in the text response 
+   before showing the code.
+
+7. CODE COMPLETENESS: Provide the full updated function or file so 
+   nothing gets accidentally lost in translation.
+
+8. VIEW IDENTIFIERS: Ensure the view/pop-up has a visible UI tag 
+   identifying its source file, last update date, and time. If missing, 
+   add it to the UI layout. Update this tag on every modification.
+
+9. NO BLIND CODE: Never create a new file or assume the contents of 
+   an existing file unless the current code is fully pasted into 
+   the prompt. If missing, stop and ask for it.
+
+10. UNIQUE ALERTS: Never use generic default message boxes for custom 
+    notifications. Always add a distinct, visible ID or tag to the 
+    message box UI referencing its specific component/file.
+
+11. CODE BLOCK DELIVERY: Always deliver the entire updated file, 
+     including this header and all rules, wrapped completely inside 
+     a single markdown code block to allow for easy copying.
+
+12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
+     in this header (File Name, Table, View, Title, Date, Time) are 
+     fully updated and preserved at the top of the file.
+================================================================*/
 import { fetchContacts, insertContact, deleteContact } from './view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from './view_3_modal.js';
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
@@ -69,7 +119,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 09:21:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-06 08:34:00 AM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -112,148 +162,4 @@ export async function renderFacilityContacts(data) {
                     <input type="text" id="manualContactRole" class="form-field-input">
 
                     <label class="form-field-label">Phone Number</label>
-                    <input type="text" id="manualContactPhone" class="form-field-input">
-
-                    <label class="form-field-label">Email Address</label>
-                    <input type="email" id="manualContactEmail" class="form-field-input">
-
-                    <label class="form-field-label">Contact Notes</label>
-                    <textarea id="manualContactNotes" class="form-field-input" style="height:60px; resize:none;"></textarea>
-
-                    <div class="form-action-group" style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
-                        <button id="customSaveContactBtn" class="contacts-view-btn btn-navy">Save Details</button>
-                        <button id="manualContactCloseBtn" class="contacts-view-btn btn-gray">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // Local runtime callback helper to clear visibility context states instantly
-    const triggerLocalViewRefresh = async () => {
-        document.getElementById('contactDetailPane').style.display = 'none';
-        document.getElementById('directorySelectionLayout').style.display = 'block';
-        document.getElementById('viewBuildStampInfo').style.display = 'block';
-        document.getElementById('viewHeaderTitle').innerText = "Facility Directory";
-        await loadContactsGridData();
-    };
-
-    setupContactsEvents(facility, triggerLocalViewRefresh);
-
-    document.getElementById('backBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
-    };
-
-    document.getElementById('closeDetailPaneBtn').onclick = () => {
-        document.getElementById('contactDetailPane').style.display = 'none';
-        document.getElementById('directorySelectionLayout').style.display = 'block';
-        document.getElementById('viewBuildStampInfo').style.display = 'block';
-        document.getElementById('viewHeaderTitle').innerText = "Facility Directory";
-    };
-
-    // Toolbelt profile navigation action workflows
-    document.getElementById('profileEditBtn').onclick = () => {
-        if (activeSelectedContact) {
-            openEditContactModal(activeSelectedContact);
-        }
-    };
-
-    document.getElementById('profileDeleteBtn').onclick = async () => {
-        if (!activeSelectedContact) return;
-        const confirmCheck = confirm(`Are you sure you want to completely delete ${activeSelectedContact.name}?`);
-        if (!confirmCheck) return;
-
-        const deleted = await deleteContact(activeSelectedContact.id);
-        if (deleted) {
-            await triggerLocalViewRefresh();
-        } else {
-            alert("Could not complete delete operation request.");
-        }
-    };
-
-    document.getElementById('profileAddIssueBtn').onclick = () => {
-        if (!activeSelectedContact) return;
-        if (window.navigateTo) {
-            window.navigateTo('view_5_issues', {
-                facility: facility,
-                openFormInstantly: true,
-                prefilledReporterName: activeSelectedContact.name
-            });
-        }
-    };
-
-    async function loadContactsGridData() {
-        if (!facility?.id) return;
-        const grid = document.getElementById('contactsGridElement');
-        if (!grid) return;
-        
-        const contacts = await fetchContacts(facility.id);
-        localContactsList = contacts || [];
-        grid.innerHTML = '';
-
-        if (localContactsList.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#9ca3af; font-size:13px; padding:10px;">No contacts found.</div>';
-            return;
-        }
-
-        localContactsList.forEach(c => {
-            const block = document.createElement('div');
-            block.className = 'contact-thumbnail';
-            const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || 'Staff')}&background=00264d&color=fff`;
-            
-            block.innerHTML = `
-                <img src="${c.image_url || fallbackAvatar}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;" />
-                <div class="thumbnail-name">${c.name}</div>
-                <div class="thumbnail-role">${c.role || 'Staff'}</div>
-            `;
-
-            block.onclick = () => {
-                if (returnToView === 'view_5_issues' && window.navigateTo) {
-                    window.navigateTo('view_5_issues', {
-                        facility: facility,
-                        openFormInstantly: true,
-                        selectedContact: { id: c.id, name: c.name },
-                        cachedIssueForm: cachedIssueForm
-                    });
-                } else {
-                    activeSelectedContact = c;
-                    
-                    document.getElementById('directorySelectionLayout').style.display = 'none';
-                    document.getElementById('viewBuildStampInfo').style.display = 'none';
-                    document.getElementById('viewHeaderTitle').innerText = "Contact Profile";
-
-                    document.getElementById('detailAvatar').src = c.image_url || fallbackAvatar;
-                    document.getElementById('detailName').innerText = c.name;
-                    document.getElementById('detailRole').innerText = c.role || 'Staff';
-                    
-                    const pLink = document.getElementById('detailPhoneLink');
-                    if (c.phone && c.phone !== 'N/A') {
-                        pLink.innerText = c.phone;
-                        pLink.href = `tel:${c.phone}`;
-                        pLink.style.display = 'inline';
-                    } else {
-                        pLink.innerText = 'N/A';
-                        pLink.removeAttribute('href');
-                    }
-
-                    const eLink = document.getElementById('detailEmailLink');
-                    if (c.email) {
-                        eLink.innerText = c.email;
-                        eLink.href = `mailto:${c.email}`;
-                        eLink.style.display = 'inline';
-                    } else {
-                        eLink.innerText = 'None';
-                        eLink.removeAttribute('href');
-                    }
-
-                    document.getElementById('detailNotes').innerText = c.notes || 'No custom details left.';
-                    document.getElementById('contactDetailPane').style.display = 'block';
-                }
-            };
-
-            grid.appendChild(block);
-        });
-    }
-
-    await loadContactsGridData();
-}
+                    <input type="text" id="manualContactPhone" class="form-field-input
