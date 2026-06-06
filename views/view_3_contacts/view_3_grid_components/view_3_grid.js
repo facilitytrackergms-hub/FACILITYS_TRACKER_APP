@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 07:05 PM
+LAST UPDATED : 2026-06-06 @ 07:48 PM
 ================================================================*/
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
@@ -89,7 +89,7 @@ export async function renderFacilityContacts(data) {
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
-            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
+            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:6px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; word-wrap:break-word; word-break:break-all; white-space:normal; overflow:hidden; }
         </style>
     `;
 
@@ -102,7 +102,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 07:05:00 PM
+                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 07:48:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
