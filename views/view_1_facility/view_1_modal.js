@@ -48,6 +48,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     fully updated and preserved at the top of the file.
 ================================================================
 */
+const __FILENAME = 'view_1_modal.js';
 import { insertFacility } from './view_1_data.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
 
