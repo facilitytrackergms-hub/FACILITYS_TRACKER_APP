@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 05:42 PM
+LAST UPDATED : 2026-06-06 @ 06:00 PM
 ================================================================*/
 import { fetchContacts, insertContact, deleteContact } from '../view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from '../view_3_modal.js';
@@ -94,7 +94,6 @@ function renderGrid(contacts) {
     }
 
     grid.innerHTML = contacts.map(c => {
-        // Evaluate dynamic sources outside the template layout context to safeguard HTML boundaries
         const secureUrl = getSanitizedAvatar(c.avatar_url || c.image_url);
         return `
             <div class="contact-thumbnail" data-contact-id="${c.id}">
