@@ -1,11 +1,11 @@
 /*================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : [Insert File Name - e.g., view_1_data.js]
-SUPABASE TBL : [Insert Table Name - e.g., facilities]
-VIEW NAME    : [Insert View Name - e.g., Add New Facility]
-POP-UP TITLE : [Insert Pop-Up Title - e.g., Create Directory Entry]
-LAST UPDATED : 2026-06-06 @ 05:09 AM
+FILE NAME    : view_4_modal.js
+SUPABASE TBL : facility_projects
+VIEW NAME    : Project Track Form View
+POP-UP TITLE : projectTrackFormModal
+LAST UPDATED : 2026-06-06 @ 08:43 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -50,12 +50,12 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     message box UI referencing its specific component/file.
 
 11. CODE BLOCK DELIVERY: Always deliver the entire updated file, 
-    including this header and all rules, wrapped completely inside 
-    a single markdown code block to allow for easy copying.
+     including this header and all rules, wrapped completely inside 
+     a single markdown code block to allow for easy copying.
 
 12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
-    in this header (File Name, Table, View, Title, Date, Time) are 
-    fully updated and preserved at the top of the file.
+     in this header (File Name, Table, View, Title, Date, Time) are 
+     fully updated and preserved at the top of the file.
 ================================================================*/
 const __FILENAME = 'view_4_modal.js';
 
@@ -79,7 +79,7 @@ export function setupProjectsEvents(facility, renderPendingProjectsFn) {
     document.getElementById('projectTrackSaveBtn').onclick = async () => {
         const titleVal = document.getElementById('projectTrackTitleInput').value.trim();
         if (!titleVal) {
-            alert("Please supply a project scope title descriptor.");
+            alert("[view_4_modal.js] Notification: Please supply a project scope title descriptor.");
             return;
         }
 
@@ -100,9 +100,9 @@ export function setupProjectsEvents(facility, renderPendingProjectsFn) {
             await renderPendingProjectsFn(facility);
         } catch (error) {
             if (error.code === '23505') {
-                alert("Database Constraint Error: This facility is restricted to a single project row in the database schema.");
+                alert("[view_4_modal.js] Database Constraint Error: This facility is restricted to a single project row in the database schema.");
             } else {
-                alert(`Could not append project details: ${error.message}`);
+                alert(`[view_4_modal.js] Error: Could not append project details: ${error.message}`);
             }
         }
     };
