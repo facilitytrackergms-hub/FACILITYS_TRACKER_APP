@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 05:35 PM
+LAST UPDATED : 2026-06-06 @ 05:38 PM
 ================================================================*/
 import { fetchContacts, insertContact, deleteContact } from '../view_3_data.js';
 import { setupContactsEvents, openEditContactModal } from '../view_3_modal.js';
@@ -54,15 +54,15 @@ let localContactsList = [];
 let activeSelectedContact = null;
 let viewContext = null;
 
-// Inline SVG Data URL definition used when a placeholder URL is detected or missing entirely
-const SAFE_AVATAR_FALLBACK = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100" fill="%239ca3af"><circle cx="50" cy="50" r="50" fill="%23e5e7eb"/><circle cx="50" cy="40" r="20"/><path d="M20,80 C20,60 80,60 80,80 Z"/></svg>`;
+// Clean, memory-loaded vector avatar to prevent network placeholders from leaking into style attributes
+const LOCAL_VECTOR_AVATAR = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100" fill="%239ca3af"><circle cx="50" cy="50" r="50" fill="%23e5e7eb"/><circle cx="50" cy="40" r="20"/><path d="M20,80 C20,60 80,60 80,80 Z"/></svg>`;
 
 /**
- * Sanitizes URLs to safeguard against broken connections to known placeholder domains
+ * Validates and falls back safely if the URL string points to a broken or missing asset
  */
-function cleanAvatarUrl(url) {
-    if (!url || url.includes('via.placeholder.com')) {
-        return SAFE_AVATAR_FALLBACK;
+function getSafeAvatar(url) {
+    if (!url || url.trim() === '' || url.includes('via.placeholder.com')) {
+        return LOCAL_VECTOR_AVATAR;
     }
     return url;
 }
@@ -94,11 +94,11 @@ function renderGrid(contacts) {
     }
 
     grid.innerHTML = contacts.map(c => {
-        const sourceUrl = c.avatar_url || c.image_url || '';
-        const safeUrl = cleanAvatarUrl(sourceUrl);
+        // Sanitize image parameters explicitly to defend HTML layout borders
+        const validatedUrl = getSafeAvatar(c.avatar_url || c.image_url);
         return `
             <div class="contact-thumbnail" data-contact-id="${c.id}">
-                <img src="${safeUrl}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
+                <img src="${validatedUrl}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" />
                 <div class="thumbnail-name">${c.name || 'Unnamed'}</div>
                 <div class="thumbnail-role">${c.role || 'General'}</div>
             </div>
@@ -122,8 +122,8 @@ function showContactProfile(contact) {
     document.getElementById('directorySelectionLayout').style.display = 'none';
     const panel = document.getElementById('contactDetailPane');
     
-    const sourceUrl = contact.avatar_url || contact.image_url || '';
-    document.getElementById('detailAvatar').src = cleanAvatarUrl(sourceUrl);
+    const profileUrl = getSafeAvatar(contact.avatar_url || contact.image_url);
+    document.getElementById('detailAvatar').src = profileUrl;
     document.getElementById('detailName').textContent = contact.name || 'Contact Profile';
     document.getElementById('detailRole').textContent = contact.role || 'N/A';
     
@@ -167,45 +167,6 @@ function bindCoreDOMEvents() {
         }
     });
 
-    // Wire up listeners for modal open actions
-    document.getElementById('manualContactTriggerBtn')?.addEventListener('click', () => {
-        const modal = document.getElementById('manualContactModal');
-        if (modal) {
-            document.getElementById('editingContactId').value = '';
-            document.getElementById('manualContactImage').value = '';
-            document.getElementById('manualContactName').value = '';
-            document.getElementById('manualContactRole').value = '';
-            document.getElementById('manualContactPhone').value = '';
-            document.getElementById('manualContactEmail').value = '';
-            document.getElementById('manualContactNotes').value = '';
-            
-            const statusTxt = document.getElementById('cameraStatusText');
-            if (statusTxt) statusTxt.innerText = "No photo captured";
-            
-            modal.style.display = 'flex';
-        }
-    });
-
-    document.getElementById('profileEditBtn')?.addEventListener('click', () => {
-        if (activeSelectedContact) {
-            openEditContactModal(activeSelectedContact);
-        }
-    });
-
-    document.getElementById('profileDeleteBtn')?.addEventListener('click', async () => {
-        if (activeSelectedContact && confirm("Are you sure you want to remove this contact entry?")) {
-            const success = await deleteContact(activeSelectedContact.id);
-            if (success) {
-                localContactsList = await fetchContacts(viewContext.facility?.id);
-                renderGrid(localContactsList);
-                hideContactProfile();
-            } else {
-                alert("[ERR-VIEW_3_LOGIC] Could not clear contact record.");
-            }
-        }
-    });
-
-    // Execute standard event attachment setup 
     setupContactsEvents({
         facilityId: viewContext.facility?.id,
         onRefresh: async () => {
