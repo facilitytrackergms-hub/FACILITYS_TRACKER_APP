@@ -1,6 +1,6 @@
 /* =================================================
 FILE: views/view_3_contacts/view_3_grid.js
-UPDATED: 2026-06-05 08:30:00 PM
+UPDATED: 2026-06-05 08:45:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -59,7 +59,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 08:30:00 PM
+                    File: views/view_3_contacts/view_3_grid.js<br>Updated: 2026-06-05 08:45:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -204,55 +204,46 @@ export async function renderFacilityContacts(data) {
             `;
 
             block.onclick = () => {
-                if (returnToView === 'view_5_issues' && window.navigateTo) {
-                    window.navigateTo('view_5_issues', {
-                        facility: facility,
-                        openFormInstantly: true,
-                        selectedContact: { id: c.id, name: c.name },
-                        cachedIssueForm: cachedIssueForm
-                    });
-                } else {
-                    document.getElementById('modalTemplateTitle').innerText = "Modify Contact Details";
-                    document.getElementById('editingContactId').value = c.id;
-                    document.getElementById('manualContactName').value = c.name || '';
-                    document.getElementById('manualContactRole').value = c.role || '';
-                    document.getElementById('manualContactPhone').value = c.phone || '';
-                    document.getElementById('manualContactEmail').value = c.email || '';
-                    document.getElementById('manualContactNotes').value = c.notes || '';
+                document.getElementById('modalTemplateTitle').innerText = "Modify Contact Details";
+                document.getElementById('editingContactId').value = c.id;
+                document.getElementById('manualContactName').value = c.name || '';
+                document.getElementById('manualContactRole').value = c.role || '';
+                document.getElementById('manualContactPhone').value = c.phone || '';
+                document.getElementById('manualContactEmail').value = c.email || '';
+                document.getElementById('manualContactNotes').value = c.notes || '';
 
-                    // RESTORED: Trigger new issue view form and pipe selected directory credentials through
-                    const createNewIssueBtn = document.getElementById('createNewIssueBtn');
-                    if (createNewIssueBtn) {
-                        createNewIssueBtn.style.visibility = 'visible';
-                        createNewIssueBtn.onclick = () => {
-                            if (window.navigateTo) {
-                                window.navigateTo('view_5_issues', {
-                                    facility: facility,
-                                    openFormInstantly: true,
-                                    selectedContact: { id: c.id, name: c.name }
-                                });
-                            }
-                        };
-                    }
-
-                    const viewIssuesLogBtn = document.getElementById('viewIssuesLogBtn');
-                    if (viewIssuesLogBtn) {
-                        viewIssuesLogBtn.style.visibility = 'visible';
-                        viewIssuesLogBtn.onclick = () => {
-                            if (window.openContactIssuesModal) {
-                                const matchedIssues = rawIssues.filter(i => String(i.initiated_by).toLowerCase() === String(c.name).toLowerCase());
-                                window.openContactIssuesModal(matchedIssues, facility.id, c.name);
-                            }
-                        };
-                    }
-
-                    const deleteContactBtn = document.getElementById('deleteContactBtn');
-                    if (deleteContactBtn) {
-                        deleteContactBtn.style.visibility = 'visible';
-                    }
-
-                    document.getElementById('manualContactModal').style.display = 'flex';
+                // RESTORED & OPTIMIZED: Instruct view_5 to open the request form instantly and auto-fill the contact name
+                const createNewIssueBtn = document.getElementById('createNewIssueBtn');
+                if (createNewIssueBtn) {
+                    createNewIssueBtn.style.visibility = 'visible';
+                    createNewIssueBtn.onclick = () => {
+                        if (window.navigateTo) {
+                            window.navigateTo('view_5_issues', {
+                                facility: facility,
+                                openFormInstantly: true, // Tells view_5 to open the form immediately (3rd image)
+                                selectedContact: { id: c.id, name: c.name } // Passes down the direct name to auto-fill "Reported By"
+                            });
+                        }
+                    };
                 }
+
+                const viewIssuesLogBtn = document.getElementById('viewIssuesLogBtn');
+                if (viewIssuesLogBtn) {
+                    viewIssuesLogBtn.style.visibility = 'visible';
+                    viewIssuesLogBtn.onclick = () => {
+                        if (window.openContactIssuesModal) {
+                            const matchedIssues = rawIssues.filter(i => String(i.initiated_by).toLowerCase() === String(c.name).toLowerCase());
+                            window.openContactIssuesModal(matchedIssues, facility.id, c.name);
+                        }
+                    };
+                }
+
+                const deleteContactBtn = document.getElementById('deleteContactBtn');
+                if (deleteContactBtn) {
+                    deleteContactBtn.style.visibility = 'visible';
+                }
+
+                document.getElementById('manualContactModal').style.display = 'flex';
             };
 
             grid.appendChild(block);
