@@ -1,4 +1,4 @@
-================================================================
+/*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_1_modal.js
@@ -47,7 +47,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
 ================================================================
-
+*/
 import { insertFacility } from './view_1_data.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
 
