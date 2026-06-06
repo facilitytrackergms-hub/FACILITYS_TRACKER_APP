@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 07:19 PM
+LAST UPDATED : 2026-06-06 @ 07:42 PM
 ================================================================*/
 const __FILENAME = 'view_3_grid_logic.js';
 
@@ -184,6 +184,34 @@ function bindCoreDOMEvents() {
             });
         }
     });
+
+    const cameraTriggerBtn = document.getElementById('cameraTriggerBtn');
+    const cameraFileInput = document.getElementById('manualContactImageFile');
+    const cameraStatusText = document.getElementById('cameraStatusText');
+    const hiddenImageInput = document.getElementById('manualContactImage');
+
+    if (cameraTriggerBtn && cameraFileInput) {
+        cameraTriggerBtn.addEventListener('click', () => {
+            cameraFileInput.click();
+        });
+
+        cameraFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    if (hiddenImageInput) {
+                        hiddenImageInput.value = evt.target.result;
+                    }
+                    if (cameraStatusText) {
+                        cameraStatusText.textContent = "Photo captured successfully";
+                        cameraStatusText.style.color = "#10b981";
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 
     setupContactsEvents({
         facilityId: viewContext.facility?.id,
