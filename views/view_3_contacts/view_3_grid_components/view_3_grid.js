@@ -41,9 +41,9 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
-VIEW NAME    : Facility Directory Grid View
+VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 06:05 PM
+LAST UPDATED : 2026-06-06 @ 07:05 PM
 ================================================================*/
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
@@ -102,7 +102,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 06:05:00 PM
+                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 07:05:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
