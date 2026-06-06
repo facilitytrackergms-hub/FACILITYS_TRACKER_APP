@@ -6,8 +6,8 @@ STRICT HEADER RULE:
 Do not ever remove or change this header section.
 Always keep the header at the top of current files and new files.
 ================================================= */
-import { fetchContacts, insertContact } from './view_3_data.js';
-import { setupContactsEvents } from './view_3_modal.js';
+import { fetchContacts, insertFacilityContact } from './view_3_data.js';
+import { setupContactsEvents, openEditContactModal } from './view_3_modal.js'; // FIXED: Imported openEditContactModal
 import { fetchFacilityIssues } from '../view_5_issues/view_5_data.js';
 
 export async function renderFacilityContacts(data) {
@@ -112,7 +112,7 @@ export async function renderFacilityContacts(data) {
             return;
         }
 
-        const newContact = await insertContact({
+        const newContact = await insertFacilityContact({
             facility_id: facility.id,
             name: name,
             role: role,
@@ -172,8 +172,8 @@ export async function renderFacilityContacts(data) {
                 <div class="thumbnail-role">${c.role || 'Staff'}</div>
             `;
 
+            // FIXED: Handle both workflow navigation AND local modal popups
             block.onclick = () => {
-                // If a user clicks an existing contact while a draft issue is active, pass them back as the reporter
                 if (returnToView === 'view_5_issues' && window.navigateTo) {
                     window.navigateTo('view_5_issues', {
                         facility: facility,
@@ -181,6 +181,9 @@ export async function renderFacilityContacts(data) {
                         selectedContact: { id: c.id, name: c.name },
                         cachedIssueForm: cachedIssueForm
                     });
+                } else {
+                    // Normal browsing mode: open the edit contact details modal!
+                    openEditContactModal(c);
                 }
             };
 
