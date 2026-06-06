@@ -21,7 +21,7 @@ export async function fetchContacts(facilityId) {
             .from('contacts')
             .select('*')
             .eq('facility_id', Number(facilityId))
-            .order('name', { ascending: true });
+            .order('contact_name', { ascending: true }); // Fixed: Changed 'name' to 'contact_name'
 
         if (error) {
             console.error("Error fetching facility contacts:", error.message);
