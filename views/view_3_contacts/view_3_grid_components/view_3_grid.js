@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 08:54 PM
+LAST UPDATED : 2026-06-06 @ 10:15 PM
 ================================================================*/
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
@@ -90,6 +90,13 @@ export async function renderFacilityContacts(data) {
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
             .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:6px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; word-wrap:break-word; word-break:break-all; white-space:normal; overflow:hidden; }
+
+            /* Associated Contextual Layout Elements */
+            .contact-history-header { font-weight:bold; color:#00264d; font-size:12px; text-transform:uppercase; border-top:1px solid #e5e7eb; padding-top:15px; margin-top:15px; display:block; }
+            .contact-history-container { margin-top:8px; display:flex; flex-direction:column; gap:8px; max-height:160px; overflow-y:auto; }
+            .contact-history-item { background:white; border:1px solid #e5e7eb; padding:10px; border-radius:6px; font-size:13px; }
+            .contact-history-title { font-weight:bold; color:#00264d; }
+            .contact-history-meta { font-size:11px; color:#6b7280; margin-top:2px; }
         </style>
     `;
 
@@ -102,7 +109,7 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 08:54:00 PM
+                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 10:15:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
@@ -127,6 +134,9 @@ export async function renderFacilityContacts(data) {
                     <div class="detail-row"><span class="detail-label">Email Address</span><a id="detailEmailLink" class="detail-link" href=""></a></div>
                     <div class="detail-row"><span class="detail-label">Internal Operations Notes</span><span id="detailNotes"></span></div>
                     
+                    <span class="contact-history-header">Reported Maintenance History</span>
+                    <div id="contactIssuesHistoryList" class="contact-history-container">Loading logged history...</div>
+
                     <button id="closeDetailPaneBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Return to Directory</button>
                 </div>
 
