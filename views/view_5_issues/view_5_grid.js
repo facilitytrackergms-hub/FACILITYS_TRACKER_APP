@@ -258,19 +258,19 @@ LAST UPDATED : 2026-06-07 @ 07:12 AM
                 return;
             }
 
-            const matchedContact = localContactsCache.find(c => 
+       const matchedContact = localContactsCache.find(c => 
                 (c.contact_name || '').toLowerCase() === reporter.toLowerCase()
             );
 
             if (!matchedContact) {
                 const shouldAdd = await promptNewContactCreation(reporter);
                 if (shouldAdd && window.navigateTo) {
-                    // PACKAGE & JUMP: Redirect to contacts to finish profile
+                    // BRIDGE: Redirect to contacts with issue payload
                     window.navigateTo('view_3_contacts', { 
                         facility: facility,
-                        openFormInstantly: true,
-                        prefilledContactName: reporter,
-                        pendingIssueData: {
+                        openFormInstantly: true, // Trigger modal on load
+                        prefilledContactName: reporter, // Fill the name
+                        pendingIssueData: { // Save this to add issue AFTER contact is saved
                             facility_id: facility.id,
                             title: title,
                             description: desc,
@@ -278,7 +278,7 @@ LAST UPDATED : 2026-06-07 @ 07:12 AM
                             status: 'Open'
                         }
                     });
-                    return;
+                    return; // Stop here, View 3 takes over
                 }
             }
 
