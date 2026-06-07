@@ -35,7 +35,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 11:53 PM
+LAST UPDATED : 2026-06-07 @ 05:20 AM
 ================================================================*/
 
 import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
@@ -49,9 +49,10 @@ export async function initializeGridLogic(context) {
     viewContext = context;
     console.log("Initializing Contacts View Logic Layer with payload context:", viewContext);
 
-    // Initial table refresh data fetch operations boundary
-    if (viewContext.facility?.id) {
-        localContactsList = await fetchContacts(viewContext.facility.id);
+    // Initial table refresh data fetch operations boundary with unified facility property fallbacks
+    const activeFacilityId = viewContext.facility?.id || viewContext.facilityId;
+    if (activeFacilityId) {
+        localContactsList = await fetchContacts(activeFacilityId);
         renderGrid(localContactsList);
     }
 
@@ -166,7 +167,8 @@ function setupFormActionListeners() {
     if (backToControlsBtn) {
         backToControlsBtn.onclick = () => {
             if (window.navigateTo) {
-                window.navigateTo('view_2_grid', { facility: viewContext.facility });
+                const targetId = viewContext.facility?.id || viewContext.facilityId;
+                window.navigateTo('view_2_grid', { facility: { id: targetId } });
             }
         };
     }
@@ -209,8 +211,10 @@ function setupFormActionListeners() {
                 return;
             }
 
+            const targetFacilityId = viewContext.facility?.id || viewContext.facilityId;
+
             const payload = {
-                facility_id: viewContext.facility?.id,
+                facility_id: targetFacilityId,
                 contact_name: nameValue,
                 role: roleValue,
                 phone: phoneValue,
@@ -237,13 +241,13 @@ function setupFormActionListeners() {
                     
                     // Bounce cleanly back to the maintenance requests view screen with records saved
                     if (window.navigateTo) {
-                        window.navigateTo('view_5_issues', { facility: viewContext.facility });
+                        window.navigateTo('view_5_issues', { facility: { id: targetFacilityId } });
                         return;
                     }
                 }
 
                 // Default standard table refresh fallback if normal creation loop
-                localContactsList = await fetchContacts(viewContext.facility?.id);
+                localContactsList = await fetchContacts(targetFacilityId);
                 renderGrid(localContactsList);
                 hideContactProfile();
             } else {
@@ -282,10 +286,11 @@ function setupMediaCaptureHooks() {
         });
     }
 
+    const currentFacId = viewContext.facility?.id || viewContext.facilityId;
     setupContactsEvents({
-        facilityId: viewContext.facility?.id,
+        facilityId: currentFacId,
         onRefresh: async () => {
-            localContactsList = await fetchContacts(viewContext.facility?.id);
+            localContactsList = await fetchContacts(currentFacId);
             renderGrid(localContactsList);
             hideContactProfile();
         },
