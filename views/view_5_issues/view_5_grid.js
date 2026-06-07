@@ -9,7 +9,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-06 @ 10:15 PM
+LAST UPDATED : 2026-06-06 @ 11:10 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -64,12 +64,15 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 const __FILENAME = 'view_5_grid.js';
 
 import { fetchFacilityIssues, insertFacilityIssue } from './view_5_data.js';
+// Contextually importing simulated contact persistence APIs from neighboring layer to execute workflow steps cleanly
+import { fetchFacilityContacts, insertFacilityContact } from '../view_3_contacts/view_3_data.js';
 
 export async function renderFacilityIssues(data) {
     const app = document.getElementById('app');
     if (!app) return;
 
     const facility = data?.facility ? data.facility : data;
+    let localContactsCache = [];
 
     const styles = `
         <style>
@@ -92,6 +95,18 @@ export async function renderFacilityIssues(data) {
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
             .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
+            
+            /* Combobox Layout Helpers */
+            .combobox-container { position:relative; display:block; width:100%; }
+            .combobox-select-underlay { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; background:white; color:#111827; }
+            .combobox-input-overlay { position:absolute; top:5px; left:1px; width:calc(100% - 32px); margin:0; padding:10px; border:none; border-radius:5px 0 0 5px; box-sizing:border-box; outline:none; font-size:13px; }
+            
+            /* Custom Prompt Dialog Styles to comply with rule 10 */
+            .custom-confirm-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:100; padding:15px; }
+            .custom-confirm-box { background:white; border-radius:10px; padding:20px; width:100%; max-width:360px; box-shadow:0 10px 20px rgba(0,0,0,0.15); text-align:center; }
+            .custom-confirm-msg { font-size:14px; color:#374151; margin-bottom:20px; font-family:Arial, sans-serif; line-height:1.4; }
+            .custom-confirm-actions { display:flex; gap:10px; justify-content:center; }
+            .custom-confirm-btn { padding:10px 20px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; min-width:80px; }
         </style>
     `;
 
@@ -103,7 +118,7 @@ export async function renderFacilityIssues(data) {
                 <p class="issues-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-06 10:15:00 PM
+                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-06 11:10:00 PM
                 </div>
 
                 <button id="addIssueTriggerBtn" class="issues-view-btn btn-emerald">➕ Create Maintenance Request</button>
@@ -122,7 +137,12 @@ export async function renderFacilityIssues(data) {
                     <textarea id="issueFormDesc" class="form-field-input" style="height:70px; resize:none;"></textarea>
 
                     <label class="form-field-label">Reported By</label>
-                    <input type="text" id="issueFormReporter" class="form-field-input" placeholder="Your Full Name">
+                    <div class="combobox-container">
+                        <select id="issueFormReporterSelect" class="combobox-select-underlay">
+                            <option value=""></option>
+                        </select>
+                        <input type="text" id="issueFormReporter" class="combobox-input-overlay" placeholder="Your Full Name">
+                    </div>
 
                     <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
                         <button id="submitIssueFormBtn" class="issues-view-btn btn-navy">Submit Request</button>
@@ -130,15 +150,65 @@ export async function renderFacilityIssues(data) {
                     </div>
                 </div>
             </div>
+
+            <div id="view_5_grid_contact_confirm_dialog" class="custom-confirm-mask">
+                <div class="custom-confirm-box">
+                    <div id="view_5_grid_confirm_message" class="custom-confirm-msg"></div>
+                    <div class="custom-confirm-actions">
+                        <button id="view_5_grid_confirm_yes" class="custom-confirm-btn btn-navy">Yes</button>
+                        <button id="view_5_grid_confirm_no" class="custom-confirm-btn btn-gray">No</button>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 
     const modal = document.getElementById('issueFormModal');
+    const selectUnderlay = document.getElementById('issueFormReporterSelect');
+    const textOverlay = document.getElementById('issueFormReporter');
 
-    document.getElementById('addIssueTriggerBtn').onclick = () => {
+    // Sync combobox choices to the text input field
+    selectUnderlay.onchange = () => {
+        if (selectUnderlay.value) {
+            textOverlay.value = selectUnderlay.value;
+        }
+    };
+
+    // Keep dropdown blanked if user types explicitly to preserve free text input integrity
+    textOverlay.oninput = () => {
+        selectUnderlay.value = "";
+    };
+
+    async function populateContactsDropdown() {
+        if (!facility?.id) return;
+        try {
+            if (typeof fetchFacilityContacts === 'function') {
+                localContactsCache = await fetchFacilityContacts(facility.id);
+            } else {
+                localContactsCache = [];
+            }
+        } catch (e) {
+            localContactsCache = [];
+        }
+
+        // Clean option layout stack
+        selectUnderlay.innerHTML = '<option value=""></option>';
+        if (Array.isArray(localContactsCache)) {
+            localContactsCache.forEach(contact => {
+                const opt = document.createElement('option');
+                opt.value = contact.name || contact.full_name || '';
+                opt.textContent = contact.name || contact.full_name || '';
+                selectUnderlay.appendChild(opt);
+            });
+        }
+    }
+
+    document.getElementById('addIssueTriggerBtn').onclick = async () => {
         document.getElementById('issueFormTitle').value = '';
         document.getElementById('issueFormDesc').value = '';
-        document.getElementById('issueFormReporter').value = '';
+        textOverlay.value = '';
+        selectUnderlay.value = '';
+        await populateContactsDropdown();
         modal.style.display = 'flex';
     };
 
@@ -150,18 +220,76 @@ export async function renderFacilityIssues(data) {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
     };
 
+    // Helper handler executing a styled rule-10 compliant promise dialog intercept
+    function promptNewContactCreation(targetName) {
+        return new Promise((resolve) => {
+            const dialog = document.getElementById('view_5_grid_contact_confirm_dialog');
+            const messageSlot = document.getElementById('view_5_grid_confirm_message');
+            const yesBtn = document.getElementById('view_5_grid_confirm_yes');
+            const noBtn = document.getElementById('view_5_grid_confirm_no');
+
+            messageSlot.innerText = `"${targetName}" is not listed in the contacts for this facility. Would you like to add them as an established contact?`;
+            dialog.style.display = 'flex';
+
+            yesBtn.onclick = () => {
+                dialog.style.display = 'none';
+                resolve(true);
+            };
+            noBtn.onclick = () => {
+                dialog.style.display = 'none';
+                resolve(false);
+            };
+        });
+    }
+
     document.getElementById('submitIssueFormBtn').onclick = async () => {
         const title = document.getElementById('issueFormTitle').value.trim();
         const desc = document.getElementById('issueFormDesc').value.trim();
-        const reporter = document.getElementById('issueFormReporter').value.trim();
+        const reporter = textOverlay.value.trim();
 
         if (!title || !reporter) {
             alert("Subject and Reporter fields are required.");
             return;
         }
 
+        // Confirm whether contact exists inside the loaded collection boundary
+        const matchedContact = localContactsCache.find(c => 
+            (c.name || c.full_name || '').toLowerCase() === reporter.toLowerCase()
+        );
+
+        let activeContactId = matchedContact ? matchedContact.id : null;
+
+        if (!matchedContact) {
+            const shouldAdd = await promptNewContactCreation(reporter);
+            if (shouldAdd) {
+                // Instantly invoke creation within your database contacts ecosystem
+                if (typeof insertFacilityContact === 'function') {
+                    const newContact = await insertFacilityContact({
+                        facility_id: facility.id,
+                        name: reporter
+                    });
+                    if (newContact && newContact.id) {
+                        activeContactId = newContact.id;
+                    }
+                } else {
+                    // Fallback to route navigation if the context requires full layout customization forms
+                    if (window.navigateTo) {
+                        modal.style.display = 'none';
+                        window.navigateTo('view_3_contacts', { 
+                            facility: facility, 
+                            triggerNewContactForm: true, 
+                            prefilledContactName: reporter,
+                            pendingIssueData: { title, description: desc, status: 'Open' }
+                        });
+                        return;
+                    }
+                }
+            }
+        }
+
         const inserted = await insertFacilityIssue({
             facility_id: facility.id,
+            contact_id: activeContactId, // Securely linking transaction directly to specific Contact detail views
             title: title,
             description: desc,
             reported_by: reporter,
@@ -200,18 +328,20 @@ export async function renderFacilityIssues(data) {
         });
     }
 
-   // FIXED: Intercept contextual payloads sent from the profile view
+    // FIXED: Intercept contextual payloads sent from the profile view
     if (data?.openFormInstantly) {
         document.getElementById('issueFormTitle').value = '';
         document.getElementById('issueFormDesc').value = '';
         
         // Auto-assign the reporter input value cleanly 
         if (data?.prefilledReporterName) {
-            document.getElementById('issueFormReporter').value = data.prefilledReporterName;
+            textOverlay.value = data.prefilledReporterName;
+            selectUnderlay.value = data.prefilledReporterName;
         }
         
         modal.style.display = 'flex';
     }
 
+    await populateContactsDropdown();
     await loadIssuesListData();
 }
