@@ -43,9 +43,10 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Manage Directory Entries
-LAST UPDATED : 2026-06-06 @ 10:07 PM
+LAST UPDATED : 2026-06-06 @ 10:25 PM
 ================================================================*/
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
+import { fetchFacilityIssues } from '../../view_5_issues/view_5_data.js';
 
 export async function initializeGridLogic(viewContext) {
     let localContactsList = [];
@@ -94,7 +95,7 @@ export async function initializeGridLogic(viewContext) {
         });
     }
 
-    function showContactProfile(contact) {
+    async function showContactProfile(contact) {
         activeSelectedContact = contact;
         if (!profilePane || !directorySelectionLayout) return;
 
@@ -117,6 +118,46 @@ export async function initializeGridLogic(viewContext) {
         directorySelectionLayout.style.display = 'none';
         if (backBtn) backBtn.style.display = 'none';
         profilePane.style.display = 'block';
+
+        // Load contextual history reports matching this contact's name verbatim
+        const targetHistoryContainer = document.getElementById('contactIssuesHistoryList');
+        if (targetHistoryContainer && viewContext.facility?.id) {
+            targetHistoryContainer.innerHTML = '<div style="font-size:12px; color:#6b7280; font-style:italic;">Querying reported issues...</div>';
+            
+            try {
+                const allFacilityIssues = await fetchFacilityIssues(viewContext.facility.id);
+                const matchedIssues = (allFacilityIssues || []).filter(issue => {
+                    return String(issue.reported_by || '').trim().toLowerCase() === String(contact.contact_name || '').trim().toLowerCase();
+                });
+
+                targetHistoryContainer.innerHTML = '';
+                if (matchedIssues.length === 0) {
+                    targetHistoryContainer.innerHTML = '<div style="font-size:12px; color:#9ca3af; padding:5px 0;">No reported maintenance logs under this name.</div>';
+                } else {
+                    matchedIssues.forEach(issue => {
+                        const issueActionBtn = document.createElement('button');
+                        issueActionBtn.className = 'contacts-view-btn';
+                        issueActionBtn.style.cssText = 'background:white; border:1px solid #d1d5db; border-radius:6px; padding:10px; margin-bottom:6px; display:flex; flex-direction:column; align-items:flex-start; width:100%; text-align:left; text-transform:none; font-weight:normal; font-family:Arial, sans-serif; cursor:pointer; box-sizing:border-box; box-shadow:0 1px 2px rgba(0,0,0,0.05);';
+                        
+                        issueActionBtn.innerHTML = `
+                            <div style="font-weight:bold; color:#00264d; font-size:13px;">🛠️ ${issue.title || 'Untitled Request'}</div>
+                            <div style="font-size:11px; color:#6b7280; margin-top:2px;">Status: <b style="color:#10b981;">${issue.status || 'Open'}</b></div>
+                        `;
+
+                        // Routes back to maintenance grid displaying detailed workflow context
+                        issueActionBtn.onclick = () => {
+                            if (window.navigateTo) {
+                                window.navigateTo('view_5_issues', { facility: viewContext.facility });
+                            }
+                        };
+                        targetHistoryContainer.appendChild(issueActionBtn);
+                    });
+                }
+            } catch (err) {
+                console.error("Contextual database parsing error:", err);
+                targetHistoryContainer.innerHTML = '<div style="font-size:12px; color:#dc2626;">Failed to load history parameters.</div>';
+            }
+        }
     }
 
     function hideContactProfile() {
