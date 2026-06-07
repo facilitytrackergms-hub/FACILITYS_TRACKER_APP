@@ -5,15 +5,17 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-07 @ 06:10 AM
+LAST UPDATED : 2026-06-07 @ 06:05 AM
 ================================================================*/
 
 import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
+import { insertFacilityIssue } from '/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_data.js';
 
 let localContactsList = [];
 let activeSelectedContact = null;
 let viewContext = {};
 
+// Hardcoded local fallback SVG data stream to protect layout from via.placeholder timeouts
 const rowFallbackSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239ca3af' width='32' height='32'><circle cx='12' cy='8' r='4'/><path d='M12 14c-6.1 0-8 4-8 4v2h16v-2s-1.9-4-8-4z'/></svg>`;
 
 export async function initializeGridLogic(context) {
@@ -53,6 +55,31 @@ export async function initializeGridLogic(context) {
                 window.navigateTo('view_2_controls', { facility: viewContext.facility });
             }
         };
+    }
+
+    const cameraTriggerBtn = document.getElementById('cameraTriggerBtn');
+    const cameraFileInput = document.getElementById('cameraFileInput');
+    const cameraStatusText = document.getElementById('cameraStatusText');
+    const hiddenImageInput = document.getElementById('manualContactImageBase64');
+
+    if (cameraTriggerBtn && cameraFileInput) {
+        cameraTriggerBtn.addEventListener('click', () => {
+            cameraFileInput.click();
+        });
+        cameraFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    if (hiddenImageInput) hiddenImageInput.value = evt.target.result;
+                    if (cameraStatusText) {
+                        cameraStatusText.textContent = "Photo captured successfully";
+                        cameraStatusText.style.color = "#10b981";
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     }
 
     const currentFacId = viewContext.facility?.id || viewContext.facilityId;
@@ -138,12 +165,73 @@ function hideContactProfile() {
     if (realPanel) realPanel.style.display = 'none';
 }
 
-function setupMediaCaptureHooks() {
-    const cameraTriggerBtn = document.getElementById('cameraTriggerBtn');
-    const cameraFileInput = document.getElementById('cameraFileInput');
-    const cameraStatusText = document.getElementById('cameraStatusText');
-    const hiddenImageInput = document.getElementById('manualContactImageBase64');
+function setupFormActionListeners() {
+    const cancelBtn = document.getElementById('cancelContactModalBtn');
+    const saveBtn = document.getElementById('saveContactBtn');
+    const contactModal = document.getElementById('contactFormModal');
 
-    if (cameraTriggerBtn && cameraFileInput) {
-        cameraTriggerBtn.onclick = () => {
-            cameraFileInput.
+    if (cancelBtn && contactModal) {
+        cancelBtn.onclick = () => {
+            contactModal.style.display = 'none';
+            resetFormFields();
+        };
+    }
+
+    if (saveBtn && contactModal) {
+        saveBtn.onclick = async () => {
+            const activeFacId = viewContext.facility?.id || viewContext.facilityId;
+            if (!activeFacId) return;
+
+            const nameVal = document.getElementById('manualContactName')?.value.trim();
+            const roleVal = document.getElementById('manualContactRole')?.value.trim();
+            const phoneVal = document.getElementById('manualContactPhone')?.value.trim();
+            const emailVal = document.getElementById('manualContactEmail')?.value.trim();
+            const notesVal = document.getElementById('manualContactNotes')?.value.trim();
+            const imageBase64 = document.getElementById('manualContactImageBase64')?.value || null;
+
+            if (!nameVal) {
+                alert("Please declare a structural contact name before saving.");
+                return;
+            }
+
+            const payload = {
+                facility_id: Number(activeFacId),
+                contact_name: nameVal,
+                contact_role: roleVal || 'General Staff',
+                contact_phone: phoneVal || 'N/A',
+                contact_email: emailVal || 'N/A',
+                operational_notes: notesVal || '',
+                avatar_url: imageBase64
+            };
+
+            const insertedRow = await insertContact(payload);
+            if (insertedRow) {
+                contactModal.style.display = 'none';
+                resetFormFields();
+                localContactsList = await fetchContacts(activeFacId);
+                renderGrid(localContactsList);
+                hideContactProfile();
+            } else {
+                alert("Database engine rejected directory insertion logic package.");
+            }
+        };
+    }
+}
+
+function resetFormFields() {
+    if (document.getElementById('manualContactName')) document.getElementById('manualContactName').value = '';
+    if (document.getElementById('manualContactRole')) document.getElementById('manualContactRole').value = '';
+    if (document.getElementById('manualContactPhone')) document.getElementById('manualContactPhone').value = '';
+    if (document.getElementById('manualContactEmail')) document.getElementById('manualContactEmail').value = '';
+    if (document.getElementById('manualContactNotes')) document.getElementById('manualContactNotes').value = '';
+    if (document.getElementById('manualContactImageBase64')) document.getElementById('manualContactImageBase64').value = '';
+    const cameraStatusText = document.getElementById('cameraStatusText');
+    if (cameraStatusText) {
+        cameraStatusText.textContent = "No capture stream active";
+        cameraStatusText.style.color = "#9ca3af";
+    }
+}
+
+export function setupContactsEvents(config) {
+    console.log("Contacts module telemetry events loaded.", config);
+}
