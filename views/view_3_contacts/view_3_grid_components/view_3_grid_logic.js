@@ -43,10 +43,11 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Manage Directory Entries
-LAST UPDATED : 2026-06-06 @ 10:25 PM
+LAST UPDATED : 2026-06-06 @ 10:36 PM
 ================================================================*/
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
 import { fetchFacilityIssues } from '../../view_5_issues/view_5_data.js';
+import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
 
 export async function initializeGridLogic(viewContext) {
     let localContactsList = [];
@@ -144,10 +145,10 @@ export async function initializeGridLogic(viewContext) {
                             <div style="font-size:11px; color:#6b7280; margin-top:2px;">Status: <b style="color:#10b981;">${issue.status || 'Open'}</b></div>
                         `;
 
-                        // Routes back to maintenance grid displaying detailed workflow context
+                        // Opens dashboard overlay module matching target issue payload directly
                         issueActionBtn.onclick = () => {
-                            if (window.navigateTo) {
-                                window.navigateTo('view_5_issues', { facility: viewContext.facility });
+                            if (typeof openIssueModal === 'function') {
+                                openIssueModal(viewContext.facility, issue, contact);
                             }
                         };
                         targetHistoryContainer.appendChild(issueActionBtn);
