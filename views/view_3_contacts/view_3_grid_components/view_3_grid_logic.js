@@ -41,10 +41,12 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
-VIEW NAME    : Facility Directory Logic
+VIEW NAME    : Facility Directory Logic Layer
 POP-UP TITLE : Manage Directory Entries
-LAST UPDATED : 2026-06-06 @ 09:40 PM
+LAST UPDATED : 2026-06-06 @ 09:45 PM
 ================================================================*/
+
+// FIXED: Paths adjusted outward using '../' because this logic file runs inside the view_3_grid_components subfolder
 import { fetchContacts, createContact, updateContact, deleteContact } from '../view_3_data.js';
 import { attachModalStampTracker } from '../view_3_modal.js';
 import { setupContactsEvents } from './view_3_grid_logic.js';
@@ -167,7 +169,6 @@ export async function initializeGridLogic(viewContext) {
         saveContactBtn.onclick = async () => {
             const contactId = document.getElementById('editingContactId').value;
             
-            // FIXED: Explicitly structural mapping using contact_name instead of generic property name
             const payload = {
                 facility_id: viewContext.facility?.id,
                 contact_name: document.getElementById('manualContactName').value.trim(),
