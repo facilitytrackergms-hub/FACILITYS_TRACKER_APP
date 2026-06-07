@@ -43,11 +43,10 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Manage Directory Entries
-LAST UPDATED : 2026-06-06 @ 09:25 PM
+LAST UPDATED : 2026-06-06 @ 09:30 PM
 ================================================================*/
-import { fetchContacts, createContact, updateContact, deleteContact } from './view_3_data.js';
-// LOGICAL CHANGE: Fixed relative path tracking from view_3_grid_components context back up to view_3_contacts
-import { attachModalStampTracker } from '../../view_3_modal.js';
+import { fetchContacts, createContact, updateContact, deleteContact } from '../view_3_grid_components/view_3_data.js';
+import { attachModalStampTracker } from '../view_3_modal.js';
 import { setupContactsEvents } from './view_3_grid_logic.js';
 
 export async function initializeGridLogic(viewContext) {
