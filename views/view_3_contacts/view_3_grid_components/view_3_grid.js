@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 07:48 PM
+LAST UPDATED : 2026-06-06 @ 08:09 PM
 ================================================================*/
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
@@ -102,13 +102,12 @@ export async function renderFacilityContacts(data) {
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 07:48:00 PM
+                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-06 08:09:00 PM
                 </div>
 
                 <div id="directorySelectionLayout">
                     <button id="manualContactTriggerBtn" class="contacts-view-btn btn-emerald">➕ Add New Contact</button>
                     <div id="contactsGridElement" class="contacts-grid-layout">Loading...</div>
-                    <button id="backBtn" class="contacts-view-btn btn-navy">⬅️ Back to Controls</button>
                 </div>
                 
                 <div id="contactDetailPane" class="detail-view-card">
@@ -130,6 +129,8 @@ export async function renderFacilityContacts(data) {
                     
                     <button id="closeDetailPaneBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Return to Directory</button>
                 </div>
+
+                <button id="backBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Back to Controls</button>
             </div>
 
             <div id="manualContactModal" class="modal-mask">
