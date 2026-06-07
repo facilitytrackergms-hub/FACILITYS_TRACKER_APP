@@ -35,10 +35,10 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-07 @ 05:20 AM
+LAST UPDATED : 2026-06-07 @ 05:26 AM
 ================================================================*/
 
-import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
+import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_data.js';
 import { insertFacilityIssue } from '/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_data.js';
 
 let localContactsList = [];
@@ -49,10 +49,10 @@ export async function initializeGridLogic(context) {
     viewContext = context;
     console.log("Initializing Contacts View Logic Layer with payload context:", viewContext);
 
-    // Initial table refresh data fetch operations boundary with unified facility property fallbacks
-    const activeFacilityId = viewContext.facility?.id || viewContext.facilityId;
-    if (activeFacilityId) {
-        localContactsList = await fetchContacts(activeFacilityId);
+    // Initial table refresh data fetch operations boundary
+    const targetFacilityId = viewContext.facility?.id || viewContext.facilityId;
+    if (targetFacilityId) {
+        localContactsList = await fetchContacts(targetFacilityId);
         renderGrid(localContactsList);
     }
 
@@ -149,8 +149,8 @@ function hideContactProfile() {
 }
 
 function setupFormActionListeners() {
-    // UPDATED ID HOOKS: Swapped to search fallback alternatives matching component view layouts
-    const addContactTriggerBtn = document.getElementById('addNewContactBtn') || document.getElementById('addContactTriggerBtn');
+    // FIXED: Corrected target to use 'addNewContactBtn' instead of 'addContactTriggerBtn'
+    const addContactTriggerBtn = document.getElementById('addNewContactBtn');
     const backToControlsBtn = document.getElementById('backToControlsBtn');
     const cancelContactModalBtn = document.getElementById('cancelContactModalBtn');
     const saveContactBtn = document.getElementById('saveContactBtn');
@@ -167,8 +167,8 @@ function setupFormActionListeners() {
     if (backToControlsBtn) {
         backToControlsBtn.onclick = () => {
             if (window.navigateTo) {
-                const targetId = viewContext.facility?.id || viewContext.facilityId;
-                window.navigateTo('view_2_grid', { facility: { id: targetId } });
+                const fId = viewContext.facility?.id || viewContext.facilityId;
+                window.navigateTo('view_2_controls', { facility: { id: fId } });
             }
         };
     }
@@ -193,7 +193,7 @@ function setupFormActionListeners() {
 
     if (cancelContactModalBtn) {
         cancelContactModalBtn.onclick = () => {
-            contactModal.style.display = 'none';
+            if (contactModal) contactModal.style.display = 'none';
         };
     }
 
@@ -211,10 +211,10 @@ function setupFormActionListeners() {
                 return;
             }
 
-            const targetFacilityId = viewContext.facility?.id || viewContext.facilityId;
+            const activeFacId = viewContext.facility?.id || viewContext.facilityId;
 
             const payload = {
-                facility_id: targetFacilityId,
+                facility_id: activeFacId,
                 contact_name: nameValue,
                 role: roleValue,
                 phone: phoneValue,
@@ -226,28 +226,23 @@ function setupFormActionListeners() {
             const savedContact = await insertContact(payload);
 
             if (savedContact) {
-                contactModal.style.display = 'none';
+                if (contactModal) contactModal.style.display = 'none';
                 
-                // BACKWARDS TIE-IN LOGIC: If a pending issue exists from the workflow interception
                 if (viewContext.pendingIssueData) {
                     try {
-                        // Link the newly generated contact ID right to the issue record
                         viewContext.pendingIssueData.contact_id = savedContact.id;
-                        
                         await insertFacilityIssue(viewContext.pendingIssueData);
                     } catch (issueErr) {
                         console.error("Failed executing automated backwards issue registration:", issueErr);
                     }
                     
-                    // Bounce cleanly back to the maintenance requests view screen with records saved
                     if (window.navigateTo) {
-                        window.navigateTo('view_5_issues', { facility: { id: targetFacilityId } });
+                        window.navigateTo('view_5_issues', { facility: { id: activeFacId } });
                         return;
                     }
                 }
 
-                // Default standard table refresh fallback if normal creation loop
-                localContactsList = await fetchContacts(targetFacilityId);
+                localContactsList = await fetchContacts(activeFacId);
                 renderGrid(localContactsList);
                 hideContactProfile();
             } else {
