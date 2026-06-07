@@ -1,6 +1,5 @@
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
-import { fetchFacilityIssues, insertFacilityIssue } from '../../view_5_issues/view_5_data.js';import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
-
+import { fetchFacilityIssues, insertFacilityIssue } from '../../view_5_issues/view_5_data.js';
 export async function initializeGridLogic(viewContext) {
     let localContactsList = [];
     let activeSelectedContact = null;
