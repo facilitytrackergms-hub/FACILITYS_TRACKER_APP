@@ -35,11 +35,11 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 11:45 PM
+LAST UPDATED : 2026-06-06 @ 11:34 PM
 ================================================================*/
 
-import { fetchContacts, insertContact } from '../view_3_data.js';
-import { insertFacilityIssue } from '../../view_5_issues/view_5_data.js';
+import { fetchContacts, insertContact } from './view_3_data.js';
+import { insertFacilityIssue } from '../view_5_issues/view_5_data.js';
 
 let localContactsList = [];
 let activeSelectedContact = null;
@@ -193,7 +193,8 @@ function setupFormActionListeners() {
             const imgBase64 = hiddenImageInput?.value || null;
 
             if (!nameValue) {
-                alert("Profile contact name tracking context is required.");
+                const errorAlert = document.getElementById('v3-alert-name-required') || alert("Profile contact name tracking context is required.");
+                if (errorAlert && errorAlert !== window.alert) errorAlert.style.display = 'block';
                 return;
             }
 
@@ -235,7 +236,8 @@ function setupFormActionListeners() {
                 renderGrid(localContactsList);
                 hideContactProfile();
             } else {
-                alert("Failed to submit directory profile record entry.");
+                const failAlert = document.getElementById('v3-alert-submit-failed') || alert("Failed to submit directory profile record entry.");
+                if (failAlert && failAlert !== window.alert) failAlert.style.display = 'block';
             }
         };
     }
