@@ -142,11 +142,12 @@ export async function renderFacilityIssues(data) {
                         </select>
                         <input type="text" id="issueFormReporter" class="combobox-input-overlay" placeholder="Your Full Name">
                     </div>
-
-                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
-                        <button id="submitIssueFormBtn" class="issues-view-btn btn-navy">Submit Request</button>
-                        <button id="closeIssueFormBtn" class="issues-view-btn btn-gray">Cancel</button>
-                    </div>
+<div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+    <button id="openFollowupsBtn" class="issues-view-btn btn-emerald">Follow Up</button>
+    <button id="saveIssueBtn" class="issues-view-btn btn-navy">Update Info</button>
+    <button id="deleteIssueRequestBtn" class="issues-view-btn btn-gray" style="display:none;">Delete Issue</button>
+    <button id="closeIssueModal" class="issues-view-btn btn-gray">Back to Issues</button>
+</div>
                 </div>
             </div>
 
