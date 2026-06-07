@@ -43,9 +43,9 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Manage Directory Entries
-LAST UPDATED : 2026-06-06 @ 09:56 PM
+LAST UPDATED : 2026-06-06 @ 10:01 PM
 ================================================================*/
-import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from './view_3_data.js';
+import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
 import { setupContactsEvents } from './view_3_grid_logic.js';
 
 export async function initializeGridLogic(viewContext) {
