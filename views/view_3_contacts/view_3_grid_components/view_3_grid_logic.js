@@ -177,11 +177,11 @@ export async function initializeGridLogic(viewContext) {
             const payload = {
                 facility_id: viewContext.facility?.id,
                 contact_name: document.getElementById('manualContactName').value.trim(),
-                role_title: document.getElementById('manualContactRole').value.trim(),
-                phone_number: document.getElementById('manualContactPhone').value.trim(),
-                email_address: document.getElementById('manualContactEmail').value.trim(),
-                operational_notes: document.getElementById('manualContactNotes').value.trim(),
-                profile_photo_url: document.getElementById('manualContactImage').value
+                role: document.getElementById('manualContactRole').value.trim(),
+                phone: document.getElementById('manualContactPhone').value.trim(),
+                email: document.getElementById('manualContactEmail').value.trim(),
+                notes: document.getElementById('manualContactNotes').value.trim(),
+                image_url: document.getElementById('manualContactImage').value
             };
 
             if (!payload.contact_name) {
