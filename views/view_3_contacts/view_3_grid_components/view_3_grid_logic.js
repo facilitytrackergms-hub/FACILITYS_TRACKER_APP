@@ -35,11 +35,11 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 11:34 PM
+LAST UPDATED : 2026-06-06 @ 11:42 PM
 ================================================================*/
 
-import { fetchContacts, insertContact } from './view_3_data.js';
-import { insertFacilityIssue } from '../view_5_issues/view_5_data.js';
+import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
+import { insertFacilityIssue } from '/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_data.js';
 
 let localContactsList = [];
 let activeSelectedContact = null;
@@ -193,8 +193,7 @@ function setupFormActionListeners() {
             const imgBase64 = hiddenImageInput?.value || null;
 
             if (!nameValue) {
-                const errorAlert = document.getElementById('v3-alert-name-required') || alert("Profile contact name tracking context is required.");
-                if (errorAlert && errorAlert !== window.alert) errorAlert.style.display = 'block';
+                alert("Profile contact name tracking context is required.");
                 return;
             }
 
@@ -236,8 +235,7 @@ function setupFormActionListeners() {
                 renderGrid(localContactsList);
                 hideContactProfile();
             } else {
-                const failAlert = document.getElementById('v3-alert-submit-failed') || alert("Failed to submit directory profile record entry.");
-                if (failAlert && failAlert !== window.alert) failAlert.style.display = 'block';
+                alert("Failed to submit directory profile record entry.");
             }
         };
     }
