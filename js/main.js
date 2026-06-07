@@ -1,4 +1,4 @@
-/*================================================================
+/* =================================================================
 AUTOMATED PATH UPDATE INSTRUCTION
 ================================================================
 NEW ROOT DIRECTORY FOR COMPONENT:
@@ -14,7 +14,7 @@ ACTION REQUIRED BY AI:
 4. Run the LINE COUNT AUDIT before writing code.
 ================================================================*/   /* =================================================
 FILE: main.js
-UPDATED: 2026-06-06 08:35:00 PM
+UPDATED: 2026-06-07 05:14:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -47,35 +47,35 @@ window.navigateTo = async (view, context = {}) => {
 
     try {
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility' || view === 'view_1_dashboard') {
-            const { renderFacilities } = await import(`../views/view_1_facility/view_1_grid.js${cb}`);
+            const { renderFacilities } = await import(`/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_grid.js${cb}`);
             await renderFacilities(context);
         } 
         else if (view === 'view_2_controls') {
-            const { renderFacilityControls } = await import(`../views/view_2_controls/view_2_grid.js${cb}`);
+            const { renderFacilityControls } = await import(`/FACILITYS_TRACKER_APP/views/view_2_controls/view_2_grid.js${cb}`);
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_contacts') {
-            const { renderFacilityContacts } = await import(`../views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
+            const { renderFacilityContacts } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
             await renderFacilityContacts(context);
         }
         else if (view === 'view_4_projects') {
-            const { renderPendingProjects } = await import(`../views/view_4_projects/view_4_grid.js${cb}`);
+            const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid.js${cb}`);
             await renderPendingProjects(context);
         }
         else if (view === 'view_5_issues') {
-            const { renderFacilityIssues } = await import(`../views/view_5_issues/view_5_grid.js${cb}`);
+            const { renderFacilityIssues } = await import(`/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_grid.js${cb}`);
             await renderFacilityIssues(context);
         }
         else if (view === 'view_6_images') {
-            const { renderFacilityImages } = await import(`../views/view_6_images/view_6_grid.js${cb}`);
+            const { renderFacilityImages } = await import(`/FACILITYS_TRACKER_APP/views/view_6_images/view_6_grid.js${cb}`);
             await renderFacilityImages(context);
         }
         else if (view === 'view_7_followups') {
-            const { renderIssueFollowups } = await import(`../views/view_7_followups/view_7_grid.js${cb}`);
+            const { renderIssueFollowups } = await import(`/FACILITYS_TRACKER_APP/views/view_7_followups/view_7_grid.js${cb}`);
             await renderIssueFollowups(context);
         }
         else if (view === 'view_8_reports' || view === 'reports') {
-            const { renderReports } = await import(`../views/view_8_reports/view_8_grid.js${cb}`);
+            const { renderReports } = await import(`/FACILITYS_TRACKER_APP/views/view_8_reports/view_8_grid.js${cb}`);
             await renderReports(context);
         }
         else {
