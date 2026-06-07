@@ -43,10 +43,9 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Manage Directory Entries
-LAST UPDATED : 2026-06-06 @ 09:09 PM
+LAST UPDATED : 2026-06-06 @ 09:12 PM
 ================================================================*/
-// FIXED: Adjusted path structures outward to target the root directory layout since execution occurs inside a sub-component pathway
-import { fetchContacts, createContact, updateContact, deleteContact } from '../view_3_data.js';
+import { fetchContacts, createContact, updateContact, deleteContact } from './view_3_data.js';
 import { attachModalStampTracker } from '../view_3_modal.js';
 import { setupContactsEvents } from './view_3_grid_logic.js';
 
