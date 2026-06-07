@@ -238,55 +238,67 @@ export async function renderFacilityIssues(data) {
         });
     }
 
-    document.getElementById('submitIssueFormBtn').onclick = async () => {
-        const title = document.getElementById('issueFormTitle').value.trim();
-        const desc = document.getElementById('issueFormDesc').value.trim();
-        const reporter = textOverlay.value.trim();
+  /*================================================================
+FILE METADATA
+================================================================
+FILE NAME    : view_5_grid.js
+SUPABASE TBL : facility_issues
+VIEW NAME    : Maintenance Requests
+POP-UP TITLE : Report Maintenance Issue
+LAST UPDATED : 2026-06-07 @ 07:12 AM
+================================================================*/
+// ... [Existing CSS and HTML Template]
+        document.getElementById('submitIssueFormBtn').onclick = async () => {
+            const title = document.getElementById('issueFormTitle').value.trim();
+            const desc = document.getElementById('issueFormDesc').value.trim();
+            const reporter = textOverlay.value.trim();
 
-        if (!title || !reporter) {
-            alert("Subject and Reporter fields are required.");
-            return;
-        }
+            if (!title || !reporter) {
+                alert("Subject and Reporter fields are required.");
+                return;
+            }
 
-        const matchedContact = localContactsCache.find(c => 
-            (c.contact_name || '').toLowerCase() === reporter.toLowerCase()
-        );
+            const matchedContact = localContactsCache.find(c => 
+                (c.contact_name || '').toLowerCase() === reporter.toLowerCase()
+            );
 
-        let activeContactId = matchedContact ? matchedContact.id : null;
-
-        if (!matchedContact) {
-            const shouldAdd = await promptNewContactCreation(reporter);
-            if (shouldAdd) {
-                try {
-                    const newContact = await insertContact({
-                        facility_id: facility.id,
-                        contact_name: reporter
+            if (!matchedContact) {
+                const shouldAdd = await promptNewContactCreation(reporter);
+                if (shouldAdd && window.navigateTo) {
+                    // PACKAGE & JUMP: Redirect to contacts to finish profile
+                    window.navigateTo('view_3_contacts', { 
+                        facility: facility,
+                        openFormInstantly: true,
+                        prefilledContactName: reporter,
+                        pendingIssueData: {
+                            facility_id: facility.id,
+                            title: title,
+                            description: desc,
+                            reported_by: reporter,
+                            status: 'Open'
+                        }
                     });
-                    if (newContact && newContact.id) {
-                        activeContactId = newContact.id;
-                    }
-                } catch (err) {
-                    console.error("Direct inline insertion failed, resorting to fallback redirect scheme:", err);
+                    return;
                 }
             }
-        }
 
-        const inserted = await insertFacilityIssue({
-            facility_id: facility.id,
-            contact_id: activeContactId,
-            title: title,
-            description: desc,
-            reported_by: reporter,
-            status: 'Open'
-        });
+            const inserted = await insertFacilityIssue({
+                facility_id: facility.id,
+                contact_id: matchedContact?.id || null,
+                title: title,
+                description: desc,
+                reported_by: reporter,
+                status: 'Open'
+            });
 
-        if (inserted) {
-            modal.style.display = 'none';
-            await loadIssuesListData();
-        } else {
-            alert("Could not register maintenance request data.");
-        }
-    };
+            if (inserted) {
+                modal.style.display = 'none';
+                await loadIssuesListData();
+            } else {
+                alert("Could not register maintenance request data.");
+            }
+        };
+// ... [Rest of file]
 
     async function loadIssuesListData() {
         if (!facility?.id) return;
