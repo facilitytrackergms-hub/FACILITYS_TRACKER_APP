@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 08:25 PM
+LAST UPDATED : 2026-06-06 @ 08:30 PM
 ================================================================*/
 const __FILENAME = 'view_3_grid_logic.js';
 
@@ -166,15 +166,24 @@ function hideContactProfile() {
 
 function bindCoreDOMEvents() {
     document.getElementById('backBtn')?.addEventListener('click', async () => {
-        // FIX: If fallback global router function missing, fall back to importing/rendering the view directly
         if (typeof window.__switchToControlView === 'function') {
             const destinationView = viewContext?.returnToView || 'view_2_grid';
             window.__switchToControlView(destinationView);
         } else {
             console.warn("[ID: view3-route-warn] window.__switchToControlView is missing. Falling back to explicit view module loading.");
             try {
-                const { renderControlGrid } = await import('../../view_2_controls/view_2_grid.js');
-                renderControlGrid(viewContext?.facility);
+                // Modified to handle structural module variances safely
+                const targetModule = await import('../../view_2_controls/view_2_grid.js');
+                
+                if (typeof targetModule.renderControlGrid === 'function') {
+                    targetModule.renderControlGrid(viewContext?.facility);
+                } else if (typeof targetModule.default === 'function') {
+                    targetModule.default(viewContext?.facility);
+                } else if (typeof targetModule.initializeControlGrid === 'function') {
+                    targetModule.initializeControlGrid(viewContext?.facility);
+                } else {
+                    console.error("[ID: view3-route-error] No known initialization function found in view_2_grid.js. Available keys:", Object.keys(targetModule));
+                }
             } catch (err) {
                 console.error("[ID: view3-route-error] Failed to fallback to view_2_grid:", err);
             }
