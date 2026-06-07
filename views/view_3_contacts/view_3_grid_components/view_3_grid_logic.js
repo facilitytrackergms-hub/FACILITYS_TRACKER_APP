@@ -1,6 +1,5 @@
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
-import { fetchFacilityIssues } from '../../view_5_issues/view_5_data.js';
-import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
+import { fetchFacilityIssues, insertFacilityIssue } from '../../view_5_issues/view_5_data.js';import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
 
 export async function initializeGridLogic(viewContext) {
     let localContactsList = [];
@@ -134,33 +133,48 @@ export async function initializeGridLogic(viewContext) {
     }
 
     // Modal Control Workflows
+    // Modal Control Workflows
+    function openCreateDirectoryEntry(prefilledName = "") {
+        if (!modalShell) return;
+
+        document.getElementById('modalTemplateTitle').textContent = "Create Directory Entry";
+        document.getElementById('editingContactId').value = "";
+        document.getElementById('manualContactImage').value = "";
+        document.getElementById('manualContactName').value = prefilledName || "";
+        document.getElementById('manualContactRole').value = "";
+        document.getElementById('manualContactPhone').value = "";
+        document.getElementById('manualContactEmail').value = "";
+        document.getElementById('manualContactNotes').value = "";
+        document.getElementById('cameraStatusText').textContent = "No photo captured";
+        document.getElementById('cameraStatusText').style.color = "#6b7280";
+
+        if (typeof window.attachModalStampTracker === 'function') {
+            window.attachModalStampTracker();
+        }
+
+        modalShell.style.display = 'flex';
+    }
+
     if (openModalBtn && modalShell) {
         openModalBtn.onclick = () => {
-            document.getElementById('modalTemplateTitle').textContent = "Create Directory Entry";
-            document.getElementById('editingContactId').value = "";
-            document.getElementById('manualContactImage').value = "";
-            document.getElementById('manualContactName').value = "";
-            document.getElementById('manualContactRole').value = "";
-            document.getElementById('manualContactPhone').value = "";
-            document.getElementById('manualContactEmail').value = "";
-            document.getElementById('manualContactNotes').value = "";
-            document.getElementById('cameraStatusText').textContent = "No photo captured";
-            document.getElementById('cameraStatusText').style.color = "#6b7280";
-            
-            if (typeof window.attachModalStampTracker === 'function') {
-                window.attachModalStampTracker();
-            }
-            modalShell.style.display = 'flex';
+            openCreateDirectoryEntry("");
         };
     }
 
-    if (closeModalBtn && modalShell) {
-        closeModalBtn.onclick = () => { modalShell.style.display = 'none'; };
+    if (viewContext?.openFormInstantly) {
+        openCreateDirectoryEntry(viewContext.prefilledContactName || "");
     }
 
-if (saveContactBtn && modalShell) {
+    if (closeModalBtn && modalShell) {
+        closeModalBtn.onclick = () => {
+            modalShell.style.display = 'none';
+        };
+    }
+
+    if (saveContactBtn && modalShell) {
         saveContactBtn.onclick = async () => {
             const contactId = document.getElementById('editingContactId').value;
+
             const payload = {
                 facility_id: viewContext.facility?.id,
                 contact_name: document.getElementById('manualContactName').value.trim(),
@@ -177,6 +191,7 @@ if (saveContactBtn && modalShell) {
             }
 
             let savedContact;
+
             if (contactId) {
                 await updateContact(contactId, payload);
                 savedContact = { id: contactId };
@@ -190,6 +205,7 @@ if (saveContactBtn && modalShell) {
                     ...viewContext.pendingIssueData,
                     contact_id: savedContact.id
                 });
+
                 if (window.navigateTo) {
                     window.navigateTo('view_5_issues', { facility: viewContext.facility });
                     return;
