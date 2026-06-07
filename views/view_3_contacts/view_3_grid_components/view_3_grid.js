@@ -193,5 +193,11 @@ export async function renderFacilityContacts(data) {
     };
 
     // Initialize logic layer
-    await initializeGridLogic({ facility, returnToView, cachedIssueForm });
+    // Initialize logic layer
+    await initializeGridLogic({
+        ...data,
+        facility: facility,
+        returnToView: returnToView,
+        cachedIssueForm: cachedIssueForm
+    });
 }
