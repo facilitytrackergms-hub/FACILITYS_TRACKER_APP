@@ -1,44 +1,14 @@
 /*================================================================
-FACILITY_TRACKER_APP - CODEBASE EXECUTION PARAMETERS
-================================================================
-DESCRIPTION: The following parameters govern how the attached source 
-code file must be processed, updated, and formatted upon output.
-
-1. PROCESS COMPLIANCE: Apply all structural constraints outlined below during code modification.
-
-2. MISSING METADATA HANDLING: If any fields in a FILE METADATA block are generic placeholders or missing, analyze the provided source code below to determine the correct tables/views/titles. CRITICAL FOR FILE NAME: Look strictly at the prompt text or comments for the exact sequential filename (e.g., view_2_data.js). NEVER invent, guess, or substitute a descriptive semantic name (like facility_data_service.js) based on the code context. If the exact filename cannot be verified, leave the placeholder intact or ask the user.
-
-3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any parameters in this header block unless explicitly asked by the user.
-
-4. SCOPE OF WORK: Only modify the specific functions, lines, or features requested in the prompt.
-
-5. PRESERVATION: Do NOT refactor, rename, or optimize any other part of the code. Leave all working logic exactly as it is.
-
-6. LOGGING CHANGES: If a variable name or structure must change to make a fix work, explicitly state *why* in the text response before showing the code block.
-
-7. CODE COMPLETENESS: Provide the full updated function or file so nothing gets accidentally lost in translation.
-
-8. VIEW IDENTIFIERS: Ensure the view/pop-up has a visible UI tag identifying its source file, last update date, and time. If missing, add it to the UI layout. Update this tag on every modification.
-
-9. NO BLIND CODE: Never create a new file or assume the contents of an existing file unless the current code is fully pasted into the prompt. If missing, stop and ask for it.
-
-10. UNIQUE ALERTS: Never use generic default message boxes for custom notifications. Always add a distinct, visible ID or tag to the message box UI referencing its specific component/file.
-
-11. CODE BLOCK DELIVERY: Always deliver the entire updated file, including this header and all rules, wrapped completely inside a single markdown code block to allow for easy copying.
-
-12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields in this header (File Name, Table, View, Title, Date, Time) are fully updated and preserved at the top of the file.
-================================================================*/
-/*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-07 @ 05:26 AM
+LAST UPDATED : 2026-06-07 @ 05:28 AM
 ================================================================*/
 
-import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_data.js';
+import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
 import { insertFacilityIssue } from '/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_data.js';
 
 let localContactsList = [];
@@ -49,41 +19,20 @@ export async function initializeGridLogic(context) {
     viewContext = context;
     console.log("Initializing Contacts View Logic Layer with payload context:", viewContext);
 
-    // Initial table refresh data fetch operations boundary
-    const targetFacilityId = viewContext.facility?.id || viewContext.facilityId;
-    if (targetFacilityId) {
-        localContactsList = await fetchContacts(targetFacilityId);
+    const activeFacilityId = viewContext.facility?.id || viewContext.facilityId;
+    if (activeFacilityId) {
+        localContactsList = await fetchContacts(activeFacilityId);
         renderGrid(localContactsList);
     }
 
     setupFormActionListeners();
     setupMediaCaptureHooks();
 
-    // INTERCEPT: If coming from the Maintenance Request View fallback creation trigger
     if (viewContext.openFormInstantly && viewContext.prefilledContactName) {
         const contactModal = document.getElementById('contactFormModal');
         const manualContactName = document.getElementById('manualContactName');
-        const manualContactRole = document.getElementById('manualContactRole');
-        const manualContactPhone = document.getElementById('manualContactPhone');
-        const manualContactEmail = document.getElementById('manualContactEmail');
-        const manualContactNotes = document.getElementById('manualContactNotes');
-        const hiddenImageInput = document.getElementById('manualContactImageBase64');
-        const cameraStatusText = document.getElementById('cameraStatusText');
-
         if (contactModal && manualContactName) {
-            // Clear all fields out of the shared form state
             manualContactName.value = viewContext.prefilledContactName;
-            if (manualContactRole) manualContactRole.value = '';
-            if (manualContactPhone) manualContactPhone.value = '';
-            if (manualContactEmail) manualContactEmail.value = '';
-            if (manualContactNotes) manualContactNotes.value = '';
-            if (hiddenImageInput) hiddenImageInput.value = '';
-            if (cameraStatusText) {
-                cameraStatusText.textContent = "No capture stream active";
-                cameraStatusText.style.color = "#9ca3af";
-            }
-            
-            // Pop the Create Directory Entry box open instantly
             contactModal.style.display = 'flex';
         }
     }
@@ -94,7 +43,6 @@ function renderGrid(contacts) {
     if (!gridBody) return;
 
     gridBody.innerHTML = '';
-
     if (!contacts || contacts.length === 0) {
         gridBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:#9ca3af;">No workspace contact records active inside this facility directory.</td></tr>`;
         return;
@@ -104,7 +52,6 @@ function renderGrid(contacts) {
         const tr = document.createElement('tr');
         tr.className = 'contacts-grid-row';
         tr.onclick = () => showContactProfile(contact);
-
         tr.innerHTML = `
             <td>
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -122,10 +69,8 @@ function renderGrid(contacts) {
 
 function showContactProfile(contact) {
     activeSelectedContact = contact;
-    
     const panel = document.getElementById('contactDetailPanel');
     const placeholder = document.getElementById('contactPanelPlaceholder');
-    
     if (!panel || !placeholder) return;
 
     document.getElementById('detailAvatar').src = contact.avatar_url || 'https://via.placeholder.com/90';
@@ -143,14 +88,12 @@ function hideContactProfile() {
     activeSelectedContact = null;
     const panel = document.getElementById('contactDetailPanel');
     const placeholder = document.getElementById('contactPanelPlaceholder');
-    
     if (panel) panel.style.display = 'none';
     if (placeholder) placeholder.style.display = 'flex';
 }
 
 function setupFormActionListeners() {
-    // FIXED: Corrected target to use 'addNewContactBtn' instead of 'addContactTriggerBtn'
-    const addContactTriggerBtn = document.getElementById('addNewContactBtn');
+    const addContactTriggerBtn = document.getElementById('addNewContactBtn') || document.getElementById('addContactTriggerBtn');
     const backToControlsBtn = document.getElementById('backToControlsBtn');
     const cancelContactModalBtn = document.getElementById('cancelContactModalBtn');
     const saveContactBtn = document.getElementById('saveContactBtn');
@@ -167,8 +110,8 @@ function setupFormActionListeners() {
     if (backToControlsBtn) {
         backToControlsBtn.onclick = () => {
             if (window.navigateTo) {
-                const fId = viewContext.facility?.id || viewContext.facilityId;
-                window.navigateTo('view_2_controls', { facility: { id: fId } });
+                const targetId = viewContext.facility?.id || viewContext.facilityId;
+                window.navigateTo('view_2_controls', { facility: { id: targetId } });
             }
         };
     }
@@ -193,7 +136,7 @@ function setupFormActionListeners() {
 
     if (cancelContactModalBtn) {
         cancelContactModalBtn.onclick = () => {
-            if (contactModal) contactModal.style.display = 'none';
+            contactModal.style.display = 'none';
         };
     }
 
@@ -211,10 +154,9 @@ function setupFormActionListeners() {
                 return;
             }
 
-            const activeFacId = viewContext.facility?.id || viewContext.facilityId;
-
+            const targetFacilityId = viewContext.facility?.id || viewContext.facilityId;
             const payload = {
-                facility_id: activeFacId,
+                facility_id: targetFacilityId,
                 contact_name: nameValue,
                 role: roleValue,
                 phone: phoneValue,
@@ -224,10 +166,8 @@ function setupFormActionListeners() {
             };
 
             const savedContact = await insertContact(payload);
-
             if (savedContact) {
-                if (contactModal) contactModal.style.display = 'none';
-                
+                contactModal.style.display = 'none';
                 if (viewContext.pendingIssueData) {
                     try {
                         viewContext.pendingIssueData.contact_id = savedContact.id;
@@ -235,14 +175,12 @@ function setupFormActionListeners() {
                     } catch (issueErr) {
                         console.error("Failed executing automated backwards issue registration:", issueErr);
                     }
-                    
                     if (window.navigateTo) {
-                        window.navigateTo('view_5_issues', { facility: { id: activeFacId } });
+                        window.navigateTo('view_5_issues', { facility: { id: targetFacilityId } });
                         return;
                     }
                 }
-
-                localContactsList = await fetchContacts(activeFacId);
+                localContactsList = await fetchContacts(targetFacilityId);
                 renderGrid(localContactsList);
                 hideContactProfile();
             } else {
@@ -262,15 +200,12 @@ function setupMediaCaptureHooks() {
         cameraTriggerBtn.addEventListener('click', () => {
             cameraFileInput.click();
         });
-
         cameraFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(evt) {
-                    if (hiddenImageInput) {
-                        hiddenImageInput.value = evt.target.result;
-                    }
+                    if (hiddenImageInput) hiddenImageInput.value = evt.target.result;
                     if (cameraStatusText) {
                         cameraStatusText.textContent = "Photo captured successfully";
                         cameraStatusText.style.color = "#10b981";
