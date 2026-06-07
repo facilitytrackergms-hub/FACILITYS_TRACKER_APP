@@ -35,7 +35,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 11:50 PM
+LAST UPDATED : 2026-06-06 @ 11:53 PM
 ================================================================*/
 
 import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
@@ -148,11 +148,12 @@ function hideContactProfile() {
 }
 
 function setupFormActionListeners() {
-    const addContactTriggerBtn = document.getElementById('addContactTriggerBtn');
+    // UPDATED ID HOOKS: Swapped to search fallback alternatives matching component view layouts
+    const addContactTriggerBtn = document.getElementById('addNewContactBtn') || document.getElementById('addContactTriggerBtn');
+    const backToControlsBtn = document.getElementById('backToControlsBtn');
     const cancelContactModalBtn = document.getElementById('cancelContactModalBtn');
     const saveContactBtn = document.getElementById('saveContactBtn');
     const contactModal = document.getElementById('contactFormModal');
-    const backToControlsBtn = document.getElementById('backToControlsBtn');
 
     const manualContactName = document.getElementById('manualContactName');
     const manualContactRole = document.getElementById('manualContactRole');
@@ -172,17 +173,19 @@ function setupFormActionListeners() {
 
     if (addContactTriggerBtn) {
         addContactTriggerBtn.onclick = () => {
-            manualContactName.value = '';
-            if (manualContactRole) manualContactRole.value = '';
-            if (manualContactPhone) manualContactPhone.value = '';
-            if (manualContactEmail) manualContactEmail.value = '';
-            if (manualContactNotes) manualContactNotes.value = '';
-            if (hiddenImageInput) hiddenImageInput.value = '';
-            if (cameraStatusText) {
-                cameraStatusText.textContent = "No capture stream active";
-                cameraStatusText.style.color = "#9ca3af";
+            if (contactModal) {
+                if (manualContactName) manualContactName.value = '';
+                if (manualContactRole) manualContactRole.value = '';
+                if (manualContactPhone) manualContactPhone.value = '';
+                if (manualContactEmail) manualContactEmail.value = '';
+                if (manualContactNotes) manualContactNotes.value = '';
+                if (hiddenImageInput) hiddenImageInput.value = '';
+                if (cameraStatusText) {
+                    cameraStatusText.textContent = "No capture stream active";
+                    cameraStatusText.style.color = "#9ca3af";
+                }
+                contactModal.style.display = 'flex';
             }
-            contactModal.style.display = 'flex';
         };
     }
 
