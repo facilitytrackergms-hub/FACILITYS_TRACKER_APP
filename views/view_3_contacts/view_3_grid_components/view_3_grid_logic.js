@@ -43,10 +43,9 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Manage Directory Entries
-LAST UPDATED : 2026-06-06 @ 10:01 PM
+LAST UPDATED : 2026-06-06 @ 10:07 PM
 ================================================================*/
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
-import { setupContactsEvents } from './view_3_grid_logic.js';
 
 export async function initializeGridLogic(viewContext) {
     let localContactsList = [];
@@ -271,4 +270,12 @@ export async function initializeGridLogic(viewContext) {
         },
         getActiveSelected: () => activeSelectedContact
     });
+}
+
+/**
+ * Custom event listener initializer invoked by main app engine routes
+ */
+export function setupContactsEvents(config) {
+    console.log("Contacts module telemetry events loaded.", config);
+    // Custom workflow configurations can be structuralized here if needed downstream
 }
