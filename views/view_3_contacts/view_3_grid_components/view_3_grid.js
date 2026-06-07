@@ -5,7 +5,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Layout Shell
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-07 @ 05:28 AM
+LAST UPDATED : 2026-06-07 @ 05:53 AM
 ================================================================*/
 
 import { initializeGridLogic } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid_logic.js';
@@ -14,6 +14,9 @@ export async function renderFacilityContacts(context = {}) {
     const { facility, returnToView = null, cachedIssueForm = null } = context;
     const app = document.getElementById('app');
     if (!app) return;
+
+    // Direct inline vector data stream to protect layout from 404/network connection limits
+    const localFallbackSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239ca3af' width='90' height='90'><circle cx='12' cy='8' r='4'/><path d='M12 14c-6.1 0-8 4-8 4v2h16v-2s-1.9-4-8-4z'/></svg>`;
 
     app.innerHTML = `
         <div class="contacts-view-container">
@@ -51,7 +54,7 @@ export async function renderFacilityContacts(context = {}) {
                     </div>
                     <div id="contactDetailPanel" class="sidebar-real-data" style="display:none;">
                         <div style="text-align:center; margin-bottom:20px;">
-                            <img id="detailAvatar" class="profile-large-avatar" src="https://via.placeholder.com/90" alt="Avatar">
+                            <img id="detailAvatar" class="profile-large-avatar" src="${localFallbackSvg}" alt="Avatar" onerror="this.onerror=null; this.src='${localFallbackSvg}';">
                             <h2 id="detailName" class="profile-detail-name">Contact Profile</h2>
                             <span id="detailRole" class="contact-role-pill">General Staff</span>
                         </div>
