@@ -35,11 +35,11 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 11:30 PM
+LAST UPDATED : 2026-06-06 @ 11:45 PM
 ================================================================*/
 
-import { fetchContacts, insertContact } from './view_3_data.js';
-import { insertFacilityIssue } from '../view_5_issues/view_5_data.js';
+import { fetchContacts, insertContact } from '../view_3_data.js';
+import { insertFacilityIssue } from '../../view_5_issues/view_5_data.js';
 
 let localContactsList = [];
 let activeSelectedContact = null;
