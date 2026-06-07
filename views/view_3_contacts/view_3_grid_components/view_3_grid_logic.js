@@ -66,9 +66,14 @@ export async function initializeGridLogic(viewContext) {
         emailLink.textContent = emailValue || 'N/A';
         emailLink.href = emailValue ? `mailto:${emailValue}` : '#';
 
-        document.getElementById('detailNotes').textContent = contact.notes || contact.operational_notes || 'No operational notes provided.';
-        if (backBtn) backBtn.style.display = 'none';
+         document.getElementById('detailNotes').textContent = contact.notes || contact.operational_notes || 'No operational notes provided.';
+
+        directorySelectionLayout.style.display = 'none';
         profilePane.style.display = 'block';
+
+        if (backBtn) {
+            backBtn.style.display = 'none';
+        }
 
         // Load contextual history reports matching this contact's name verbatim
         const targetHistoryContainer = document.getElementById('contactIssuesHistoryList');
