@@ -29,10 +29,10 @@ code file must be processed, updated, and formatted upon output.
 12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields in the active metadata block (File Name, Table, View, Title, Date, Time) are fully updated and preserved at the top of the file.
 
 13. LINE COUNT CONSTRAINT & AUTOMATIC FILE SPLITTING (GIT-ALIGNED):
-- Absolute Ceiling: The maximum allowable length for the entire single file is 350 lines to accommodate local editor line-wrapping and Git line-ending interpretations.
+- Absolute Ceiling: The maximum allowable length for the entire single file is 850 lines to accommodate local editor line-wrapping and Git line-ending interpretations.
 - Mandatory Pre-Check: BEFORE outputting any code block, the AI must explicitly print a "LINE COUNT AUDIT" in plain text containing: Raw Line Count (including this 53-line header), Git-Scaled Line Count (Raw x 1.5), and Split Decision Status.
 - Empty Line & Wrap Accounting: When calculating the total line count, all empty lines, blank spacing, and visually wrapped or long string layout blocks must be accounted for using a 1.5x scaling margin to guarantee strict alignment with Git repositories.
-- Split Trigger: The exact moment the total Git-Scaled Line Count reaches or exceeds 350 lines, processing MUST stop automatically. NO CODE BLOCK MAY BE GENERATED.
+- Split Trigger: The exact moment the total Git-Scaled Line Count reaches or exceeds 850 lines, processing MUST stop automatically. NO CODE BLOCK MAY BE GENERATED.
 - Action Required: Explicitly flag the line count to the user, cite this constraint, and propose an even split plan aimed at creating two balanced files of approximately 175 lines each.
 - User Confirmation: Wait for the user's explicit approval or division plan before outputting any code blocks.
 ================================================================*/
