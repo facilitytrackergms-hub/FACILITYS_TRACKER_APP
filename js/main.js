@@ -14,7 +14,7 @@ ACTION REQUIRED BY AI:
 4. Run the LINE COUNT AUDIT before writing code.
 ================================================================*/   /* =================================================
 FILE: main.js
-UPDATED: 2026-06-07 05:18:00 AM
+UPDATED: 2026-06-07 05:28:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -37,7 +37,6 @@ window.navigateTo = async (view, context = {}) => {
             view = 'view_1_facility';
             context = {};
         } else if (!context.facility && facilityId) {
-            // Standardize the shape so down-stream logic can read context.facility.id safely
             context.facility = { id: Number(facilityId) };
         }
     }
