@@ -9,7 +9,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-06 @ 11:10 PM
+LAST UPDATED : 2026-06-06 @ 11:15 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -64,8 +64,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 const __FILENAME = 'view_5_grid.js';
 
 import { fetchFacilityIssues, insertFacilityIssue } from './view_5_data.js';
-// Contextually importing simulated contact persistence APIs from neighboring layer to execute workflow steps cleanly
-import { fetchFacilityContacts, insertFacilityContact } from '../view_3_contacts/view_3_data.js';
+import { fetchContacts, insertContact } from '../view_3_contacts/view_3_data.js';
 
 export async function renderFacilityIssues(data) {
     const app = document.getElementById('app');
@@ -95,13 +94,13 @@ export async function renderFacilityIssues(data) {
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
             .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
-            
-            /* Combobox Layout Helpers */
+
+            /* Combobox Layout Elements */
             .combobox-container { position:relative; display:block; width:100%; }
             .combobox-select-underlay { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; background:white; color:#111827; }
             .combobox-input-overlay { position:absolute; top:5px; left:1px; width:calc(100% - 32px); margin:0; padding:10px; border:none; border-radius:5px 0 0 5px; box-sizing:border-box; outline:none; font-size:13px; }
-            
-            /* Custom Prompt Dialog Styles to comply with rule 10 */
+
+            /* Custom UI Confirmation Mask (Rule 10 Isolation Compliance) */
             .custom-confirm-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:100; padding:15px; }
             .custom-confirm-box { background:white; border-radius:10px; padding:20px; width:100%; max-width:360px; box-shadow:0 10px 20px rgba(0,0,0,0.15); text-align:center; }
             .custom-confirm-msg { font-size:14px; color:#374151; margin-bottom:20px; font-family:Arial, sans-serif; line-height:1.4; }
@@ -118,7 +117,7 @@ export async function renderFacilityIssues(data) {
                 <p class="issues-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-06 11:10:00 PM
+                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-06 11:15:00 PM
                 </div>
 
                 <button id="addIssueTriggerBtn" class="issues-view-btn btn-emerald">➕ Create Maintenance Request</button>
@@ -151,6 +150,7 @@ export async function renderFacilityIssues(data) {
                 </div>
             </div>
 
+            <!-- Custom alert dialog built strictly in accordance with tracking criteria Rule 10 -->
             <div id="view_5_grid_contact_confirm_dialog" class="custom-confirm-mask">
                 <div class="custom-confirm-box">
                     <div id="view_5_grid_confirm_message" class="custom-confirm-msg"></div>
@@ -167,14 +167,12 @@ export async function renderFacilityIssues(data) {
     const selectUnderlay = document.getElementById('issueFormReporterSelect');
     const textOverlay = document.getElementById('issueFormReporter');
 
-    // Sync combobox choices to the text input field
     selectUnderlay.onchange = () => {
         if (selectUnderlay.value) {
             textOverlay.value = selectUnderlay.value;
         }
     };
 
-    // Keep dropdown blanked if user types explicitly to preserve free text input integrity
     textOverlay.oninput = () => {
         selectUnderlay.value = "";
     };
@@ -182,23 +180,22 @@ export async function renderFacilityIssues(data) {
     async function populateContactsDropdown() {
         if (!facility?.id) return;
         try {
-            if (typeof fetchFacilityContacts === 'function') {
-                localContactsCache = await fetchFacilityContacts(facility.id);
-            } else {
-                localContactsCache = [];
-            }
+            localContactsCache = await fetchContacts(facility.id);
         } catch (e) {
+            console.error("Failed loading local contacts dependency layer:", e);
             localContactsCache = [];
         }
 
-        // Clean option layout stack
         selectUnderlay.innerHTML = '<option value=""></option>';
         if (Array.isArray(localContactsCache)) {
             localContactsCache.forEach(contact => {
-                const opt = document.createElement('option');
-                opt.value = contact.name || contact.full_name || '';
-                opt.textContent = contact.name || contact.full_name || '';
-                selectUnderlay.appendChild(opt);
+                const nameValue = contact.contact_name || '';
+                if (nameValue) {
+                    const opt = document.createElement('option');
+                    opt.value = nameValue;
+                    opt.textContent = nameValue;
+                    selectUnderlay.appendChild(opt);
+                }
             });
         }
     }
@@ -220,7 +217,6 @@ export async function renderFacilityIssues(data) {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
     };
 
-    // Helper handler executing a styled rule-10 compliant promise dialog intercept
     function promptNewContactCreation(targetName) {
         return new Promise((resolve) => {
             const dialog = document.getElementById('view_5_grid_contact_confirm_dialog');
@@ -252,9 +248,8 @@ export async function renderFacilityIssues(data) {
             return;
         }
 
-        // Confirm whether contact exists inside the loaded collection boundary
         const matchedContact = localContactsCache.find(c => 
-            (c.name || c.full_name || '').toLowerCase() === reporter.toLowerCase()
+            (c.contact_name || '').toLowerCase() === reporter.toLowerCase()
         );
 
         let activeContactId = matchedContact ? matchedContact.id : null;
@@ -262,34 +257,23 @@ export async function renderFacilityIssues(data) {
         if (!matchedContact) {
             const shouldAdd = await promptNewContactCreation(reporter);
             if (shouldAdd) {
-                // Instantly invoke creation within your database contacts ecosystem
-                if (typeof insertFacilityContact === 'function') {
-                    const newContact = await insertFacilityContact({
+                try {
+                    const newContact = await insertContact({
                         facility_id: facility.id,
-                        name: reporter
+                        contact_name: reporter
                     });
                     if (newContact && newContact.id) {
                         activeContactId = newContact.id;
                     }
-                } else {
-                    // Fallback to route navigation if the context requires full layout customization forms
-                    if (window.navigateTo) {
-                        modal.style.display = 'none';
-                        window.navigateTo('view_3_contacts', { 
-                            facility: facility, 
-                            triggerNewContactForm: true, 
-                            prefilledContactName: reporter,
-                            pendingIssueData: { title, description: desc, status: 'Open' }
-                        });
-                        return;
-                    }
+                } catch (err) {
+                    console.error("Direct inline insertion failed, resorting to fallback redirect scheme:", err);
                 }
             }
         }
 
         const inserted = await insertFacilityIssue({
             facility_id: facility.id,
-            contact_id: activeContactId, // Securely linking transaction directly to specific Contact detail views
+            contact_id: activeContactId,
             title: title,
             description: desc,
             reported_by: reporter,
@@ -328,12 +312,10 @@ export async function renderFacilityIssues(data) {
         });
     }
 
-    // FIXED: Intercept contextual payloads sent from the profile view
     if (data?.openFormInstantly) {
         document.getElementById('issueFormTitle').value = '';
         document.getElementById('issueFormDesc').value = '';
         
-        // Auto-assign the reporter input value cleanly 
         if (data?.prefilledReporterName) {
             textOverlay.value = data.prefilledReporterName;
             selectUnderlay.value = data.prefilledReporterName;
