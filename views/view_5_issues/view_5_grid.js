@@ -147,7 +147,7 @@ export async function renderFacilityIssues(data) {
     <button id="saveIssueBtn" class="issues-view-btn btn-navy">Update Info</button>
     <button id="deleteIssueRequestBtn" class="issues-view-btn btn-gray" style="display:none;">Delete Issue</button>
     <button id="closeIssueModal" class="issues-view-btn btn-gray">Back to Issues</button>
-</div>
+</div>>
                 </div>
             </div>
 
@@ -249,16 +249,21 @@ export async function renderFacilityIssues(data) {
         modal.style.display = 'flex';
     };
 
-    document.getElementById('closeIssueFormBtn').onclick = () => {
+  const closeIssueFormBtn = document.getElementById('closeIssueFormBtn');
+if (closeIssueFormBtn) {
+    closeIssueFormBtn.onclick = () => {
         modal.style.display = 'none';
     };
+}
 
-    document.getElementById('backToControlsBtn').onclick = () => {
+const backToControlsBtn = document.getElementById('backToControlsBtn');
+if (backToControlsBtn) {
+    backToControlsBtn.onclick = () => {
         if (window.navigateTo) {
             window.navigateTo('view_2_controls', { facility: facility });
         }
     };
-
+}
     function promptNewContactCreation(targetName) {
         return new Promise((resolve) => {
             const dialog = document.getElementById('view_5_grid_contact_confirm_dialog');
