@@ -43,12 +43,9 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic Layer
 POP-UP TITLE : Manage Directory Entries
-LAST UPDATED : 2026-06-06 @ 09:45 PM
+LAST UPDATED : 2026-06-06 @ 09:49 PM
 ================================================================*/
-
-// FIXED: Paths adjusted outward using '../' because this logic file runs inside the view_3_grid_components subfolder
 import { fetchContacts, createContact, updateContact, deleteContact } from '../view_3_data.js';
-import { attachModalStampTracker } from '../view_3_modal.js';
 import { setupContactsEvents } from './view_3_grid_logic.js';
 
 export async function initializeGridLogic(viewContext) {
@@ -156,7 +153,9 @@ export async function initializeGridLogic(viewContext) {
             document.getElementById('cameraStatusText').textContent = "No photo captured";
             document.getElementById('cameraStatusText').style.color = "#6b7280";
             
-            attachModalStampTracker();
+            if (typeof window.attachModalStampTracker === 'function') {
+                window.attachModalStampTracker();
+            }
             modalShell.style.display = 'flex';
         };
     }
@@ -216,7 +215,9 @@ export async function initializeGridLogic(viewContext) {
                 document.getElementById('cameraStatusText').style.color = "#10b981";
             }
 
-            attachModalStampTracker();
+            if (typeof window.attachModalStampTracker === 'function') {
+                window.attachModalStampTracker();
+            }
             modalShell.style.display = 'flex';
         };
     }
