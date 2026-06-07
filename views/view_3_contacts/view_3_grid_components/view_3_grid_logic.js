@@ -33,15 +33,14 @@ export async function initializeGridLogic(viewContext) {
             const card = document.createElement('div');
             card.className = 'contact-thumbnail';
             
-            const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
-            const displayPhoto = item.profile_photo_url || fallbackAvatar;
+                     const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+            const displayPhoto = item.image_url || item.profile_photo_url || fallbackAvatar;
 
             card.innerHTML = `
                 <img src="${displayPhoto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#e5e7eb;" />
                 <div class="thumbnail-name">${item.contact_name || 'Unnamed Contact'}</div>
-                <div class="thumbnail-role">${item.role_title || 'No Title'}</div>
+                <div class="thumbnail-role">${item.role || item.role_title || 'No Title'}</div>
             `;
-
             card.onclick = () => showContactProfile(item);
             gridContainer.appendChild(card);
         });
