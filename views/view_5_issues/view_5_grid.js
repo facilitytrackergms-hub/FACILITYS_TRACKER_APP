@@ -9,7 +9,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-06 @ 11:15 PM
+LAST UPDATED : 2026-06-07 @ 08:55 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -64,7 +64,8 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 const __FILENAME = 'view_5_grid.js';
 
 import { fetchFacilityIssues, insertFacilityIssue } from './view_5_data.js';
-import { fetchContacts, insertContact } from '../view_3_contacts/view_3_data.js';
+import { openIssueModal, setupIssuesEvents } from './view_5_modal.js';
+import { fetchContacts } from '../view_3_contacts/view_3_data.js';
 
 export async function renderFacilityIssues(data) {
     const app = document.getElementById('app');
@@ -85,22 +86,21 @@ export async function renderFacilityIssues(data) {
             .btn-gray { background:#9ca3af; color:white; }
             .issues-list-layout { margin:20px 0; text-align:left; display:flex; flex-direction:column; gap:10px; }
             .issue-list-item { background:#f9fafb; border:1px solid #e5e7eb; padding:15px; border-radius:8px; cursor:pointer; }
+            .issue-list-item:hover { background:#f3f4f6; }
             .issue-list-title { font-weight:bold; color:#00264d; font-size:15px; }
             .issue-list-meta { font-size:12px; color:#6b7280; margin-top:4px; }
             
             .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
-            .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; }
+            .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; max-height:90vh; overflow-y:auto; }
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
             .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
 
-            /* Combobox Layout Elements */
             .combobox-container { position:relative; display:block; width:100%; }
             .combobox-select-underlay { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; background:white; color:#111827; }
             .combobox-input-overlay { position:absolute; top:5px; left:1px; width:calc(100% - 32px); margin:0; padding:10px; border:none; border-radius:5px 0 0 5px; box-sizing:border-box; outline:none; font-size:13px; }
 
-            /* Custom UI Confirmation Mask (Rule 10 Isolation Compliance) */
             .custom-confirm-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:100; padding:15px; }
             .custom-confirm-box { background:white; border-radius:10px; padding:20px; width:100%; max-width:360px; box-shadow:0 10px 20px rgba(0,0,0,0.15); text-align:center; }
             .custom-confirm-msg { font-size:14px; color:#374151; margin-bottom:20px; font-family:Arial, sans-serif; line-height:1.4; }
@@ -117,7 +117,7 @@ export async function renderFacilityIssues(data) {
                 <p class="issues-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-06 11:15:00 PM
+                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-07 08:55:00 AM
                 </div>
 
                 <button id="addIssueTriggerBtn" class="issues-view-btn btn-emerald">➕ Create Maintenance Request</button>
@@ -150,7 +150,44 @@ export async function renderFacilityIssues(data) {
                 </div>
             </div>
 
-            <!-- Custom alert dialog built strictly in accordance with tracking criteria Rule 10 -->
+            <div id="issueModal" class="modal-mask">
+                <div class="modal-shell">
+                    <h3 id="issueModalTitle" class="modal-shell-title">Issue Dashboard</h3>
+
+                    <input type="hidden" id="issueId" value="">
+                    <input type="hidden" id="hiddenReporterName" value="">
+                    <input type="hidden" id="hiddenReporterId" value="">
+
+                    <label class="form-field-label">Issue Title / Subject</label>
+                    <input type="text" id="issueTitleInput" class="form-field-input">
+
+                    <label class="form-field-label">Description / Details</label>
+                    <textarea id="issueDescInput" class="form-field-input" style="height:80px; resize:none;"></textarea>
+
+                    <label class="form-field-label">Priority</label>
+                    <select id="issuePriorityInput" class="form-field-input">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+
+                    <label class="form-field-label">Status</label>
+                    <select id="issueStatusInput" class="form-field-input">
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+
+                    <div id="issue-image-container" style="margin-top:15px;"></div>
+
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                        <button id="saveIssueBtn" class="issues-view-btn btn-navy">Update Info</button>
+                        <button id="deleteIssueRequestBtn" class="issues-view-btn btn-gray" style="display:none;">Delete Issue</button>
+                        <button id="closeIssueModal" class="issues-view-btn btn-gray">Back to Issues</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="view_5_grid_contact_confirm_dialog" class="custom-confirm-mask">
                 <div class="custom-confirm-box">
                     <div id="view_5_grid_confirm_message" class="custom-confirm-msg"></div>
@@ -179,6 +216,7 @@ export async function renderFacilityIssues(data) {
 
     async function populateContactsDropdown() {
         if (!facility?.id) return;
+
         try {
             localContactsCache = await fetchContacts(facility.id);
         } catch (e) {
@@ -187,6 +225,7 @@ export async function renderFacilityIssues(data) {
         }
 
         selectUnderlay.innerHTML = '<option value=""></option>';
+
         if (Array.isArray(localContactsCache)) {
             localContactsCache.forEach(contact => {
                 const nameValue = contact.contact_name || '';
@@ -214,7 +253,9 @@ export async function renderFacilityIssues(data) {
     };
 
     document.getElementById('backToControlsBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view_2_controls', { facility: facility });
+        if (window.navigateTo) {
+            window.navigateTo('view_2_controls', { facility: facility });
+        }
     };
 
     function promptNewContactCreation(targetName) {
@@ -231,6 +272,7 @@ export async function renderFacilityIssues(data) {
                 dialog.style.display = 'none';
                 resolve(true);
             };
+
             noBtn.onclick = () => {
                 dialog.style.display = 'none';
                 resolve(false);
@@ -238,70 +280,60 @@ export async function renderFacilityIssues(data) {
         });
     }
 
-  /*================================================================
-FILE METADATA
-================================================================
-FILE NAME    : view_5_grid.js
-SUPABASE TBL : facility_issues
-VIEW NAME    : Maintenance Requests
-POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-07 @ 07:12 AM
-================================================================*/
-// ... [Existing CSS and HTML Template]
-        document.getElementById('submitIssueFormBtn').onclick = async () => {
-            const title = document.getElementById('issueFormTitle').value.trim();
-            const desc = document.getElementById('issueFormDesc').value.trim();
-            const reporter = textOverlay.value.trim();
+    document.getElementById('submitIssueFormBtn').onclick = async () => {
+        const title = document.getElementById('issueFormTitle').value.trim();
+        const desc = document.getElementById('issueFormDesc').value.trim();
+        const reporter = textOverlay.value.trim();
 
-            if (!title || !reporter) {
-                alert("Subject and Reporter fields are required.");
+        if (!title || !reporter) {
+            alert("Subject and Reporter fields are required.");
+            return;
+        }
+
+        const matchedContact = localContactsCache.find(c =>
+            (c.contact_name || '').toLowerCase() === reporter.toLowerCase()
+        );
+
+        if (!matchedContact) {
+            const shouldAdd = await promptNewContactCreation(reporter);
+
+            if (shouldAdd && window.navigateTo) {
+                window.navigateTo('view_3_contacts', {
+                    facility: facility,
+                    openFormInstantly: true,
+                    prefilledContactName: reporter,
+                    pendingIssueData: {
+                        facility_id: facility.id,
+                        title: title,
+                        description: desc,
+                        reported_by: reporter,
+                        status: 'Open'
+                    }
+                });
                 return;
             }
+        }
 
-       const matchedContact = localContactsCache.find(c => 
-                (c.contact_name || '').toLowerCase() === reporter.toLowerCase()
-            );
+        const inserted = await insertFacilityIssue({
+            facility_id: facility.id,
+            contact_id: matchedContact?.id || null,
+            title: title,
+            description: desc,
+            reported_by: reporter,
+            status: 'Open'
+        });
 
-            if (!matchedContact) {
-                const shouldAdd = await promptNewContactCreation(reporter);
-                if (shouldAdd && window.navigateTo) {
-                    // BRIDGE: Redirect to contacts with issue payload
-                    window.navigateTo('view_3_contacts', { 
-                        facility: facility,
-                        openFormInstantly: true, // Trigger modal on load
-                        prefilledContactName: reporter, // Fill the name
-                        pendingIssueData: { // Save this to add issue AFTER contact is saved
-                            facility_id: facility.id,
-                            title: title,
-                            description: desc,
-                            reported_by: reporter,
-                            status: 'Open'
-                        }
-                    });
-                    return; // Stop here, View 3 takes over
-                }
-            }
-
-            const inserted = await insertFacilityIssue({
-                facility_id: facility.id,
-                contact_id: matchedContact?.id || null,
-                title: title,
-                description: desc,
-                reported_by: reporter,
-                status: 'Open'
-            });
-
-            if (inserted) {
-                modal.style.display = 'none';
-                await loadIssuesListData();
-            } else {
-                alert("Could not register maintenance request data.");
-            }
-        };
-// ... [Rest of file]
+        if (inserted) {
+            modal.style.display = 'none';
+            await loadIssuesListData();
+        } else {
+            alert("Could not register maintenance request data.");
+        }
+    };
 
     async function loadIssuesListData() {
         if (!facility?.id) return;
+
         const listElement = document.getElementById('issuesListElement');
         if (!listElement) return;
 
@@ -316,10 +348,16 @@ LAST UPDATED : 2026-06-07 @ 07:12 AM
         issues.forEach(issue => {
             const row = document.createElement('div');
             row.className = 'issue-list-item';
+
             row.innerHTML = `
                 <div class="issue-list-title">${issue.title}</div>
                 <div class="issue-list-meta">Status: <b>${issue.status || 'Open'}</b> | Reported by: ${issue.reported_by || 'Unknown'}</div>
             `;
+
+            row.onclick = () => {
+                openIssueModal(facility, issue);
+            };
+
             listElement.appendChild(row);
         });
     }
@@ -327,14 +365,18 @@ LAST UPDATED : 2026-06-07 @ 07:12 AM
     if (data?.openFormInstantly) {
         document.getElementById('issueFormTitle').value = '';
         document.getElementById('issueFormDesc').value = '';
-        
+
         if (data?.prefilledReporterName) {
             textOverlay.value = data.prefilledReporterName;
             selectUnderlay.value = data.prefilledReporterName;
         }
-        
+
         modal.style.display = 'flex';
     }
+
+    setupIssuesEvents(facility, async () => {
+        await renderFacilityIssues({ facility: facility });
+    });
 
     await populateContactsDropdown();
     await loadIssuesListData();
