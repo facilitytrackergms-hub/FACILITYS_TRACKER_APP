@@ -29,7 +29,7 @@ export async function initializeGridLogic(context) {
     }
 
     setupFormActionListeners();
-    setupMediaCaptureHooks();
+ 
 
     if (viewContext.openFormInstantly && viewContext.prefilledContactName) {
         const contactModal = document.getElementById('contactFormModal');
