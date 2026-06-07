@@ -14,7 +14,7 @@ ACTION REQUIRED BY AI:
 4. Run the LINE COUNT AUDIT before writing code.
 ================================================================*/   /* =================================================
 FILE: main.js
-UPDATED: 2026-06-06 05:16:00 PM
+UPDATED: 2026-06-06 08:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -46,7 +46,7 @@ window.navigateTo = async (view, context = {}) => {
     const cb = "?v=2026_v6";
 
     try {
-        if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility') {
+        if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility' || view === 'view_1_dashboard') {
             const { renderFacilities } = await import(`../views/view_1_facility/view_1_grid.js${cb}`);
             await renderFacilities(context);
         } 
