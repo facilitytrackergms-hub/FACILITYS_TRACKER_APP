@@ -41,11 +41,11 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
-VIEW NAME    : Facility Directory Logic Layer
+VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Manage Directory Entries
-LAST UPDATED : 2026-06-06 @ 09:49 PM
+LAST UPDATED : 2026-06-06 @ 09:52 PM
 ================================================================*/
-import { fetchContacts, createContact, updateContact, deleteContact } from '../view_3_data.js';
+import { fetchContacts, createContact, updateContact, deleteContact } from './view_3_data.js';
 import { setupContactsEvents } from './view_3_grid_logic.js';
 
 export async function initializeGridLogic(viewContext) {
