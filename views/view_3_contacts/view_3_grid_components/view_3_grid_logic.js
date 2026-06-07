@@ -35,7 +35,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 11:47 PM
+LAST UPDATED : 2026-06-06 @ 11:50 PM
 ================================================================*/
 
 import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
@@ -152,6 +152,7 @@ function setupFormActionListeners() {
     const cancelContactModalBtn = document.getElementById('cancelContactModalBtn');
     const saveContactBtn = document.getElementById('saveContactBtn');
     const contactModal = document.getElementById('contactFormModal');
+    const backToControlsBtn = document.getElementById('backToControlsBtn');
 
     const manualContactName = document.getElementById('manualContactName');
     const manualContactRole = document.getElementById('manualContactRole');
@@ -160,6 +161,14 @@ function setupFormActionListeners() {
     const manualContactNotes = document.getElementById('manualContactNotes');
     const hiddenImageInput = document.getElementById('manualContactImageBase64');
     const cameraStatusText = document.getElementById('cameraStatusText');
+
+    if (backToControlsBtn) {
+        backToControlsBtn.onclick = () => {
+            if (window.navigateTo) {
+                window.navigateTo('view_2_grid', { facility: viewContext.facility });
+            }
+        };
+    }
 
     if (addContactTriggerBtn) {
         addContactTriggerBtn.onclick = () => {
