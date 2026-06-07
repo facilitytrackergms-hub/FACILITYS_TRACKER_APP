@@ -9,7 +9,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-06 @ 05:21 PM
+LAST UPDATED : 2026-06-06 @ 10:15 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -103,7 +103,7 @@ export async function renderFacilityIssues(data) {
                 <p class="issues-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-06 05:21:00 PM
+                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-06 10:15:00 PM
                 </div>
 
                 <button id="addIssueTriggerBtn" class="issues-view-btn btn-emerald">➕ Create Maintenance Request</button>
@@ -215,14 +215,3 @@ export async function renderFacilityIssues(data) {
 
     await loadIssuesListData();
 }
-
-/*================================================================
-ACTION REQUIRED BY AI:
-1. Scan this file for any import statements or paths pointing to 'view_3_grid.js'.
-2. Update those paths so they correctly target the new folder and split files:
-   - view_3_grid.js
-   - view_3_grid_logic.js
-3. Ensure all other local relative paths (../) are mathematically adjusted 
-   to account for the deeper directory depth of the new folder level.
-4. Run the LINE COUNT AUDIT before writing code.
-================================================================*/
