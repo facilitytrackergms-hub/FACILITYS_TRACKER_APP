@@ -42,174 +42,195 @@ FILE METADATA
 FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
-POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 08:38 PM
+POP-UP TITLE : Manage Directory Entries
+LAST UPDATED : 2026-06-06 @ 09:02 PM
 ================================================================*/
-const __FILENAME = 'view_3_grid_logic.js';
+import { fetchContacts, createContact, updateContact, deleteContact } from './view_3_data.js';
+import { attachModalStampTracker } from './view_3_modal.js';
+import { setupContactsEvents } from './view_3_grid_logic.js';
 
-import { fetchContacts, insertContact, deleteContact } from '../view_3_data.js';
-import { setupContactsEvents, openEditContactModal } from '../view_3_modal.js';
-import { fetchFacilityIssues } from '../../view_5_issues/view_5_data.js';
-import { renderFacilityIssues } from '../../view_5_issues/view_5_grid.js';
+export async function initializeGridLogic(viewContext) {
+    let localContactsList = [];
+    let activeSelectedContact = null;
 
-let localContactsList = [];
-let activeSelectedContact = null;
-let viewContext = null;
+    const gridContainer = document.getElementById('contactsGridElement');
+    const profilePane = document.getElementById('contactDetailPane');
+    const directorySelectionLayout = document.getElementById('directorySelectionLayout');
+    const backBtn = document.getElementById('backBtn');
 
-const OFFLINE_AVATAR_IMAGE = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100" fill="%239ca3af"><circle cx="50" cy="50" r="50" fill="%23e5e7eb"/><circle cx="50" cy="40" r="20"/><path d="M20,80 C20,60 80,60 80,80 Z"/></svg>`;
+    const modalShell = document.getElementById('manualContactModal');
+    const openModalBtn = document.getElementById('manualContactTriggerBtn');
+    const closeModalBtn = document.getElementById('cancelContactModalBtn');
+    const saveContactBtn = document.getElementById('saveContactBtn');
 
-function getSanitizedAvatar(url) {
-    if (!url || typeof url !== 'string') {
-        return OFFLINE_AVATAR_IMAGE;
-    }
-    const cleanedUrl = url.trim().toLowerCase();
-    if (cleanedUrl === '' || cleanedUrl === 'undefined' || cleanedUrl === 'null' || cleanedUrl.includes('via.placeholder.com')) {
-        return OFFLINE_AVATAR_IMAGE;
-    }
-    return url;
-}
-
-export async function initializeGridLogic(context) {
-    viewContext = context;
-    await init();
-}
-
-async function init() {
-    try {
-        localContactsList = await fetchContacts(viewContext.facility?.id);
+    // Load directory details
+    if (viewContext.facility?.id) {
+        localContactsList = await fetchContacts(viewContext.facility.id);
         renderGrid(localContactsList);
-    } catch (error) {
-        console.error("Error loading directory data:", error);
-        const grid = document.getElementById('contactsGridElement');
-        if (grid) grid.innerHTML = `<p style="color:#dc2626; font-size:14px;">Failed to load contacts directory details.</p>`;
-    }
-    bindCoreDOMEvents();
-}
-
-function renderGrid(contacts) {
-    const grid = document.getElementById('contactsGridElement');
-    if (!grid) return;
-
-    grid.innerHTML = '';
-
-    if (!contacts || contacts.length === 0) {
-        grid.innerHTML = `<p style="color:#6b7280; font-size:14px; grid-column:1/-1; text-align:center;">No contacts found for this facility.</p>`;
-        return;
     }
 
-    contacts.forEach(c => {
-        const secureUrl = getSanitizedAvatar(c.avatar_url || c.image_url);
+    function renderGrid(contacts) {
+        if (!gridContainer) return;
+        gridContainer.innerHTML = '';
 
-        const card = document.createElement('div');
-        card.className = 'contact-thumbnail';
-        card.setAttribute('data-contact-id', c.id);
+        if (!contacts || contacts.length === 0) {
+            gridContainer.innerHTML = `<p style="grid-column: 1/-1; color:#6b7280; font-size:14px; font-style:italic; margin:10px 0;">No contacts added yet.</p>`;
+            return;
+        }
 
-        const img = document.createElement('img');
-        img.src = secureUrl;
-        img.style.width = '50px';
-        img.style.height = '50px';
-        img.style.borderRadius = '50%';
-        img.style.objectFit = 'cover';
+        contacts.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'contact-thumbnail';
+            
+            const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+            const displayPhoto = item.profile_photo_url || fallbackAvatar;
 
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'thumbnail-name';
-        nameDiv.textContent = c.name || 'Unnamed';
+            card.innerHTML = `
+                <img src="${displayPhoto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#e5e7eb;" />
+                <div class="thumbnail-name">${item.contact_name || 'Unnamed Contact'}</div>
+                <div class="thumbnail-role">${item.role_title || 'No Title'}</div>
+            `;
 
-        const roleDiv = document.createElement('div');
-        roleDiv.className = 'thumbnail-role';
-        roleDiv.textContent = c.role || 'General';
-
-        card.appendChild(img);
-        card.appendChild(nameDiv);
-        card.appendChild(roleDiv);
-
-        card.addEventListener('click', () => {
-            const selected = localContactsList.find(item => String(item.id) === String(c.id));
-            if (selected) {
-                showContactProfile(selected);
-            }
+            card.onclick = () => showContactProfile(item);
+            gridContainer.appendChild(card);
         });
+    }
 
-        grid.appendChild(card);
-    });
-}
+    function showContactProfile(contact) {
+        activeSelectedContact = contact;
+        if (!profilePane || !directorySelectionLayout) return;
 
-function showContactProfile(contact) {
-    activeSelectedContact = contact;
-    
-    document.getElementById('directorySelectionLayout').style.display = 'none';
-    const panel = document.getElementById('contactDetailPane');
-    
-    const contextUrl = getSanitizedAvatar(contact.avatar_url || contact.image_url);
-    document.getElementById('detailAvatar').src = contextUrl;
-    document.getElementById('detailName').textContent = contact.name || 'Contact Profile';
-    document.getElementById('detailRole').textContent = contact.role || 'N/A';
-    
-    const phone = document.getElementById('detailPhoneLink');
-    phone.textContent = contact.phone || 'N/A';
-    phone.href = contact.phone ? `tel:${contact.phone}` : '#';
+        const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+        
+        document.getElementById('detailAvatar').src = contact.profile_photo_url || fallbackAvatar;
+        document.getElementById('detailName').textContent = contact.contact_name || 'Unnamed Contact';
+        document.getElementById('detailRole').textContent = contact.role_title || 'N/A';
+        
+        const phoneLink = document.getElementById('detailPhoneLink');
+        phoneLink.textContent = contact.phone_number || 'N/A';
+        phoneLink.href = contact.phone_number ? `tel:${contact.phone_number}` : '#';
 
-    const email = document.getElementById('detailEmailLink');
-    email.textContent = contact.email || 'N/A';
-    email.href = contact.email ? `mailto:${contact.email}` : '#';
+        const emailLink = document.getElementById('detailEmailLink');
+        emailLink.textContent = contact.email_address || 'N/A';
+        emailLink.href = contact.email_address ? `mailto:${contact.email_address}` : '#';
 
-    document.getElementById('detailNotes').textContent = contact.notes || 'No extra operational notes configured.';
-    
-    panel.style.display = 'block';
-}
+        document.getElementById('detailNotes').textContent = contact.operational_notes || 'No operational notes provided.';
 
-function hideContactProfile() {
-    activeSelectedContact = null;
-    document.getElementById('contactDetailPane').style.display = 'none';
-    document.getElementById('directorySelectionLayout').style.display = 'block';
-}
+        directorySelectionLayout.style.display = 'none';
+        if (backBtn) backBtn.style.display = 'none';
+        profilePane.style.display = 'block';
+    }
 
-function bindCoreDOMEvents() {
-    // FIXED: Patched backBtn to utilize standard window.navigateTo engine instead of failing window.__switchToControlView handler
-    document.getElementById('backBtn')?.addEventListener('click', () => {
-        if (typeof window.navigateTo === 'function') {
-            window.navigateTo('view_2_controls', { facility: viewContext?.facility });
-        } else if (typeof window.__switchToControlView === 'function') {
-            const destinationView = viewContext?.returnToView || 'view_2_grid';
-            window.__switchToControlView(destinationView);
-        }
-    });
+    function hideContactProfile() {
+        activeSelectedContact = null;
+        if (!profilePane || !directorySelectionLayout) return;
 
-    document.getElementById('closeDetailPaneBtn')?.addEventListener('click', hideContactProfile);
+        profilePane.style.display = 'none';
+        directorySelectionLayout.style.display = 'block';
+        if (backBtn) backBtn.style.display = 'block';
+    }
 
-    document.getElementById('profileEditBtn')?.addEventListener('click', () => {
-        if (activeSelectedContact && typeof openEditContactModal === 'function') {
-            openEditContactModal(activeSelectedContact);
-        }
-    });
+    if (document.getElementById('closeDetailPaneBtn')) {
+        document.getElementById('closeDetailPaneBtn').onclick = hideContactProfile;
+    }
 
-    document.getElementById('profileDeleteBtn')?.addEventListener('click', async () => {
-        if (activeSelectedContact) {
-            const dynamicConfirm = confirm("[ID: view3-delete-alert] Are you sure you want to remove this contact entry?");
-            if (dynamicConfirm) {
-                try {
-                    await deleteContact(activeSelectedContact.id);
-                    localContactsList = await fetchContacts(viewContext.facility?.id);
-                    renderGrid(localContactsList);
-                    hideContactProfile();
-                } catch (err) {
-                    console.error("Error deleting contact entry:", err);
-                }
+    if (backBtn) {
+        backBtn.onclick = () => {
+            if (window.navigateTo) window.navigateTo('view_2_controls', { facility: viewContext.facility });
+        };
+    }
+
+    // Modal Control Workflows
+    if (openModalBtn && modalShell) {
+        openModalBtn.onclick = () => {
+            document.getElementById('modalTemplateTitle').textContent = "Create Directory Entry";
+            document.getElementById('editingContactId').value = "";
+            document.getElementById('manualContactImage').value = "";
+            document.getElementById('manualContactName').value = "";
+            document.getElementById('manualContactRole').value = "";
+            document.getElementById('manualContactPhone').value = "";
+            document.getElementById('manualContactEmail').value = "";
+            document.getElementById('manualContactNotes').value = "";
+            document.getElementById('cameraStatusText').textContent = "No photo captured";
+            document.getElementById('cameraStatusText').style.color = "#6b7280";
+            
+            attachModalStampTracker();
+            modalShell.style.display = 'flex';
+        };
+    }
+
+    if (closeModalBtn && modalShell) {
+        closeModalBtn.onclick = () => { modalShell.style.display = 'none'; };
+    }
+
+    if (saveContactBtn && modalShell) {
+        saveContactBtn.onclick = async () => {
+            const contactId = document.getElementById('editingContactId').value;
+            
+            // FIXED: Explicitly structural mapping using contact_name instead of generic property name
+            const payload = {
+                facility_id: viewContext.facility?.id,
+                contact_name: document.getElementById('manualContactName').value.trim(),
+                role_title: document.getElementById('manualContactRole').value.trim(),
+                phone_number: document.getElementById('manualContactPhone').value.trim(),
+                email_address: document.getElementById('manualContactEmail').value.trim(),
+                operational_notes: document.getElementById('manualContactNotes').value.trim(),
+                profile_photo_url: document.getElementById('manualContactImage').value
+            };
+
+            if (!payload.contact_name) {
+                alert("Please assign a contact name field baseline before saving.");
+                return;
             }
-        }
-    });
 
-    document.getElementById('profileAddIssueBtn')?.addEventListener('click', () => {
-        if (activeSelectedContact) {
-            renderFacilityIssues({
-                facility: viewContext.facility,
-                returnToView: 'view_3_grid',
-                cachedIssueForm: {
-                    reported_by: activeSelectedContact.name
-                }
-            });
-        }
-    });
+            if (contactId) {
+                await updateContact(contactId, payload);
+            } else {
+                await createContact(payload);
+            }
+
+            localContactsList = await fetchContacts(viewContext.facility?.id);
+            renderGrid(localContactsList);
+            modalShell.style.display = 'none';
+            hideContactProfile();
+        };
+    }
+
+    // Edit and Delete Profiles Toolbar
+    if (document.getElementById('profileEditBtn')) {
+        document.getElementById('profileEditBtn').onclick = () => {
+            if (!activeSelectedContact || !modalShell) return;
+
+            document.getElementById('modalTemplateTitle').textContent = "Modify Contact Details";
+            document.getElementById('editingContactId').value = activeSelectedContact.id;
+            document.getElementById('manualContactImage').value = activeSelectedContact.profile_photo_url || "";
+            document.getElementById('manualContactName').value = activeSelectedContact.contact_name || "";
+            document.getElementById('manualContactRole').value = activeSelectedContact.role_title || "";
+            document.getElementById('manualContactPhone').value = activeSelectedContact.phone_number || "";
+            document.getElementById('manualContactEmail').value = activeSelectedContact.email_address || "";
+            document.getElementById('manualContactNotes').value = activeSelectedContact.operational_notes || "";
+            
+            if (activeSelectedContact.profile_photo_url) {
+                document.getElementById('cameraStatusText').textContent = "Existing photo active";
+                document.getElementById('cameraStatusText').style.color = "#10b981";
+            }
+
+            attachModalStampTracker();
+            modalShell.style.display = 'flex';
+        };
+    }
+
+    if (document.getElementById('profileDeleteBtn')) {
+        document.getElementById('profileDeleteBtn').onclick = async () => {
+            if (!activeSelectedContact) return;
+            if (confirm(`Are you certain you want to remove ${activeSelectedContact.contact_name || 'this contact'}?`)) {
+                await deleteContact(activeSelectedContact.id);
+                localContactsList = await fetchContacts(viewContext.facility?.id);
+                renderGrid(localContactsList);
+                hideContactProfile();
+            }
+        };
+    }
 
     const cameraTriggerBtn = document.getElementById('cameraTriggerBtn');
     const cameraFileInput = document.getElementById('manualContactImageFile');
