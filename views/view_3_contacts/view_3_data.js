@@ -35,10 +35,9 @@ FILE NAME    : view_3_data.js
 SUPABASE TBL : contacts
 VIEW NAME    : Add New Facility
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-07 @ 05:47 AM
+LAST UPDATED : 2026-06-07 @ 05:56 AM
 ================================================================*/
 
-// Mathematical path correction from /FACILITYS_TRACKER_APP/views/view_3_contacts/ to /FACILITYS_TRACKER_APP/js/
 import { supabase } from '../../js/supabaseClient.js';
 
 export async function fetchContacts(facilityId) {
