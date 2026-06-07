@@ -2,10 +2,10 @@
 FILE METADATA
 ================================================================
 FILE NAME    : view_5_modal.js
-SUPABASE TBL : facilities_issues
+SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Modal
 POP-UP TITLE : Issue Maintenance Request
-LAST UPDATED : 2026-06-06 @ 05:09 AM
+LAST UPDATED : 2026-06-07 @ 09:35 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -59,6 +59,8 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================*/
 const __FILENAME = 'view_5_modal.js';
 
+let activeIssueForFollowups = null;
+
 import { saveFacilityIssue } from './view_5_data.js';
 import { renderImageManagerSection } from '../../js/imageManager.js';
 
@@ -74,7 +76,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
         metaLabel.style.cssText = 'font-size: 10px; color: #9ca3af; padding: 4px 8px; text-align: right; border-top: 1px solid #e5e7eb;';
         modal.appendChild(metaLabel);
     }
-    metaLabel.innerText = `Source: view_5_modal.js | Updated: 2026-06-06 05:09 AM`;
+    metaLabel.innerText = `Source: view_5_modal.js | Updated: 2026-06-07 09:35 AM`;
 
     // Handle jumping to create contact while preserving typed inputs
     const addContactLink = document.getElementById('addInlineContactLink');
@@ -91,6 +93,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
             };
 
             modal.style.display = 'none';
+
             if (window.navigateTo) {
                 window.navigateTo('view_3_contacts', {
                     facility: facility,
@@ -118,6 +121,7 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
                 alert("[ERR-VIEW_5_MODAL-01] ⚠️ WARNING: The Issue Request Title cannot be left empty.");
                 return;
             }
+
             if (!desc) {
                 alert("[ERR-VIEW_5_MODAL-02] Please fill out the Description field.");
                 return;
@@ -134,27 +138,52 @@ export function setupIssuesEvents(facility, renderFacilityIssuesFn) {
             };
 
             const result = await saveFacilityIssue(payload, issueId || null, reporterId || null);
+
             if (result.error) {
                 alert("[ERR-VIEW_5_MODAL-03] Failed to save issue details.");
                 return;
             }
 
             modal.style.display = 'none';
+
             if (renderFacilityIssuesFn) {
                 await renderFacilityIssuesFn(facility);
             }
         };
     }
 
+    const followupsBtn = document.getElementById('openFollowupsBtn');
+    if (followupsBtn) {
+        followupsBtn.onclick = () => {
+            if (!activeIssueForFollowups || !activeIssueForFollowups.id) {
+                alert("[ERR-VIEW_5_MODAL-FOLLOWUP-01] Please open a saved issue before adding follow-ups.");
+                return;
+            }
+
+            modal.style.display = 'none';
+
+            if (window.navigateTo) {
+                window.navigateTo('view_7_followups', {
+                    facility: facility,
+                    issue: activeIssueForFollowups
+                });
+            }
+        };
+    }
+
     const closeBtn = document.getElementById('closeIssueModal');
     if (closeBtn) {
-        closeBtn.onclick = () => { modal.style.display = 'none'; };
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
     }
 }
 
 export async function openIssueModal(facility, issue = null, contactReporter = null) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
+
+    activeIssueForFollowups = issue;
 
     // Ensure metadata identifier block is kept accurate in the UI layout (Rule 8)
     let metaLabel = document.getElementById('view-metadata-label');
@@ -164,7 +193,7 @@ export async function openIssueModal(facility, issue = null, contactReporter = n
         metaLabel.style.cssText = 'font-size: 10px; color: #9ca3af; padding: 4px 8px; text-align: right; border-top: 1px solid #e5e7eb;';
         modal.appendChild(metaLabel);
     }
-    metaLabel.innerText = `Source: view_5_modal.js | Updated: 2026-06-06 05:09 AM`;
+    metaLabel.innerText = `Source: view_5_modal.js | Updated: 2026-06-07 09:35 AM`;
 
     // Defensive references to catch missing DOM elements safely
     const elIssueId = document.getElementById('issueId');
@@ -185,6 +214,7 @@ export async function openIssueModal(facility, issue = null, contactReporter = n
     // Store profile reference hooks invisibly
     const repName = contactReporter?.name || issue?.reported_by || 'Staff';
     const repId = contactReporter?.id || issue?.linked_contact_id || '';
+
     if (elHiddenReporterName) elHiddenReporterName.value = repName;
     if (elHiddenReporterId) elHiddenReporterId.value = repId;
 
@@ -196,11 +226,14 @@ export async function openIssueModal(facility, issue = null, contactReporter = n
     const mediaContainer = document.getElementById('issue-image-container');
     if (mediaContainer) {
         mediaContainer.innerHTML = '';
+
         if (issue?.id) {
             renderImageManagerSection(mediaContainer, 'issue', issue.id, {
                 facility,
                 title: 'Issue Evidence Photos',
-                onUploadSuccess: () => { console.log("Photo synced."); }
+                onUploadSuccess: () => {
+                    console.log("Photo synced.");
+                }
             });
         } else {
             mediaContainer.innerHTML = `<p style="font-size:11px; color:#6b7280; font-style:italic; margin:0;">Photos can be attached after creating the issue.</p>`;
@@ -211,6 +244,6 @@ export async function openIssueModal(facility, issue = null, contactReporter = n
     if (deleteBtn) {
         deleteBtn.style.display = issue?.id ? 'block' : 'none';
     }
-    
-    modal.style.display = 'block';
+
+    modal.style.display = 'flex';
 }
