@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-06 @ 07:54 PM
+LAST UPDATED : 2026-06-06 @ 08:12 PM
 ================================================================*/
 const __FILENAME = 'view_3_grid_logic.js';
 
@@ -167,7 +167,8 @@ function hideContactProfile() {
 function bindCoreDOMEvents() {
     document.getElementById('backBtn')?.addEventListener('click', () => {
         if (typeof window.__switchToControlView === 'function') {
-            window.__switchToControlView(viewContext.returnToView);
+            const destinationView = viewContext?.returnToView || 'view_2_grid';
+            window.__switchToControlView(destinationView);
         }
     });
 
@@ -201,7 +202,7 @@ function bindCoreDOMEvents() {
                 facility: viewContext.facility,
                 returnToView: 'view_3_grid',
                 cachedIssueForm: {
-                    assigned_contact: activeSelectedContact.name
+                    reported_by: activeSelectedContact.name
                 }
             });
         }
