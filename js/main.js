@@ -14,7 +14,7 @@ ACTION REQUIRED BY AI:
 4. Run the LINE COUNT AUDIT before writing code.
 ================================================================*/   /* =================================================
 FILE: main.js
-UPDATED: 2026-06-07 05:14:00 AM
+UPDATED: 2026-06-07 05:18:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -28,21 +28,22 @@ window.navigateTo = async (view, context = {}) => {
         return;
     }
 
-    // Defensive Check: Allow valid numeric IDs matching bigint columns
+    // DEFENSIVE REPAIR: Explicitly extract fallback camelCase facilityId parameter mappings
     const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups'];
     if (facilityViews.includes(view)) {
-        // Look for the facility ID in either context.id or deep inside context.facility.id
-        const facilityId = context?.facility?.id || context?.id;
+        const facilityId = context?.facility?.id || context?.id || context?.facilityId;
         if (facilityId === undefined || facilityId === null || String(facilityId) === '[object Object]') {
             console.warn(`Navigation blocked to "${view}": Missing valid facility ID context.`);
             view = 'view_1_facility';
             context = {};
+        } else if (!context.facility && facilityId) {
+            // Standardize the shape so down-stream logic can read context.facility.id safely
+            context.facility = { id: Number(facilityId) };
         }
     }
 
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
 
-    // FIXED: Incremented token to v6 to match view files and completely purge cached copies of internal module dependencies
     const cb = "?v=2026_v6";
 
     try {
