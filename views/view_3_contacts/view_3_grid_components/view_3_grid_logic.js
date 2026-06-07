@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Directory Entries
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-07 @ 06:23 AM
+LAST UPDATED : 2026-06-07 @ 06:26 AM
 ================================================================*/
 
 import { fetchContacts, insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
@@ -67,7 +67,6 @@ export async function initializeGridLogic(context) {
     }
 
     setupFormActionListeners();
-    setupMediaCaptureHooks();
 
     if (viewContext.openFormInstantly && viewContext.prefilledContactName) {
         const contactModal = document.getElementById('contactFormModal');
