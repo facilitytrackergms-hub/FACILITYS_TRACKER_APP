@@ -5,7 +5,7 @@ FILE NAME    : view_2_grid.js
 SUPABASE TBL : facilities
 VIEW NAME    : Modify Facility Information
 POP-UP TITLE : Modify Facility Information
-LAST UPDATED : 2026-06-06 @ 05:53 AM
+LAST UPDATED : 2026-06-06 @ 08:35 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -194,7 +194,7 @@ export async function renderFacilityControls(data) {
             </div>
 
             <div class="footer-tag">
-                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-06 @ 05:53 AM
+                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-06 @ 08:35 PM
             </div>
         </div>
     `;
@@ -250,7 +250,7 @@ export async function renderFacilityControls(data) {
             const success = await deleteFacilityRecord(facility.id);
             if (success) {
                 mgmtOverlay.style.display = 'none';
-                if (window.navigateTo) window.navigateTo('view_1_dashboard');
+                if (window.navigateTo) window.navigateTo('view_1_facility');
             } else {
                 alert("[ERR-ALERT:view_2_grid:db_delete_failed] Database deletion exception encountered.");
                 deleteMgmtBtn.textContent = "🗑️ Delete Facility Entirely";
@@ -273,11 +273,11 @@ export async function renderFacilityControls(data) {
     };
 
     document.getElementById('toGallery').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view_6_gallery', { facility: facility });
+        if (window.navigateTo) window.navigateTo('view_6_images', { facility: facility });
     };
 
     document.getElementById('backDash').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view_1_dashboard');
+        if (window.navigateTo) window.navigateTo('view_1_facility');
     };
 
     // Live Badge Sync Counter
