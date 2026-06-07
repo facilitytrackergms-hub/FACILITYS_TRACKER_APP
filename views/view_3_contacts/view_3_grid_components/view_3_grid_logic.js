@@ -205,10 +205,9 @@ export async function initializeGridLogic(viewContext) {
         closeModalBtn.onclick = () => { modalShell.style.display = 'none'; };
     }
 
-    if (saveContactBtn && modalShell) {
+if (saveContactBtn && modalShell) {
         saveContactBtn.onclick = async () => {
             const contactId = document.getElementById('editingContactId').value;
-            
             const payload = {
                 facility_id: viewContext.facility?.id,
                 contact_name: document.getElementById('manualContactName').value.trim(),
@@ -224,10 +223,24 @@ export async function initializeGridLogic(viewContext) {
                 return;
             }
 
+            let savedContact;
             if (contactId) {
                 await updateContact(contactId, payload);
+                savedContact = { id: contactId };
             } else {
-                await createContact(payload);
+                savedContact = await createContact(payload);
+            }
+
+            // POST-CREATE BRIDGE: If there was a pending maintenance issue
+            if (viewContext.pendingIssueData && savedContact?.id) {
+                await insertFacilityIssue({
+                    ...viewContext.pendingIssueData,
+                    contact_id: savedContact.id
+                });
+                if (window.navigateTo) {
+                    window.navigateTo('view_5_issues', { facility: viewContext.facility });
+                    return;
+                }
             }
 
             localContactsList = await fetchContacts(viewContext.facility?.id);
@@ -236,6 +249,7 @@ export async function initializeGridLogic(viewContext) {
             hideContactProfile();
         };
     }
+// ... [Rest of file]
 
     // Edit and Delete Profiles Toolbar
     if (document.getElementById('profileEditBtn')) {
