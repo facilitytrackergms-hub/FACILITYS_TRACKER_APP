@@ -9,7 +9,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-07 @ 08:55 AM
+LAST UPDATED : 2026-06-07 @ 10:05 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -117,7 +117,7 @@ export async function renderFacilityIssues(data) {
                 <p class="issues-view-subtitle">${facility?.name || ''}</p>
 
                 <div class="view-build-stamp">
-                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-07 08:55:00 AM
+                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-07 10:05:00 AM
                 </div>
 
                 <button id="addIssueTriggerBtn" class="issues-view-btn btn-emerald">➕ Create Maintenance Request</button>
@@ -142,12 +142,11 @@ export async function renderFacilityIssues(data) {
                         </select>
                         <input type="text" id="issueFormReporter" class="combobox-input-overlay" placeholder="Your Full Name">
                     </div>
-<div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
-    <button id="openFollowupsBtn" class="issues-view-btn btn-emerald">Follow Up</button>
-    <button id="saveIssueBtn" class="issues-view-btn btn-navy">Update Info</button>
-    <button id="deleteIssueRequestBtn" class="issues-view-btn btn-gray" style="display:none;">Delete Issue</button>
-    <button id="closeIssueModal" class="issues-view-btn btn-gray">Back to Issues</button>
-</div>>
+
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                        <button id="submitIssueFormBtn" class="issues-view-btn btn-navy">Submit Request</button>
+                        <button id="closeIssueFormBtn" class="issues-view-btn btn-gray">Cancel</button>
+                    </div>
                 </div>
             </div>
 
@@ -182,6 +181,7 @@ export async function renderFacilityIssues(data) {
                     <div id="issue-image-container" style="margin-top:15px;"></div>
 
                     <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                        <button id="openFollowupsBtn" class="issues-view-btn btn-emerald">Follow Up</button>
                         <button id="saveIssueBtn" class="issues-view-btn btn-navy">Update Info</button>
                         <button id="deleteIssueRequestBtn" class="issues-view-btn btn-gray" style="display:none;">Delete Issue</button>
                         <button id="closeIssueModal" class="issues-view-btn btn-gray">Back to Issues</button>
@@ -240,30 +240,34 @@ export async function renderFacilityIssues(data) {
         }
     }
 
-    document.getElementById('addIssueTriggerBtn').onclick = async () => {
-        document.getElementById('issueFormTitle').value = '';
-        document.getElementById('issueFormDesc').value = '';
-        textOverlay.value = '';
-        selectUnderlay.value = '';
-        await populateContactsDropdown();
-        modal.style.display = 'flex';
-    };
+    const addIssueTriggerBtn = document.getElementById('addIssueTriggerBtn');
+    if (addIssueTriggerBtn) {
+        addIssueTriggerBtn.onclick = async () => {
+            document.getElementById('issueFormTitle').value = '';
+            document.getElementById('issueFormDesc').value = '';
+            textOverlay.value = '';
+            selectUnderlay.value = '';
+            await populateContactsDropdown();
+            modal.style.display = 'flex';
+        };
+    }
 
-  const closeIssueFormBtn = document.getElementById('closeIssueFormBtn');
-if (closeIssueFormBtn) {
-    closeIssueFormBtn.onclick = () => {
-        modal.style.display = 'none';
-    };
-}
+    const closeIssueFormBtn = document.getElementById('closeIssueFormBtn');
+    if (closeIssueFormBtn) {
+        closeIssueFormBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
 
-const backToControlsBtn = document.getElementById('backToControlsBtn');
-if (backToControlsBtn) {
-    backToControlsBtn.onclick = () => {
-        if (window.navigateTo) {
-            window.navigateTo('view_2_controls', { facility: facility });
-        }
-    };
-}
+    const backToControlsBtn = document.getElementById('backToControlsBtn');
+    if (backToControlsBtn) {
+        backToControlsBtn.onclick = () => {
+            if (window.navigateTo) {
+                window.navigateTo('view_2_controls', { facility: facility });
+            }
+        };
+    }
+
     function promptNewContactCreation(targetName) {
         return new Promise((resolve) => {
             const dialog = document.getElementById('view_5_grid_contact_confirm_dialog');
@@ -286,56 +290,59 @@ if (backToControlsBtn) {
         });
     }
 
-    document.getElementById('submitIssueFormBtn').onclick = async () => {
-        const title = document.getElementById('issueFormTitle').value.trim();
-        const desc = document.getElementById('issueFormDesc').value.trim();
-        const reporter = textOverlay.value.trim();
+    const submitIssueFormBtn = document.getElementById('submitIssueFormBtn');
+    if (submitIssueFormBtn) {
+        submitIssueFormBtn.onclick = async () => {
+            const title = document.getElementById('issueFormTitle').value.trim();
+            const desc = document.getElementById('issueFormDesc').value.trim();
+            const reporter = textOverlay.value.trim();
 
-        if (!title || !reporter) {
-            alert("Subject and Reporter fields are required.");
-            return;
-        }
-
-        const matchedContact = localContactsCache.find(c =>
-            (c.contact_name || '').toLowerCase() === reporter.toLowerCase()
-        );
-
-        if (!matchedContact) {
-            const shouldAdd = await promptNewContactCreation(reporter);
-
-            if (shouldAdd && window.navigateTo) {
-                window.navigateTo('view_3_contacts', {
-                    facility: facility,
-                    openFormInstantly: true,
-                    prefilledContactName: reporter,
-                    pendingIssueData: {
-                        facility_id: facility.id,
-                        title: title,
-                        description: desc,
-                        reported_by: reporter,
-                        status: 'Open'
-                    }
-                });
+            if (!title || !reporter) {
+                alert("Subject and Reporter fields are required.");
                 return;
             }
-        }
 
-        const inserted = await insertFacilityIssue({
-            facility_id: facility.id,
-            contact_id: matchedContact?.id || null,
-            title: title,
-            description: desc,
-            reported_by: reporter,
-            status: 'Open'
-        });
+            const matchedContact = localContactsCache.find(c =>
+                (c.contact_name || '').toLowerCase() === reporter.toLowerCase()
+            );
 
-        if (inserted) {
-            modal.style.display = 'none';
-            await loadIssuesListData();
-        } else {
-            alert("Could not register maintenance request data.");
-        }
-    };
+            if (!matchedContact) {
+                const shouldAdd = await promptNewContactCreation(reporter);
+
+                if (shouldAdd && window.navigateTo) {
+                    window.navigateTo('view_3_contacts', {
+                        facility: facility,
+                        openFormInstantly: true,
+                        prefilledContactName: reporter,
+                        pendingIssueData: {
+                            facility_id: facility.id,
+                            title: title,
+                            description: desc,
+                            reported_by: reporter,
+                            status: 'Open'
+                        }
+                    });
+                    return;
+                }
+            }
+
+            const inserted = await insertFacilityIssue({
+                facility_id: facility.id,
+                contact_id: matchedContact?.id || null,
+                title: title,
+                description: desc,
+                reported_by: reporter,
+                status: 'Open'
+            });
+
+            if (inserted) {
+                modal.style.display = 'none';
+                await loadIssuesListData();
+            } else {
+                alert("Could not register maintenance request data.");
+            }
+        };
+    }
 
     async function loadIssuesListData() {
         if (!facility?.id) return;
