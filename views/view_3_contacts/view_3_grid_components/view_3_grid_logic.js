@@ -52,21 +52,21 @@ export async function initializeGridLogic(viewContext) {
 
         const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
         
-        document.getElementById('detailAvatar').src = contact.profile_photo_url || fallbackAvatar;
+             document.getElementById('detailAvatar').src = contact.image_url || contact.profile_photo_url || fallbackAvatar;
         document.getElementById('detailName').textContent = contact.contact_name || 'Unnamed Contact';
-        document.getElementById('detailRole').textContent = contact.role_title || 'N/A';
+        document.getElementById('detailRole').textContent = contact.role || contact.role_title || 'N/A';
         
+        const phoneValue = contact.phone || contact.phone_number || '';
         const phoneLink = document.getElementById('detailPhoneLink');
-        phoneLink.textContent = contact.phone_number || 'N/A';
-        phoneLink.href = contact.phone_number ? `tel:${contact.phone_number}` : '#';
+        phoneLink.textContent = phoneValue || 'N/A';
+        phoneLink.href = phoneValue ? `tel:${phoneValue}` : '#';
 
+        const emailValue = contact.email || contact.email_address || '';
         const emailLink = document.getElementById('detailEmailLink');
-        emailLink.textContent = contact.email_address || 'N/A';
-        emailLink.href = contact.email_address ? `mailto:${contact.email_address}` : '#';
+        emailLink.textContent = emailValue || 'N/A';
+        emailLink.href = emailValue ? `mailto:${emailValue}` : '#';
 
-        document.getElementById('detailNotes').textContent = contact.operational_notes || 'No operational notes provided.';
-
-        directorySelectionLayout.style.display = 'none';
+        document.getElementById('detailNotes').textContent = contact.notes || contact.operational_notes || 'No operational notes provided.';
         if (backBtn) backBtn.style.display = 'none';
         profilePane.style.display = 'block';
 
@@ -223,16 +223,14 @@ export async function initializeGridLogic(viewContext) {
         document.getElementById('profileEditBtn').onclick = () => {
             if (!activeSelectedContact || !modalShell) return;
 
-            document.getElementById('modalTemplateTitle').textContent = "Modify Contact Details";
-            document.getElementById('editingContactId').value = activeSelectedContact.id;
-            document.getElementById('manualContactImage').value = activeSelectedContact.profile_photo_url || "";
+                      document.getElementById('manualContactImage').value = activeSelectedContact.image_url || activeSelectedContact.profile_photo_url || "";
             document.getElementById('manualContactName').value = activeSelectedContact.contact_name || "";
-            document.getElementById('manualContactRole').value = activeSelectedContact.role_title || "";
-            document.getElementById('manualContactPhone').value = activeSelectedContact.phone_number || "";
-            document.getElementById('manualContactEmail').value = activeSelectedContact.email_address || "";
-            document.getElementById('manualContactNotes').value = activeSelectedContact.operational_notes || "";
+            document.getElementById('manualContactRole').value = activeSelectedContact.role || activeSelectedContact.role_title || "";
+            document.getElementById('manualContactPhone').value = activeSelectedContact.phone || activeSelectedContact.phone_number || "";
+            document.getElementById('manualContactEmail').value = activeSelectedContact.email || activeSelectedContact.email_address || "";
+            document.getElementById('manualContactNotes').value = activeSelectedContact.notes || activeSelectedContact.operational_notes || "";
             
-            if (activeSelectedContact.profile_photo_url) {
+            if (activeSelectedContact.image_url || activeSelectedContact.profile_photo_url) {
                 document.getElementById('cameraStatusText').textContent = "Existing photo active";
                 document.getElementById('cameraStatusText').style.color = "#10b981";
             }
