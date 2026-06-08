@@ -12,9 +12,10 @@ ACTION REQUIRED BY AI:
 3. Ensure all other local relative paths (../) are mathematically adjusted 
    to account for the deeper directory depth of the new folder level.
 4. Run the LINE COUNT AUDIT before writing code.
-================================================================*/   /* =================================================
+================================================================*/   
+/* =================================================
 FILE: main.js
-UPDATED: 2026-06-07 05:56:00 AM
+UPDATED: 2026-06-08 10:45:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -28,7 +29,7 @@ window.navigateTo = async (view, context = {}) => {
         return;
     }
 
-    // DEFENSIVE REPAIR: Explicitly extract fallback camelCase facilityId parameter mappings
+    // DEFENSIVE REPAIR: preserve UUID/string IDs. Do not force Number().
     const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups'];
     if (facilityViews.includes(view)) {
         const facilityId = context?.facility?.id || context?.id || context?.facilityId;
@@ -37,13 +38,13 @@ window.navigateTo = async (view, context = {}) => {
             view = 'view_1_facility';
             context = {};
         } else if (!context.facility && facilityId) {
-            context.facility = { id: Number(facilityId) };
+            context.facility = { ...context, id: facilityId };
         }
     }
 
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
 
-    const cb = "?v=2026_v6";
+    const cb = "?v=2026_vendor_jobs_v1";
 
     try {
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility' || view === 'view_1_dashboard') {
@@ -84,7 +85,7 @@ window.navigateTo = async (view, context = {}) => {
         }
     } catch (err) {
         console.error("Navigation error:", err);
-        app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}</p>`;
+        app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}<br><small>${err.message || err}</small></p>`;
     }
 };
 
@@ -92,3 +93,8 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
     window.navigateTo('view_1_facility');
 });
+
+/* =================================================
+END FILE: main.js
+UPDATED: 2026-06-08 10:45:00 PM
+================================================= */
