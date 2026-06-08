@@ -5,7 +5,7 @@ FILE NAME    : view_4_grid.js
 SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Vendor Project Filing Cabinet
 POP-UP TITLE : Vendor Project Entry
-LAST UPDATED : 2026-06-08 @ 10:45 PM
+LAST UPDATED : 2026-06-08 @ 11:25 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -137,7 +137,7 @@ export async function renderPendingProjects(data) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Updated: 2026-06-08 10:45 PM
+                    Source: view_4_grid.js | Updated: 2026-06-08 11:25 PM
                 </div>
             </div>
         </div>
@@ -176,10 +176,15 @@ export async function renderVendorDashboard({ facility, vendorId }) {
                 <h1 class="vendor-cabinet-title">${escapeHtml(getVendorName(vendor))}</h1>
                 <p class="vendor-cabinet-sub">Vendor Dashboard · ${escapeHtml(facility.name || facility.Name || 'Facility')}</p>
 
+                ${vendor.main_image_url ? `
+                    <img class="vendor-main-image" src="${escapeAttr(vendor.main_image_url)}" alt="Vendor image">
+                ` : ''}
+
                 <div class="vendor-info-box">
                     <div><strong>Contact:</strong> ${escapeHtml(vendor.contact_name || '')}</div>
                     <div><strong>Phone:</strong> ${vendor.phone ? `<a href="tel:${escapeAttr(vendor.phone)}">${escapeHtml(vendor.phone)}</a>` : ''}</div>
                     <div><strong>Email:</strong> ${vendor.email ? `<a href="mailto:${escapeAttr(vendor.email)}">${escapeHtml(vendor.email)}</a>` : ''}</div>
+                    <div><strong>Website:</strong> ${vendor.website_url ? `<a href="${escapeAttr(normalizeWebsiteUrl(vendor.website_url))}" target="_blank" rel="noopener">${escapeHtml(vendor.website_url)}</a>` : ''}</div>
                     <div><strong>Notes:</strong> ${escapeHtml(vendor.notes || '')}</div>
                 </div>
 
@@ -206,7 +211,7 @@ export async function renderVendorDashboard({ facility, vendorId }) {
                 ${renderVendorDashboardModals(projects, vendor)}
 
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Vendor Dashboard | Updated: 2026-06-08 10:45 PM
+                    Source: view_4_grid.js | Vendor Dashboard | Updated: 2026-06-08 11:25 PM
                 </div>
             </div>
         </div>
@@ -283,7 +288,7 @@ export async function renderVendorJobDashboard({ facility, vendorJobId }) {
                 ${renderVendorJobModals(followups)}
 
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Vendor Job Dashboard | Updated: 2026-06-08 10:45 PM
+                    Source: view_4_grid.js | Vendor Job Dashboard | Updated: 2026-06-08 11:25 PM
                 </div>
             </div>
         </div>
@@ -307,9 +312,17 @@ function renderVendorCards(vendors, jobs) {
 
     return vendors.map(vendor => {
         const count = jobs.filter(job => String(job.vendor_id) === String(vendor.id)).length;
+        const websiteLine = vendor.website_url ? `<span class="vendor-card-website">${escapeHtml(vendor.website_url)}</span>` : '';
+
         return `
             <button class="vendor-card-btn" data-open-vendor="${escapeAttr(vendor.id)}">
+                ${vendor.main_image_url ? `
+                    <img class="vendor-card-image" src="${escapeAttr(vendor.main_image_url)}" alt="Vendor image">
+                ` : `
+                    <span class="vendor-card-placeholder">🏢</span>
+                `}
                 <span class="vendor-card-title">${escapeHtml(getVendorName(vendor))}</span>
+                ${websiteLine}
                 <span class="vendor-card-sub">${count} open job${count === 1 ? '' : 's'}</span>
             </button>
         `;
@@ -408,6 +421,10 @@ function renderHomeModals(projects, vendors) {
                 <input id="newVendorPhoneInput" class="cabinet-input">
                 <label>Email</label>
                 <input id="newVendorEmailInput" class="cabinet-input">
+                <label>Website</label>
+                <input id="newVendorWebsiteInput" class="cabinet-input" placeholder="https://example.com">
+                <label>Main Vendor Image</label>
+                <input id="newVendorImageInput" class="cabinet-input" type="file" accept="image/*" capture="environment">
                 <label>Notes</label>
                 <textarea id="newVendorNotesInput" class="cabinet-input cabinet-textarea"></textarea>
                 <button id="saveVendorBtn" class="cabinet-btn cabinet-btn-green">Save Vendor</button>
@@ -563,6 +580,10 @@ function renderStyles() {
             .vendor-card-btn:hover, .job-row-btn:hover { border-color:#00264d; }
             .vendor-card-title, .job-row-title { color:#00264d; font-weight:bold; font-size:14px; }
             .vendor-card-sub, .job-row-sub { color:#6b7280; font-size:12px; }
+            .vendor-card-image { width:100%; height:95px; object-fit:cover; border-radius:8px; border:1px solid #d1d5db; margin-bottom:6px; }
+            .vendor-card-placeholder { width:100%; height:95px; border-radius:8px; border:1px dashed #d1d5db; display:flex; align-items:center; justify-content:center; font-size:32px; background:#f9fafb; margin-bottom:6px; }
+            .vendor-card-website { color:#2563eb; font-size:11px; word-break:break-word; }
+            .vendor-main-image { width:100%; max-height:240px; object-fit:cover; border-radius:10px; border:1px solid #d1d5db; margin-bottom:12px; }
             .project-row { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:10px; display:flex; justify-content:space-between; gap:10px; font-size:13px; }
             .cabinet-empty { color:#6b7280; font-size:13px; text-align:center; padding:14px; border:1px dashed #d1d5db; border-radius:10px; background:#f9fafb; }
             .cabinet-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:50; padding:20px; overflow:auto; align-items:flex-start; justify-content:center; }
@@ -595,6 +616,13 @@ function formatDate(value) {
     }
 }
 
+function normalizeWebsiteUrl(value) {
+    const text = String(value || '').trim();
+    if (!text) return '';
+    if (text.startsWith('http://') || text.startsWith('https://')) return text;
+    return `https://${text}`;
+}
+
 function escapeHtml(value) {
     return String(value ?? '')
         .replaceAll('&', '&amp;')
@@ -610,5 +638,5 @@ function escapeAttr(value) {
 
 /*================================================================
 END FILE: view_4_grid.js
-UPDATED: 2026-06-08 @ 10:45 PM
+UPDATED: 2026-06-08 @ 11:25 PM
 ================================================================*/
