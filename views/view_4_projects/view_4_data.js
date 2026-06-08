@@ -61,7 +61,7 @@ const __FILENAME = 'view_4_data.js';
 
 import { supabase } from '../../js/supabaseClient.js';
 
-const STORAGE_BUCKET = 'facility-images';
+const STORAGE_BUCKET = 'facility-assets';
 
 export async function fetchFacilityProjects(facilityRef) {
     if (!facilityRef) return [];
