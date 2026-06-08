@@ -98,15 +98,20 @@ export async function insertFacilityProject(payload) {
     const attempts = [
         {
             facility_id: facilityUuid,
-            project_title: payload.title,
+            project_name_text: payload.title,
+            project_title_text: payload.title,
             notes: payload.description,
-            created_at: new Date().toISOString()
+            active_status: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         },
         {
-            related_facility: facilityUuid,
-            project_title: payload.title,
+            project_name_text: payload.title,
+            project_title_text: payload.title,
             notes: payload.description,
-            created_at: new Date().toISOString()
+            active_status: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         }
     ];
 
