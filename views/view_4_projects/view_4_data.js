@@ -94,40 +94,18 @@ export async function fetchFacilityProjects(facilityRef) {
 export async function insertFacilityProject(payload) {
     const keys = await resolveFacilityKeys(payload.facility || payload.facility_id);
     const facilityUuid = keys.publicUuid || keys.uuid || (isUuid(payload.facility_id) ? payload.facility_id : null);
-    const rawFacilityId = payload.facility_id?.id || payload.facility_id;
 
     const attempts = [
         {
             facility_id: facilityUuid,
-            title: payload.title,
-            description: payload.description,
-            status: payload.status || 'open',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            related_facility: facilityUuid,
-            title: payload.title,
-            description: payload.description,
-            status: payload.status || 'open',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            facility_id: facilityUuid,
             project_title: payload.title,
-            project_name: payload.title,
             notes: payload.description,
-            status: payload.status || 'open',
-            active_status: true,
             created_at: new Date().toISOString()
         },
         {
-            facilityid: rawFacilityId,
+            related_facility: facilityUuid,
             project_title: payload.title,
-            project_name: payload.title,
             notes: payload.description,
-            active_status: true,
             created_at: new Date().toISOString()
         }
     ];
