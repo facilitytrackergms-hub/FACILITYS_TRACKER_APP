@@ -5,7 +5,7 @@ FILE NAME    : view_4_modal.js
 SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Vendor Project Filing Cabinet
 POP-UP TITLE : Vendor Project Entry
-LAST UPDATED : 2026-06-08 @ 10:45 PM
+LAST UPDATED : 2026-06-08 @ 11:30 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -114,11 +114,29 @@ export function setupCabinetHomeEvents({ facility, projects, vendors, refreshHom
             return;
         }
 
+        const imageInput = byId('newVendorImageInput');
+        const imageFile = imageInput?.files?.[0] || null;
+        let imageUrl = '';
+        let imagePath = '';
+
+        if (imageFile) {
+            const upload = await uploadCabinetFile(imageFile, 'vendor-main-images');
+            if (upload.error) {
+                alert(`[view_4_modal.js] Storage Error: Could not upload vendor image. ${upload.error.message}`);
+                return;
+            }
+            imageUrl = upload.url;
+            imagePath = upload.path;
+        }
+
         const result = await insertVendor({
             company_name: companyName,
             contact_name: value('newVendorContactInput'),
             phone: value('newVendorPhoneInput'),
             email: value('newVendorEmailInput'),
+            website_url: value('newVendorWebsiteInput'),
+            main_image_url: imageUrl,
+            main_image_path: imagePath,
             notes: value('newVendorNotesInput'),
             status: 'active'
         });
@@ -413,5 +431,5 @@ function byId(id) {
 
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-08 @ 10:45 PM
+UPDATED: 2026-06-08 @ 11:30 PM
 ================================================================*/
