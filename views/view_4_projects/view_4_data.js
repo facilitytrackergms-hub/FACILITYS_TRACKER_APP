@@ -133,7 +133,10 @@ export async function insertVendor(payload) {
         contact_name: payload.contact_name,
         phone: payload.phone,
         email: payload.email,
+        website_url: payload.website_url,
         address: payload.address,
+        main_image_url: payload.main_image_url,
+        main_image_path: payload.main_image_path,
         notes: payload.notes,
         status: payload.status || 'active',
         created_at: new Date().toISOString(),
@@ -152,7 +155,6 @@ export async function insertVendor(payload) {
 
     return { data, error: null };
 }
-
 export async function fetchVendorFiles(vendorId) {
     if (!vendorId) return [];
 
