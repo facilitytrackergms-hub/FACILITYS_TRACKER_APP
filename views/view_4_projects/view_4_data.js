@@ -5,7 +5,7 @@ FILE NAME    : view_4_data.js
 SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Vendor Project Filing Cabinet
 POP-UP TITLE : Vendor Project Entry
-LAST UPDATED : 2026-06-08 @ 10:45 PM
+LAST UPDATED : 2026-06-08 @ 11:05 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -63,33 +63,42 @@ import { supabase } from '../../js/supabaseClient.js';
 
 const STORAGE_BUCKET = 'facility-images';
 
-export async function fetchFacilityProjects(facilityId) {
-    if (!facilityId) return [];
+export async function fetchFacilityProjects(facilityRef) {
+    if (!facilityRef) return [];
 
-    const attempts = [
-        { col: 'facility_id', val: facilityId },
-        { col: 'facilityid', val: facilityId },
-        { col: 'related_facility', val: facilityId }
-    ];
+    const keys = await resolveFacilityKeys(facilityRef);
 
-    for (const attempt of attempts) {
-        const { data, error } = await supabase
-            .from('facility_projects')
-            .select('*')
-            .eq(attempt.col, attempt.val)
-            .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+        .from('facility_projects')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-        if (!error) return data || [];
+    if (error) {
+        console.error('[view_4_data.js] Could not fetch facility_projects.', error);
+        return [];
     }
 
-    console.error('[view_4_data.js] Could not fetch facility projects with known facility columns.');
-    return [];
+    const keySet = new Set(keys.all.map(value => String(value)));
+
+    return (data || []).filter(project => {
+        const possibleValues = [
+            project.facility_id,
+            project.facilityid,
+            project.related_facility
+        ].filter(Boolean);
+
+        return possibleValues.some(value => keySet.has(String(value)));
+    });
 }
 
 export async function insertFacilityProject(payload) {
+    const keys = await resolveFacilityKeys(payload.facility || payload.facility_id);
+    const facilityUuid = keys.publicUuid || keys.uuid || (isUuid(payload.facility_id) ? payload.facility_id : null);
+    const rawFacilityId = payload.facility_id?.id || payload.facility_id;
+
     const attempts = [
         {
-            facility_id: payload.facility_id,
+            facility_id: facilityUuid,
             title: payload.title,
             description: payload.description,
             status: payload.status || 'open',
@@ -97,7 +106,15 @@ export async function insertFacilityProject(payload) {
             updated_at: new Date().toISOString()
         },
         {
-            facility_id: payload.facility_id,
+            related_facility: facilityUuid,
+            title: payload.title,
+            description: payload.description,
+            status: payload.status || 'open',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        },
+        {
+            facility_id: facilityUuid,
             project_title: payload.title,
             project_name: payload.title,
             notes: payload.description,
@@ -106,7 +123,7 @@ export async function insertFacilityProject(payload) {
             created_at: new Date().toISOString()
         },
         {
-            facilityid: payload.facility_id,
+            facilityid: rawFacilityId,
             project_title: payload.title,
             project_name: payload.title,
             notes: payload.description,
@@ -454,6 +471,54 @@ export function getVendorName(vendor) {
     return vendor?.company_name || vendor?.name || 'Unnamed Vendor';
 }
 
+async function resolveFacilityKeys(facilityRef) {
+    const isObj = facilityRef && typeof facilityRef === 'object';
+
+    const rawId = isObj
+        ? facilityRef.id
+        : facilityRef;
+
+    const fromObjectPublicUuid = isObj
+        ? (facilityRef.public_uuid || facilityRef.uuid)
+        : null;
+
+    const keys = [];
+
+    if (rawId !== undefined && rawId !== null) keys.push(rawId);
+    if (fromObjectPublicUuid) keys.push(fromObjectPublicUuid);
+
+    let foundFacility = null;
+
+    const { data, error } = await supabase
+        .from('facilities')
+        .select('*');
+
+    if (!error && Array.isArray(data)) {
+        foundFacility = data.find(row => String(row.id) === String(rawId))
+            || data.find(row => String(row.public_uuid) === String(rawId))
+            || data.find(row => String(row.uuid) === String(rawId));
+    }
+
+    if (foundFacility) {
+        if (foundFacility.id !== undefined && foundFacility.id !== null) keys.push(foundFacility.id);
+        if (foundFacility.public_uuid) keys.push(foundFacility.public_uuid);
+        if (foundFacility.uuid) keys.push(foundFacility.uuid);
+    }
+
+    const uniqueKeys = [...new Set(keys.filter(Boolean).map(value => String(value)))];
+
+    return {
+        rawId,
+        publicUuid: foundFacility?.public_uuid || null,
+        uuid: foundFacility?.uuid || fromObjectPublicUuid || null,
+        all: uniqueKeys
+    };
+}
+
+function isUuid(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+}
+
 function attachProjectToJobs(jobs, projects) {
     const projectMap = new Map(projects.map(project => [String(project.id), project]));
     return (jobs || []).map(job => ({
@@ -502,5 +567,5 @@ function removeEmptyKeys(obj) {
 
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-08 @ 10:45 PM
+UPDATED: 2026-06-08 @ 11:05 PM
 ================================================================*/
