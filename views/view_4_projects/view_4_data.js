@@ -449,7 +449,7 @@ export async function uploadCabinetFile(file, folderName = 'vendor-job-files') {
 }
 
 export function getProjectTitle(project) {
-    return project?.title || project?.project_title || project?.project_name || 'Untitled Project';
+    return project?.project_title_text || project?.project_name_text || project?.title || project?.project_title || project?.project_name || 'Untitled Project';
 }
 
 export function getVendorName(vendor) {
