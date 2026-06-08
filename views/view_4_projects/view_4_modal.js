@@ -3,9 +3,9 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_4_modal.js
 SUPABASE TBL : facility_projects
-VIEW NAME    : Project Track Form View
-POP-UP TITLE : projectTrackFormModal
-LAST UPDATED : 2026-06-06 @ 08:43 AM
+VIEW NAME    : Project Assessment Report
+POP-UP TITLE : Project Assessment Entry
+LAST UPDATED : 2026-06-08 @ 09:20 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -59,57 +59,167 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================*/
 const __FILENAME = 'view_4_modal.js';
 
-
-import { insertFacilityProject } from './view_4_data.js';
+import { insertFacilityProject, loadLocalProjectReport, saveLocalProjectReport } from './view_4_data.js';
+import { renderAssessmentCards } from './view_4_grid.js';
 
 export function setupProjectsEvents(facility, renderPendingProjectsFn) {
-    const formModal = document.getElementById('projectTrackFormModal');
+    const modal = document.getElementById('projectAssessmentModal');
+    const projectNameInput = document.getElementById('projectReportNameInput');
 
-    document.getElementById('projectTrackCreateBtn').onclick = () => {
-        document.getElementById('projectTrackTitleInput').value = '';
-        document.getElementById('projectTrackBudgetInput').value = '';
-        document.getElementById('projectTrackNotesInput').value = '';
-        formModal.style.display = 'flex';
+    document.getElementById('projectAddAssessmentBtn').onclick = () => {
+        clearAssessmentInputs();
+        modal.style.display = 'flex';
     };
 
-    document.getElementById('projectTrackCloseBtn').onclick = () => {
-        formModal.style.display = 'none';
+    document.getElementById('assessmentCloseBtn').onclick = () => {
+        modal.style.display = 'none';
     };
 
-    document.getElementById('projectTrackSaveBtn').onclick = async () => {
-        const titleVal = document.getElementById('projectTrackTitleInput').value.trim();
-        if (!titleVal) {
-            alert("[view_4_modal.js] Notification: Please supply a project scope title descriptor.");
+    document.getElementById('assessmentSaveBtn').onclick = () => {
+        const area = document.getElementById('assessmentAreaInput').value.trim();
+        const condition = document.getElementById('assessmentConditionInput').value.trim();
+        const fix = document.getElementById('assessmentFixInput').value.trim();
+        const notes = document.getElementById('assessmentNotesInput').value.trim();
+        const imageLines = document.getElementById('assessmentImagesInput').value
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line);
+        const quotes = document.getElementById('assessmentQuotesInput').value.trim();
+
+        if (!area) {
+            alert('[view_4_modal.js] Notification: Add the unit or area name first.');
             return;
         }
 
-        const payload = {
-            project_title: titleVal,
-            project_name: titleVal,
-            budget: document.getElementById('projectTrackBudgetInput').value.trim(),
-            notes: document.getElementById('projectTrackNotesInput').value.trim(),
-            facility_id: facility.id,
-            facilityid: facility.id,
-            active_status: true,
+        const report = loadLocalProjectReport(facility.id);
+        report.projectName = projectNameInput.value.trim();
+        report.sections.push({
+            area,
+            condition,
+            fix,
+            notes,
+            images: imageLines,
+            quotes,
             created_at: new Date().toISOString()
-        };
+        });
 
-        try {
-            await insertFacilityProject(payload);
-            formModal.style.display = 'none';
-            await renderPendingProjectsFn(facility);
-        } catch (error) {
-            if (error.code === '23505') {
-                alert("[view_4_modal.js] Database Constraint Error: This facility is restricted to a single project row in the database schema.");
-            } else {
-                alert(`[view_4_modal.js] Error: Could not append project details: ${error.message}`);
-            }
-        }
+        saveLocalProjectReport(facility.id, report);
+        modal.style.display = 'none';
+        renderAssessmentCards(facility.id);
     };
 
-    document.getElementById('projectTrackBackBtn').onclick = () => {
+    document.getElementById('projectSaveHeaderBtn').onclick = async () => {
+        const projectName = projectNameInput.value.trim();
+
+        if (!projectName) {
+            alert('[view_4_modal.js] Notification: Add the project name first. Example: AC Assessment.');
+            return;
+        }
+
+        const report = loadLocalProjectReport(facility.id);
+        report.projectName = projectName;
+        saveLocalProjectReport(facility.id, report);
+
+        const description = buildPlainTextReport(facility, report);
+
+        const result = await insertFacilityProject({
+            facility_id: facility.id,
+            title: projectName,
+            description,
+            status: 'open'
+        });
+
+        if (result.error) {
+            alert(`[view_4_modal.js] Database Error: Project was saved locally, but Supabase save failed. ${result.error.message}`);
+            return;
+        }
+
+        alert('[view_4_modal.js] Saved: Project report header saved.');
+        await renderPendingProjectsFn(facility);
+    };
+
+    document.getElementById('projectPrintBtn').onclick = () => {
+        const report = loadLocalProjectReport(facility.id);
+        report.projectName = projectNameInput.value.trim();
+        saveLocalProjectReport(facility.id, report);
+        window.print();
+    };
+
+    document.getElementById('projectEmailBtn').onclick = () => {
+        const report = loadLocalProjectReport(facility.id);
+        report.projectName = projectNameInput.value.trim();
+        saveLocalProjectReport(facility.id, report);
+
+        const subject = encodeURIComponent(`${report.projectName || 'Project Assessment'} - ${facility.name || facility.Name || 'Facility'}`);
+        const body = encodeURIComponent(buildPlainTextReport(facility, report));
+
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    };
+
+    document.getElementById('projectBackBtn').onclick = () => {
         if (window.navigateTo) {
             window.navigateTo('view_2_controls', facility);
         }
     };
+
+    document.getElementById('projectAssessmentList').onclick = event => {
+        const deleteIndex = event.target?.dataset?.deleteAssessment;
+
+        if (deleteIndex === undefined) return;
+
+        const index = Number(deleteIndex);
+        const report = loadLocalProjectReport(facility.id);
+        report.sections.splice(index, 1);
+        saveLocalProjectReport(facility.id, report);
+        renderAssessmentCards(facility.id);
+    };
 }
+
+function clearAssessmentInputs() {
+    document.getElementById('assessmentAreaInput').value = '';
+    document.getElementById('assessmentConditionInput').value = '';
+    document.getElementById('assessmentFixInput').value = '';
+    document.getElementById('assessmentNotesInput').value = '';
+    document.getElementById('assessmentImagesInput').value = '';
+    document.getElementById('assessmentQuotesInput').value = '';
+}
+
+function buildPlainTextReport(facility, report) {
+    const facilityName = facility.name || facility.Name || 'Facility';
+    const projectName = report.projectName || 'Project Assessment';
+
+    let text = '';
+    text += `PROJECT REPORT\n`;
+    text += `Facility: ${facilityName}\n`;
+    text += `Project: ${projectName}\n`;
+    text += `Date: ${new Date().toLocaleString()}\n\n`;
+
+    if (!report.sections || report.sections.length === 0) {
+        text += 'No assessment sections added yet.\n';
+        return text;
+    }
+
+    report.sections.forEach((section, index) => {
+        text += `SECTION ${index + 1}: ${section.area || 'Assessment'}\n`;
+        text += `Condition: ${section.condition || ''}\n`;
+        text += `Recommended Fix: ${section.fix || ''}\n`;
+        text += `Notes: ${section.notes || ''}\n`;
+        text += `Vendor Quotes / Attachments: ${section.quotes || ''}\n`;
+
+        if (section.images && section.images.length > 0) {
+            text += `Images:\n`;
+            section.images.forEach(image => {
+                text += `- ${image}\n`;
+            });
+        }
+
+        text += `\n`;
+    });
+
+    return text;
+}
+
+/*================================================================
+END FILE: view_4_modal.js
+UPDATED: 2026-06-08 @ 09:20 PM
+================================================================*/
