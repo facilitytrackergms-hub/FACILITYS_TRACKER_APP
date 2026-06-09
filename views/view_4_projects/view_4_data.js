@@ -5,7 +5,7 @@ FILE NAME    : view_4_data.js
 SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Vendor Project Filing Cabinet
 POP-UP TITLE : Vendor Project Entry
-LAST UPDATED : 2026-06-08 @ 11:05 PM
+LAST UPDATED : 2026-06-09 @ 12:00 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -66,11 +66,17 @@ const STORAGE_BUCKET = 'facility-assets';
 export async function fetchFacilityProjects(facilityRef) {
     if (!facilityRef) return [];
 
-    const keys = await resolveFacilityKeys(facilityRef);
+    const facilityId = await resolveFacilityId(facilityRef);
+
+    if (!facilityId) {
+        console.warn('[view_4_data.js] fetchFacilityProjects blocked: missing valid numeric facility_id.', facilityRef);
+        return [];
+    }
 
     const { data, error } = await supabase
         .from('facility_projects')
         .select('*')
+        .eq('facility_id', facilityId)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -78,44 +84,42 @@ export async function fetchFacilityProjects(facilityRef) {
         return [];
     }
 
-    const keySet = new Set(keys.all.map(value => String(value)));
-
-    return (data || []).filter(project => {
-        const possibleValues = [
-            project.facility_id,
-            project.facilityid,
-            project.related_facility
-        ].filter(Boolean);
-
-        return possibleValues.some(value => keySet.has(String(value)));
-    });
+    return data || [];
 }
 
 export async function insertFacilityProject(payload) {
-    const keys = await resolveFacilityKeys(payload.facility || payload.facility_id);
-    const facilityUuid = keys.publicUuid || keys.uuid || (isUuid(payload.facility_id) ? payload.facility_id : null);
+    const facilityId = await resolveFacilityId(payload.facility || payload.facility_id);
 
-    const attempts = [
-        {
-            facility_id: facilityUuid,
-            project_name_text: payload.title,
-            project_title_text: payload.title,
-            notes: payload.description,
-            active_status: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            project_name_text: payload.title,
-            project_title_text: payload.title,
-            notes: payload.description,
-            active_status: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        }
-    ];
+    if (!facilityId) {
+        const error = {
+            message: '[view_4_data.js] Missing valid numeric facility_id. Project was not saved because it would not attach to a facility.'
+        };
+        console.error(error.message, payload);
+        return { data: null, error };
+    }
 
-    return await tryInsert('facility_projects', attempts, '[view_4_data.js] insertFacilityProject');
+    const clean = removeEmptyKeys({
+        facility_id: facilityId,
+        project_name_text: payload.project_name_text || payload.project_name || payload.title,
+        project_title_text: payload.project_title_text || payload.project_title || payload.title,
+        created_by_text: payload.created_by_text || payload.created_by,
+        notes: payload.notes || payload.description,
+        active_status: payload.active_status === undefined ? true : payload.active_status,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    });
+
+    const { data, error } = await supabase
+        .from('facility_projects')
+        .insert([clean])
+        .select();
+
+    if (error) {
+        console.error('[view_4_data.js] Error inserting facility project:', error);
+        return { data: null, error };
+    }
+
+    return { data, error: null };
 }
 
 export async function fetchVendors() {
@@ -456,6 +460,51 @@ export function getVendorName(vendor) {
     return vendor?.company_name || vendor?.name || 'Unnamed Vendor';
 }
 
+async function resolveFacilityId(facilityRef) {
+    const isObj = facilityRef && typeof facilityRef === 'object';
+
+    const rawId = isObj
+        ? facilityRef.id
+        : facilityRef;
+
+    const publicUuid = isObj
+        ? (facilityRef.public_uuid || facilityRef.uuid)
+        : null;
+
+    const directId = normalizeFacilityBigintId(rawId);
+    if (directId) return directId;
+
+    const lookupValue = rawId || publicUuid;
+    if (!lookupValue) return null;
+
+    const { data, error } = await supabase
+        .from('facilities')
+        .select('*');
+
+    if (error || !Array.isArray(data)) {
+        console.error('[view_4_data.js] Could not resolve facility id.', error);
+        return null;
+    }
+
+    const foundFacility = data.find(row => String(row.id) === String(lookupValue))
+        || data.find(row => String(row.public_uuid) === String(lookupValue))
+        || data.find(row => String(row.uuid) === String(lookupValue));
+
+    return normalizeFacilityBigintId(foundFacility?.id);
+}
+
+function normalizeFacilityBigintId(value) {
+    if (value === undefined || value === null || value === '') return null;
+
+    const numberValue = Number(value);
+
+    if (!Number.isInteger(numberValue) || numberValue <= 0) {
+        return null;
+    }
+
+    return numberValue;
+}
+
 async function resolveFacilityKeys(facilityRef) {
     const isObj = facilityRef && typeof facilityRef === 'object';
 
@@ -552,5 +601,5 @@ function removeEmptyKeys(obj) {
 
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-08 @ 11:05 PM
+UPDATED: 2026-06-09 @ 12:00 AM
 ================================================================*/
