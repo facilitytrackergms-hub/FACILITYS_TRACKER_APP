@@ -2,10 +2,10 @@
 FILE METADATA
 ================================================================
 FILE NAME    : view_4_data.js
-SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
-VIEW NAME    : Vendor Project Filing Cabinet
-POP-UP TITLE : Vendor Project Entry
-LAST UPDATED : 2026-06-09 @ 12:00 AM
+SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
+VIEW NAME    : Facility Projects Dashboard
+POP-UP TITLE : Create New Project / Add Project Action
+LAST UPDATED : 2026-06-09 @ 01:05 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -122,6 +122,56 @@ export async function insertFacilityProject(payload) {
     return { data, error: null };
 }
 
+export async function fetchProjectActions(projectId) {
+    if (!projectId) return [];
+
+    const { data, error } = await supabase
+        .from('project_actions')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('[view_4_data.js] Error fetching project actions:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+export async function insertProjectAction(payload) {
+    if (!payload?.project_id) {
+        const error = {
+            message: '[view_4_data.js] Missing project_id. Project action was not saved.'
+        };
+        console.error(error.message, payload);
+        return { data: null, error };
+    }
+
+    const clean = removeEmptyKeys({
+        project_id: payload.project_id,
+        action_type: payload.action_type || 'note',
+        action_title_text: payload.action_title_text || payload.title || payload.action_title,
+        notes: payload.notes || payload.description,
+        created_by_text: payload.created_by_text || payload.created_by,
+        active_status: payload.active_status === undefined ? true : payload.active_status,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    });
+
+    const { data, error } = await supabase
+        .from('project_actions')
+        .insert([clean])
+        .select();
+
+    if (error) {
+        console.error('[view_4_data.js] Error inserting project action:', error);
+        return { data: null, error };
+    }
+
+    return { data, error: null };
+}
+
 export async function fetchVendors() {
     const { data, error } = await supabase
         .from('vendors')
@@ -164,6 +214,7 @@ export async function insertVendor(payload) {
 
     return { data, error: null };
 }
+
 export async function fetchVendorFiles(vendorId) {
     if (!vendorId) return [];
 
@@ -601,5 +652,5 @@ function removeEmptyKeys(obj) {
 
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-09 @ 12:00 AM
+UPDATED: 2026-06-09 @ 01:05 AM
 ================================================================*/
