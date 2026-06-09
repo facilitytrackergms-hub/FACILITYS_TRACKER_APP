@@ -2,10 +2,10 @@
 FILE METADATA
 ================================================================
 FILE NAME    : view_4_modal.js
-SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
+SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
-POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-09 @ 12:35 AM
+POP-UP TITLE : Create New Project / Add Project Action
+LAST UPDATED : 2026-06-09 @ 01:20 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -61,6 +61,7 @@ const __FILENAME = 'view_4_modal.js';
 
 import {
     insertFacilityProject,
+    insertProjectAction,
     insertVendor,
     insertVendorFile,
     insertProjectVendorJob,
@@ -214,6 +215,84 @@ export function setupCabinetHomeEvents({ facility, projects, vendors, refreshHom
             if (openVendorJob) openVendorJob(button.dataset.openVendorJob);
         };
     });
+}
+
+export function setupProjectDashboardEvents({ facility, project, refreshProject }) {
+    const addActionBtn = byId('projectAddActionBtn');
+    const closeActionBtn = byId('closeProjectActionModalBtn');
+    const saveActionBtn = byId('saveProjectActionBtn');
+    const actionModal = byId('projectActionModal');
+    const actionNotice = byId('projectActionModalNotice');
+
+    if (addActionBtn) {
+        addActionBtn.onclick = () => {
+            clearValue('projectActionTitleInput');
+            clearValue('projectActionNotesInput');
+            setProjectActionNotice('', false);
+            showModal('projectActionModal');
+        };
+    }
+
+    if (closeActionBtn) {
+        closeActionBtn.onclick = () => {
+            hideModal('projectActionModal');
+            setProjectActionNotice('', false);
+        };
+    }
+
+    if (actionModal) {
+        actionModal.onclick = event => {
+            if (event.target === actionModal) {
+                hideModal('projectActionModal');
+                setProjectActionNotice('', false);
+            }
+        };
+    }
+
+    if (saveActionBtn) {
+        saveActionBtn.onclick = async () => {
+            const actionTitle = value('projectActionTitleInput');
+            const actionType = value('projectActionTypeInput') || 'note';
+            const notes = value('projectActionNotesInput');
+
+            if (!project || !project.id) {
+                setProjectActionNotice('[view_4_modal.js] Project Action Error: Missing project ID. Action was not saved.', true);
+                return;
+            }
+
+            if (!actionTitle && !notes) {
+                setProjectActionNotice('[view_4_modal.js] Project Action Notice: Add an action title or notes first.', true);
+                return;
+            }
+
+            const result = await insertProjectAction({
+                project_id: project.id,
+                action_type: actionType,
+                action_title_text: actionTitle || actionType,
+                notes,
+                active_status: true
+            });
+
+            if (result.error) {
+                setProjectActionNotice(`[view_4_modal.js] Database Error: Could not save project action. ${result.error.message}`, true);
+                return;
+            }
+
+            clearValue('projectActionTitleInput');
+            clearValue('projectActionNotesInput');
+            hideModal('projectActionModal');
+            setProjectActionNotice('', false);
+
+            if (refreshProject) await refreshProject();
+        };
+    }
+
+    function setProjectActionNotice(message, show) {
+        if (!actionNotice) return;
+
+        actionNotice.textContent = message || '';
+        actionNotice.style.display = show ? 'block' : 'none';
+    }
 }
 
 export function setupVendorDashboardEvents({ facility, vendor, projects, refreshVendor, backHome, openVendorJob }) {
@@ -564,5 +643,5 @@ function byId(id) {
 
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-09 @ 12:35 AM
+UPDATED: 2026-06-09 @ 01:20 AM
 ================================================================*/
