@@ -3,9 +3,9 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_4_grid.js
 SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
-VIEW NAME    : Vendor Project Filing Cabinet
-POP-UP TITLE : Vendor Project Entry
-LAST UPDATED : 2026-06-08 @ 11:25 PM
+VIEW NAME    : Facility Projects Dashboard
+POP-UP TITLE : Create New Project
+LAST UPDATED : 2026-06-09 @ 12:20 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -82,7 +82,7 @@ export async function renderPendingProjects(data) {
     const facility = data?.facility ? data.facility : data;
 
     if (!facility || !facility.id) {
-        console.error('[view_4_grid.js] Facility context missing inside vendor project filing cabinet.');
+        console.error('[view_4_grid.js] Facility context missing inside Facility Projects Dashboard.');
         const appMissing = document.getElementById('app');
         if (appMissing) {
             appMissing.innerHTML = '<p style="color:red; text-align:center; padding:20px;">[view_4_grid.js] Missing facility context.</p>';
@@ -93,51 +93,39 @@ export async function renderPendingProjects(data) {
     const app = document.getElementById('app');
     const facilityName = escapeHtml(facility.name || facility.Name || 'Facility');
 
-    const [projects, vendors, jobs] = await Promise.all([
+    const [projects, vendors] = await Promise.all([
         fetchFacilityProjects(facility.id),
-        fetchVendors(),
-        fetchVendorJobsForFacility(facility.id)
+        fetchVendors()
     ]);
 
     app.innerHTML = `
         ${renderStyles()}
         <div class="vendor-cabinet-shell">
             <div class="vendor-cabinet-card">
-                <h1 class="vendor-cabinet-title">Vendor Project Filing Cabinet</h1>
-                <p class="vendor-cabinet-sub">Facility: ${facilityName}</p>
+                <h1 class="vendor-cabinet-title">${facilityName} Projects Dashboard</h1>
+                <p class="vendor-cabinet-sub">Facility Projects</p>
 
-                <div class="cabinet-action-grid">
-                    <button id="cabinetAddProjectBtn" class="cabinet-btn cabinet-btn-green">➕ Add Project</button>
-                    <button id="cabinetAddVendorBtn" class="cabinet-btn">➕ Add Vendor</button>
-                    <button id="cabinetStartVendorJobBtn" class="cabinet-btn">🗂️ Start Vendor Job</button>
+                <div class="cabinet-action-grid single-action-grid">
+                    <button id="cabinetAddProjectBtn" class="cabinet-btn cabinet-btn-green">➕ Create New Project</button>
                     <button id="cabinetBackBtn" class="cabinet-btn cabinet-btn-gray">⬅️ Back</button>
                 </div>
 
-                <div class="cabinet-section">
-                    <h2 class="cabinet-section-title">Vendors</h2>
-                    <div id="cabinetVendorList" class="cabinet-card-grid">
-                        ${renderVendorCards(vendors, jobs)}
-                    </div>
-                </div>
-
-                <div class="cabinet-section">
-                    <h2 class="cabinet-section-title">Open Vendor Jobs</h2>
-                    <div id="cabinetJobList" class="cabinet-stack">
-                        ${renderJobRows(jobs)}
-                    </div>
+                <div style="display:none;">
+                    <button id="cabinetAddVendorBtn" type="button">Hidden Add Vendor</button>
+                    <button id="cabinetStartVendorJobBtn" type="button">Hidden Start Vendor Job</button>
                 </div>
 
                 <div class="cabinet-section">
                     <h2 class="cabinet-section-title">Facility Projects</h2>
-                    <div class="cabinet-stack">
-                        ${renderProjectRows(projects)}
+                    <div id="facilityProjectButtonGrid" class="project-button-grid">
+                        ${renderProjectButtons(projects)}
                     </div>
                 </div>
 
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Updated: 2026-06-08 11:25 PM
+                    Source: view_4_grid.js | Facility Projects Dashboard | Updated: 2026-06-09 12:20 AM
                 </div>
             </div>
         </div>
@@ -151,6 +139,75 @@ export async function renderPendingProjects(data) {
         openVendor: vendorId => renderVendorDashboard({ facility, vendorId }),
         openVendorJob: vendorJobId => renderVendorJobDashboard({ facility, vendorJobId })
     });
+
+    document.querySelectorAll('[data-open-project]').forEach(button => {
+        button.onclick = () => {
+            const projectId = button.dataset.openProject;
+            const selectedProject = projects.find(project => String(project.id) === String(projectId));
+
+            if (!selectedProject) {
+                alert('[view_4_grid.js] Project Button Error: Project was not found in the current facility project list.');
+                return;
+            }
+
+            renderProjectDashboard({ facility, project: selectedProject });
+        };
+    });
+}
+
+export async function renderProjectDashboard({ facility, project }) {
+    const app = document.getElementById('app');
+
+    if (!facility || !facility.id || !project || !project.id) {
+        app.innerHTML = '<p style="color:red; text-align:center; padding:20px;">[view_4_grid.js] Missing project dashboard context.</p>';
+        return;
+    }
+
+    const facilityName = escapeHtml(facility.name || facility.Name || 'Facility');
+    const projectTitle = escapeHtml(getProjectTitle(project));
+
+    app.innerHTML = `
+        ${renderStyles()}
+        <div class="vendor-cabinet-shell">
+            <div class="vendor-cabinet-card">
+                <h1 class="vendor-cabinet-title">${projectTitle}</h1>
+                <p class="vendor-cabinet-sub">${facilityName} · Project Dashboard</p>
+
+                <div class="project-detail-box">
+                    <div><strong>Project:</strong> ${projectTitle}</div>
+                    <div><strong>Notes:</strong> ${escapeHtml(project.notes || '')}</div>
+                </div>
+
+                <div class="cabinet-action-grid single-action-grid">
+                    <button id="projectAddActionBtn" class="cabinet-btn cabinet-btn-green">➕ Add Project Action</button>
+                    <button id="projectBackBtn" class="cabinet-btn cabinet-btn-gray">⬅️ Back to Projects</button>
+                </div>
+
+                <div class="cabinet-section">
+                    <h2 class="cabinet-section-title">Project Actions</h2>
+                    <div class="cabinet-empty">
+                        No project actions found yet.
+                    </div>
+                </div>
+
+                <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
+                    Source: view_4_grid.js | Project Dashboard | Updated: 2026-06-09 12:20 AM
+                </div>
+            </div>
+        </div>
+    `;
+
+    const backBtn = document.getElementById('projectBackBtn');
+    if (backBtn) {
+        backBtn.onclick = () => renderPendingProjects({ facility });
+    }
+
+    const addActionBtn = document.getElementById('projectAddActionBtn');
+    if (addActionBtn) {
+        addActionBtn.onclick = () => {
+            alert('[view_4_grid.js] Project Action Notice: The project dashboard is ready. Next update is view_4_modal.js to open the Add Project Action popup.');
+        };
+    }
 }
 
 export async function renderVendorDashboard({ facility, vendorId }) {
@@ -211,7 +268,7 @@ export async function renderVendorDashboard({ facility, vendorId }) {
                 ${renderVendorDashboardModals(projects, vendor)}
 
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Vendor Dashboard | Updated: 2026-06-08 11:25 PM
+                    Source: view_4_grid.js | Vendor Dashboard | Updated: 2026-06-09 12:20 AM
                 </div>
             </div>
         </div>
@@ -288,7 +345,7 @@ export async function renderVendorJobDashboard({ facility, vendorJobId }) {
                 ${renderVendorJobModals(followups)}
 
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Vendor Job Dashboard | Updated: 2026-06-08 11:25 PM
+                    Source: view_4_grid.js | Vendor Job Dashboard | Updated: 2026-06-09 12:20 AM
                 </div>
             </div>
         </div>
@@ -303,6 +360,19 @@ export async function renderVendorJobDashboard({ facility, vendorJobId }) {
         refreshJob: () => renderVendorJobDashboard({ facility, vendorJobId: job.id }),
         backVendor: () => renderVendorDashboard({ facility, vendorId: job.vendor_id })
     });
+}
+
+function renderProjectButtons(projects) {
+    if (!projects || projects.length === 0) {
+        return '<div class="cabinet-empty">No facility projects found yet.</div>';
+    }
+
+    return projects.map(project => `
+        <button class="project-button" data-open-project="${escapeAttr(project.id)}">
+            <span class="project-button-title">${escapeHtml(getProjectTitle(project))}</span>
+            ${project.notes ? `<span class="project-button-sub">${escapeHtml(project.notes)}</span>` : ''}
+        </button>
+    `).join('');
 }
 
 function renderVendorCards(vendors, jobs) {
@@ -343,19 +413,6 @@ function renderJobRows(jobs) {
                 ${escapeHtml(job.job_status || 'open')}
             </span>
         </button>
-    `).join('');
-}
-
-function renderProjectRows(projects) {
-    if (!projects || projects.length === 0) {
-        return '<div class="cabinet-empty">No facility projects found yet.</div>';
-    }
-
-    return projects.map(project => `
-        <div class="project-row">
-            <strong>${escapeHtml(getProjectTitle(project))}</strong>
-            <span>${escapeHtml(project.status || project.active_status || '')}</span>
-        </div>
     `).join('');
 }
 
@@ -400,8 +457,8 @@ function renderHomeModals(projects, vendors) {
     return `
         <div id="cabinetProjectModal" class="cabinet-modal">
             <div class="cabinet-modal-body">
-                <h3>Add Facility Project</h3>
-                <label>Project Title</label>
+                <h3>Create New Project</h3>
+                <label>Project Name</label>
                 <input id="newProjectTitleInput" class="cabinet-input" placeholder="Example: Kitchen AC">
                 <label>Notes</label>
                 <textarea id="newProjectNotesInput" class="cabinet-input cabinet-textarea" placeholder="Short project notes"></textarea>
@@ -569,6 +626,7 @@ function renderStyles() {
             .vendor-cabinet-title { color:#00264d; font-size:22px; text-align:center; margin:0 0 5px 0; text-transform:uppercase; }
             .vendor-cabinet-sub { text-align:center; color:#4b5563; font-size:14px; margin:0 0 15px 0; }
             .cabinet-action-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0; }
+            .single-action-grid { grid-template-columns:1fr 1fr; }
             .cabinet-btn { border:none; background:#00264d; color:white; border-radius:8px; padding:13px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:13px; }
             .cabinet-btn-green { background:#28a745; }
             .cabinet-btn-gray { background:#6b7280; }
@@ -576,6 +634,12 @@ function renderStyles() {
             .cabinet-section-title { color:#00264d; font-size:15px; margin:0 0 8px 0; text-transform:uppercase; border-bottom:2px solid #00264d; padding-bottom:5px; }
             .cabinet-card-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
             .cabinet-stack { display:flex; flex-direction:column; gap:8px; }
+            .project-button-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+            .project-button { border:none; background:#00264d; color:white; border-radius:10px; padding:16px; text-align:center; cursor:pointer; display:flex; flex-direction:column; gap:5px; text-transform:uppercase; }
+            .project-button:hover { filter:brightness(1.08); }
+            .project-button-title { font-weight:bold; font-size:15px; }
+            .project-button-sub { font-size:12px; color:#dbeafe; text-transform:none; font-weight:normal; }
+            .project-detail-box { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:13px; color:#374151; line-height:1.6; margin:12px 0; }
             .vendor-card-btn, .job-row-btn { text-align:left; border:1px solid #d1d5db; background:#ffffff; border-radius:10px; padding:13px; cursor:pointer; display:flex; flex-direction:column; gap:4px; }
             .vendor-card-btn:hover, .job-row-btn:hover { border-color:#00264d; }
             .vendor-card-title, .job-row-title { color:#00264d; font-weight:bold; font-size:14px; }
@@ -584,7 +648,6 @@ function renderStyles() {
             .vendor-card-placeholder { width:100%; height:95px; border-radius:8px; border:1px dashed #d1d5db; display:flex; align-items:center; justify-content:center; font-size:32px; background:#f9fafb; margin-bottom:6px; }
             .vendor-card-website { color:#2563eb; font-size:11px; word-break:break-word; }
             .vendor-main-image { width:100%; max-height:240px; object-fit:cover; border-radius:10px; border:1px solid #d1d5db; margin-bottom:12px; }
-            .project-row { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:10px; display:flex; justify-content:space-between; gap:10px; font-size:13px; }
             .cabinet-empty { color:#6b7280; font-size:13px; text-align:center; padding:14px; border:1px dashed #d1d5db; border-radius:10px; background:#f9fafb; }
             .cabinet-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:50; padding:20px; overflow:auto; align-items:flex-start; justify-content:center; }
             .cabinet-modal-body { background:white; width:100%; max-width:430px; border-radius:12px; padding:18px; box-sizing:border-box; margin-top:20px; box-shadow:0 4px 16px rgba(0,0,0,0.2); }
@@ -638,5 +701,5 @@ function escapeAttr(value) {
 
 /*================================================================
 END FILE: view_4_grid.js
-UPDATED: 2026-06-08 @ 11:25 PM
+UPDATED: 2026-06-09 @ 12:20 AM
 ================================================================*/
