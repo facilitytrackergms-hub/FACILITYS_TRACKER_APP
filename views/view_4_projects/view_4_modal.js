@@ -3,9 +3,9 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_4_modal.js
 SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
-VIEW NAME    : Vendor Project Filing Cabinet
-POP-UP TITLE : Vendor Project Entry
-LAST UPDATED : 2026-06-08 @ 11:30 PM
+VIEW NAME    : Facility Projects Dashboard
+POP-UP TITLE : Create New Project
+LAST UPDATED : 2026-06-09 @ 12:35 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -72,237 +72,357 @@ import {
 } from './view_4_data.js';
 
 export function setupCabinetHomeEvents({ facility, projects, vendors, refreshHome, openVendor, openVendorJob }) {
-    byId('cabinetAddProjectBtn').onclick = () => showModal('cabinetProjectModal');
-    byId('cabinetAddVendorBtn').onclick = () => showModal('cabinetVendorModal');
-    byId('cabinetStartVendorJobBtn').onclick = () => showModal('cabinetStartJobModal');
+    const addProjectBtn = byId('cabinetAddProjectBtn');
+    const addVendorBtn = byId('cabinetAddVendorBtn');
+    const startVendorJobBtn = byId('cabinetStartVendorJobBtn');
+    const closeProjectModalBtn = byId('closeProjectModalBtn');
+    const closeVendorModalBtn = byId('closeVendorModalBtn');
+    const closeJobModalBtn = byId('cabinetCloseJobModalBtn');
+    const backBtn = byId('cabinetBackBtn');
+    const saveProjectBtn = byId('saveProjectBtn');
+    const saveVendorBtn = byId('saveVendorBtn');
+    const saveJobBtn = byId('cabinetSaveJobBtn');
 
-    byId('closeProjectModalBtn').onclick = () => hideModal('cabinetProjectModal');
-    byId('closeVendorModalBtn').onclick = () => hideModal('cabinetVendorModal');
-    byId('cabinetCloseJobModalBtn').onclick = () => hideModal('cabinetStartJobModal');
+    if (addProjectBtn) {
+        addProjectBtn.onclick = () => showModal('cabinetProjectModal');
+    }
 
-    byId('cabinetBackBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view_2_controls', facility);
-    };
+    if (addVendorBtn) {
+        addVendorBtn.onclick = () => showModal('cabinetVendorModal');
+    }
 
-    byId('saveProjectBtn').onclick = async () => {
-        const title = value('newProjectTitleInput');
-        if (!title) {
-            alert('[view_4_modal.js] Notification: Add a project title first.');
-            return;
-        }
+    if (startVendorJobBtn) {
+        startVendorJobBtn.onclick = () => showModal('cabinetStartJobModal');
+    }
 
-        const result = await insertFacilityProject({
-            facility_id: facility.id,
-            title,
-            description: value('newProjectNotesInput'),
-            status: 'open'
-        });
+    if (closeProjectModalBtn) {
+        closeProjectModalBtn.onclick = () => hideModal('cabinetProjectModal');
+    }
 
-        if (result.error) {
-            alert(`[view_4_modal.js] Database Error: Could not save project. ${result.error.message}`);
-            return;
-        }
+    if (closeVendorModalBtn) {
+        closeVendorModalBtn.onclick = () => hideModal('cabinetVendorModal');
+    }
 
-        hideModal('cabinetProjectModal');
-        await refreshHome();
-    };
+    if (closeJobModalBtn) {
+        closeJobModalBtn.onclick = () => hideModal('cabinetStartJobModal');
+    }
 
-    byId('saveVendorBtn').onclick = async () => {
-        const companyName = value('newVendorCompanyInput');
-        if (!companyName) {
-            alert('[view_4_modal.js] Notification: Add the vendor company name first.');
-            return;
-        }
+    if (backBtn) {
+        backBtn.onclick = () => {
+            if (window.navigateTo) window.navigateTo('view_2_controls', facility);
+        };
+    }
 
-        const imageInput = byId('newVendorImageInput');
-        const imageFile = imageInput?.files?.[0] || null;
-        let imageUrl = '';
-        let imagePath = '';
+    if (saveProjectBtn) {
+        saveProjectBtn.onclick = async () => {
+            const title = value('newProjectTitleInput');
 
-        if (imageFile) {
-            const upload = await uploadCabinetFile(imageFile, 'vendor-main-images');
-            if (upload.error) {
-                alert(`[view_4_modal.js] Storage Error: Could not upload vendor image. ${upload.error.message}`);
+            if (!title) {
+                alert('[view_4_modal.js] Create Project Notice: Add a project name first.');
                 return;
             }
-            imageUrl = upload.url;
-            imagePath = upload.path;
-        }
 
-        const result = await insertVendor({
-            company_name: companyName,
-            contact_name: value('newVendorContactInput'),
-            phone: value('newVendorPhoneInput'),
-            email: value('newVendorEmailInput'),
-            website_url: value('newVendorWebsiteInput'),
-            main_image_url: imageUrl,
-            main_image_path: imagePath,
-            notes: value('newVendorNotesInput'),
-            status: 'active'
-        });
+            if (!facility || !facility.id) {
+                alert('[view_4_modal.js] Create Project Error: Missing facility ID. Project was not saved.');
+                return;
+            }
 
-        if (result.error) {
-            alert(`[view_4_modal.js] Database Error: Could not save vendor. ${result.error.message}`);
-            return;
-        }
+            const result = await insertFacilityProject({
+                facility_id: facility.id,
+                project_name_text: title,
+                project_title_text: title,
+                notes: value('newProjectNotesInput'),
+                active_status: true
+            });
 
-        hideModal('cabinetVendorModal');
-        await refreshHome();
-    };
+            if (result.error) {
+                alert(`[view_4_modal.js] Database Error: Could not save project. ${result.error.message}`);
+                return;
+            }
 
-    byId('cabinetSaveJobBtn').onclick = async () => {
-        await saveVendorJobFromModal('cabinet', { refresh: refreshHome });
-    };
+            clearValue('newProjectTitleInput');
+            clearValue('newProjectNotesInput');
+            hideModal('cabinetProjectModal');
+
+            if (refreshHome) await refreshHome();
+        };
+    }
+
+    if (saveVendorBtn) {
+        saveVendorBtn.onclick = async () => {
+            const companyName = value('newVendorCompanyInput');
+
+            if (!companyName) {
+                alert('[view_4_modal.js] Vendor Notice: Add the vendor company name first.');
+                return;
+            }
+
+            const imageInput = byId('newVendorImageInput');
+            const imageFile = imageInput?.files?.[0] || null;
+            let imageUrl = '';
+            let imagePath = '';
+
+            if (imageFile) {
+                const upload = await uploadCabinetFile(imageFile, 'vendor-main-images');
+
+                if (upload.error) {
+                    alert(`[view_4_modal.js] Storage Error: Could not upload vendor image. ${upload.error.message}`);
+                    return;
+                }
+
+                imageUrl = upload.url;
+                imagePath = upload.path;
+            }
+
+            const result = await insertVendor({
+                company_name: companyName,
+                contact_name: value('newVendorContactInput'),
+                phone: value('newVendorPhoneInput'),
+                email: value('newVendorEmailInput'),
+                website_url: value('newVendorWebsiteInput'),
+                main_image_url: imageUrl,
+                main_image_path: imagePath,
+                notes: value('newVendorNotesInput'),
+                status: 'active'
+            });
+
+            if (result.error) {
+                alert(`[view_4_modal.js] Database Error: Could not save vendor. ${result.error.message}`);
+                return;
+            }
+
+            hideModal('cabinetVendorModal');
+
+            if (refreshHome) await refreshHome();
+        };
+    }
+
+    if (saveJobBtn) {
+        saveJobBtn.onclick = async () => {
+            await saveVendorJobFromModal('cabinet', { refresh: refreshHome });
+        };
+    }
 
     document.querySelectorAll('[data-open-vendor]').forEach(button => {
-        button.onclick = () => openVendor(button.dataset.openVendor);
+        button.onclick = () => {
+            if (openVendor) openVendor(button.dataset.openVendor);
+        };
     });
 
     document.querySelectorAll('[data-open-vendor-job]').forEach(button => {
-        button.onclick = () => openVendorJob(button.dataset.openVendorJob);
+        button.onclick = () => {
+            if (openVendorJob) openVendorJob(button.dataset.openVendorJob);
+        };
     });
 }
 
 export function setupVendorDashboardEvents({ facility, vendor, projects, refreshVendor, backHome, openVendorJob }) {
-    byId('vendorAddProfileFileBtn').onclick = () => showModal('vendorProfileFileModal');
-    byId('vendorStartJobBtn').onclick = () => showModal('vendorStartJobModal');
-    byId('vendorBackHomeBtn').onclick = () => backHome();
+    const addProfileFileBtn = byId('vendorAddProfileFileBtn');
+    const startJobBtn = byId('vendorStartJobBtn');
+    const backHomeBtn = byId('vendorBackHomeBtn');
+    const closeFileBtn = byId('closeVendorFileModalBtn');
+    const closeJobBtn = byId('vendorCloseJobModalBtn');
+    const saveVendorFileBtn = byId('saveVendorFileBtn');
+    const saveJobBtn = byId('vendorSaveJobBtn');
 
-    byId('closeVendorFileModalBtn').onclick = () => hideModal('vendorProfileFileModal');
-    byId('vendorCloseJobModalBtn').onclick = () => hideModal('vendorStartJobModal');
+    if (addProfileFileBtn) {
+        addProfileFileBtn.onclick = () => showModal('vendorProfileFileModal');
+    }
 
-    byId('saveVendorFileBtn').onclick = async () => {
-        const fileInput = byId('vendorFileInput');
-        const file = fileInput?.files?.[0] || null;
-        const pastedUrl = value('vendorFileUrlInput');
-        let fileUrl = pastedUrl;
-        let storagePath = '';
-        let fileName = file?.name || '';
+    if (startJobBtn) {
+        startJobBtn.onclick = () => showModal('vendorStartJobModal');
+    }
 
-        if (file) {
-            const upload = await uploadCabinetFile(file, `vendor-files/${vendor.id}`);
-            if (upload.error) {
-                alert(`[view_4_modal.js] Storage Error: Could not upload vendor file. ${upload.error.message}`);
+    if (backHomeBtn) {
+        backHomeBtn.onclick = () => {
+            if (backHome) backHome();
+        };
+    }
+
+    if (closeFileBtn) {
+        closeFileBtn.onclick = () => hideModal('vendorProfileFileModal');
+    }
+
+    if (closeJobBtn) {
+        closeJobBtn.onclick = () => hideModal('vendorStartJobModal');
+    }
+
+    if (saveVendorFileBtn) {
+        saveVendorFileBtn.onclick = async () => {
+            const fileInput = byId('vendorFileInput');
+            const file = fileInput?.files?.[0] || null;
+            const pastedUrl = value('vendorFileUrlInput');
+            let fileUrl = pastedUrl;
+            let storagePath = '';
+            let fileName = file?.name || '';
+
+            if (file) {
+                const upload = await uploadCabinetFile(file, `vendor-files/${vendor.id}`);
+
+                if (upload.error) {
+                    alert(`[view_4_modal.js] Storage Error: Could not upload vendor file. ${upload.error.message}`);
+                    return;
+                }
+
+                fileUrl = upload.url;
+                storagePath = upload.path;
+            }
+
+            if (!fileUrl) {
+                alert('[view_4_modal.js] Vendor File Notice: Upload a file or paste a file URL first.');
                 return;
             }
-            fileUrl = upload.url;
-            storagePath = upload.path;
-        }
 
-        if (!fileUrl) {
-            alert('[view_4_modal.js] Notification: Upload a file or paste a file URL first.');
-            return;
-        }
+            const result = await insertVendorFile({
+                vendor_id: vendor.id,
+                file_type: detectFileType(fileName, fileUrl),
+                file_label: value('vendorFileLabelInput') || fileName || 'Vendor file',
+                file_name: fileName,
+                file_url: fileUrl,
+                storage_path: storagePath,
+                notes: value('vendorFileNotesInput')
+            });
 
-        const result = await insertVendorFile({
-            vendor_id: vendor.id,
-            file_type: detectFileType(fileName, fileUrl),
-            file_label: value('vendorFileLabelInput') || fileName || 'Vendor file',
-            file_name: fileName,
-            file_url: fileUrl,
-            storage_path: storagePath,
-            notes: value('vendorFileNotesInput')
-        });
+            if (result.error) {
+                alert(`[view_4_modal.js] Database Error: Could not save vendor file. ${result.error.message}`);
+                return;
+            }
 
-        if (result.error) {
-            alert(`[view_4_modal.js] Database Error: Could not save vendor file. ${result.error.message}`);
-            return;
-        }
+            hideModal('vendorProfileFileModal');
 
-        hideModal('vendorProfileFileModal');
-        await refreshVendor();
-    };
+            if (refreshVendor) await refreshVendor();
+        };
+    }
 
-    byId('vendorSaveJobBtn').onclick = async () => {
-        await saveVendorJobFromModal('vendor', { vendorId: vendor.id, refresh: refreshVendor });
-    };
+    if (saveJobBtn) {
+        saveJobBtn.onclick = async () => {
+            await saveVendorJobFromModal('vendor', { vendorId: vendor.id, refresh: refreshVendor });
+        };
+    }
 
     document.querySelectorAll('[data-open-vendor-job]').forEach(button => {
-        button.onclick = () => openVendorJob(button.dataset.openVendorJob);
+        button.onclick = () => {
+            if (openVendorJob) openVendorJob(button.dataset.openVendorJob);
+        };
     });
 }
 
 export function setupVendorJobDashboardEvents({ facility, job, project, files, followups, refreshJob, backVendor }) {
-    byId('jobAddFollowupBtn').onclick = () => showModal('jobFollowupModal');
-    byId('jobAddFileBtn').onclick = () => showModal('jobFileModal');
-    byId('jobBackVendorBtn').onclick = () => backVendor();
+    const addFollowupBtn = byId('jobAddFollowupBtn');
+    const addFileBtn = byId('jobAddFileBtn');
+    const backVendorBtn = byId('jobBackVendorBtn');
+    const closeFollowupBtn = byId('closeJobFollowupModalBtn');
+    const closeFileBtn = byId('closeJobFileModalBtn');
+    const saveFollowupBtn = byId('saveJobFollowupBtn');
+    const saveFileBtn = byId('saveJobFileBtn');
+    const emailCorporateBtn = byId('jobEmailCorporateBtn');
 
-    byId('closeJobFollowupModalBtn').onclick = () => hideModal('jobFollowupModal');
-    byId('closeJobFileModalBtn').onclick = () => hideModal('jobFileModal');
+    if (addFollowupBtn) {
+        addFollowupBtn.onclick = () => showModal('jobFollowupModal');
+    }
 
-    byId('saveJobFollowupBtn').onclick = async () => {
-        const note = value('jobFollowupNoteInput');
-        if (!note) {
-            alert('[view_4_modal.js] Notification: Add a follow-up note first.');
-            return;
-        }
+    if (addFileBtn) {
+        addFileBtn.onclick = () => showModal('jobFileModal');
+    }
 
-        const result = await insertVendorJobFollowup({
-            vendor_job_id: job.id,
-            followup_type: value('jobFollowupTypeInput') || 'note',
-            followup_note: note,
-            followup_by: value('jobFollowupByInput'),
-            next_followup_date: value('jobNextFollowupDateInput'),
-            completed: false
-        });
+    if (backVendorBtn) {
+        backVendorBtn.onclick = () => {
+            if (backVendor) backVendor();
+        };
+    }
 
-        if (result.error) {
-            alert(`[view_4_modal.js] Database Error: Could not save follow-up. ${result.error.message}`);
-            return;
-        }
+    if (closeFollowupBtn) {
+        closeFollowupBtn.onclick = () => hideModal('jobFollowupModal');
+    }
 
-        hideModal('jobFollowupModal');
-        await refreshJob();
-    };
+    if (closeFileBtn) {
+        closeFileBtn.onclick = () => hideModal('jobFileModal');
+    }
 
-    byId('saveJobFileBtn').onclick = async () => {
-        const fileInput = byId('jobFileInput');
-        const file = fileInput?.files?.[0] || null;
-        const pastedUrl = value('jobFileUrlInput');
-        let fileUrl = pastedUrl;
-        let storagePath = '';
-        let fileName = file?.name || '';
+    if (saveFollowupBtn) {
+        saveFollowupBtn.onclick = async () => {
+            const note = value('jobFollowupNoteInput');
 
-        if (file) {
-            const upload = await uploadCabinetFile(file, `vendor-job-files/${job.id}`);
-            if (upload.error) {
-                alert(`[view_4_modal.js] Storage Error: Could not upload job file. ${upload.error.message}`);
+            if (!note) {
+                alert('[view_4_modal.js] Follow-up Notice: Add a follow-up note first.');
                 return;
             }
-            fileUrl = upload.url;
-            storagePath = upload.path;
-        }
 
-        if (!fileUrl) {
-            alert('[view_4_modal.js] Notification: Upload a file or paste a file URL first.');
-            return;
-        }
+            const result = await insertVendorJobFollowup({
+                vendor_job_id: job.id,
+                followup_type: value('jobFollowupTypeInput') || 'note',
+                followup_note: note,
+                followup_by: value('jobFollowupByInput'),
+                next_followup_date: value('jobNextFollowupDateInput'),
+                completed: false
+            });
 
-        const result = await insertVendorJobFile({
-            vendor_job_id: job.id,
-            followup_id: value('jobFileFollowupSelect'),
-            file_type: value('jobFileTypeInput') || detectFileType(fileName, fileUrl),
-            file_name: fileName,
-            file_url: fileUrl,
-            storage_path: storagePath,
-            notes: value('jobFileNotesInput'),
-            uploaded_by: ''
-        });
+            if (result.error) {
+                alert(`[view_4_modal.js] Database Error: Could not save follow-up. ${result.error.message}`);
+                return;
+            }
 
-        if (result.error) {
-            alert(`[view_4_modal.js] Database Error: Could not save job file. ${result.error.message}`);
-            return;
-        }
+            hideModal('jobFollowupModal');
 
-        hideModal('jobFileModal');
-        await refreshJob();
-    };
+            if (refreshJob) await refreshJob();
+        };
+    }
 
-    byId('jobEmailCorporateBtn').onclick = () => {
-        const body = buildCorporateEmailBody({ facility, job, project, files, followups });
-        const subject = encodeURIComponent(`Vendor Job Report - ${job.job_title || 'Vendor Job'} - ${getVendorName(job.vendors)}`);
-        window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
-    };
+    if (saveFileBtn) {
+        saveFileBtn.onclick = async () => {
+            const fileInput = byId('jobFileInput');
+            const file = fileInput?.files?.[0] || null;
+            const pastedUrl = value('jobFileUrlInput');
+            let fileUrl = pastedUrl;
+            let storagePath = '';
+            let fileName = file?.name || '';
+
+            if (file) {
+                const upload = await uploadCabinetFile(file, `vendor-job-files/${job.id}`);
+
+                if (upload.error) {
+                    alert(`[view_4_modal.js] Storage Error: Could not upload job file. ${upload.error.message}`);
+                    return;
+                }
+
+                fileUrl = upload.url;
+                storagePath = upload.path;
+            }
+
+            if (!fileUrl) {
+                alert('[view_4_modal.js] Job File Notice: Upload a file or paste a file URL first.');
+                return;
+            }
+
+            const result = await insertVendorJobFile({
+                vendor_job_id: job.id,
+                followup_id: value('jobFileFollowupSelect'),
+                file_type: value('jobFileTypeInput') || detectFileType(fileName, fileUrl),
+                file_name: fileName,
+                file_url: fileUrl,
+                storage_path: storagePath,
+                notes: value('jobFileNotesInput'),
+                uploaded_by: ''
+            });
+
+            if (result.error) {
+                alert(`[view_4_modal.js] Database Error: Could not save job file. ${result.error.message}`);
+                return;
+            }
+
+            hideModal('jobFileModal');
+
+            if (refreshJob) await refreshJob();
+        };
+    }
+
+    if (emailCorporateBtn) {
+        emailCorporateBtn.onclick = () => {
+            const body = buildCorporateEmailBody({ facility, job, project, files, followups });
+            const subject = encodeURIComponent(`Vendor Job Report - ${job.job_title || 'Vendor Job'} - ${getVendorName(job.vendors)}`);
+            window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
+        };
+    }
 }
 
 async function saveVendorJobFromModal(prefix, options = {}) {
@@ -311,17 +431,17 @@ async function saveVendorJobFromModal(prefix, options = {}) {
     const title = value(`${prefix}JobTitleInput`);
 
     if (!projectId) {
-        alert('[view_4_modal.js] Notification: Select a facility project first.');
+        alert('[view_4_modal.js] Vendor Job Notice: Select a facility project first.');
         return;
     }
 
     if (!vendorId) {
-        alert('[view_4_modal.js] Notification: Select a vendor first.');
+        alert('[view_4_modal.js] Vendor Job Notice: Select a vendor first.');
         return;
     }
 
     if (!title) {
-        alert('[view_4_modal.js] Notification: Add a job title first.');
+        alert('[view_4_modal.js] Vendor Job Notice: Add a job title first.');
         return;
     }
 
@@ -332,10 +452,12 @@ async function saveVendorJobFromModal(prefix, options = {}) {
 
     if (imageFile) {
         const upload = await uploadCabinetFile(imageFile, `vendor-job-main/${vendorId}`);
+
         if (upload.error) {
             alert(`[view_4_modal.js] Storage Error: Could not upload main job image. ${upload.error.message}`);
             return;
         }
+
         imageUrl = upload.url;
         imagePath = upload.path;
     }
@@ -359,11 +481,13 @@ async function saveVendorJobFromModal(prefix, options = {}) {
     }
 
     hideModal(`${prefix}StartJobModal`);
+
     if (options.refresh) await options.refresh();
 }
 
 function buildCorporateEmailBody({ facility, job, project, files, followups }) {
     let body = '';
+
     body += `VENDOR JOB REPORT\n`;
     body += `Facility: ${facility.name || facility.Name || 'Facility'}\n`;
     body += `Project: ${getProjectTitle(project)}\n`;
@@ -376,6 +500,7 @@ function buildCorporateEmailBody({ facility, job, project, files, followups }) {
     body += `Notes: ${job.notes || ''}\n\n`;
 
     body += `FOLLOW-UPS / TIMELINE\n`;
+
     if (!followups || followups.length === 0) {
         body += `No follow-ups saved yet.\n`;
     } else {
@@ -388,6 +513,7 @@ function buildCorporateEmailBody({ facility, job, project, files, followups }) {
     }
 
     body += `FILES / ATTACHMENTS\n`;
+
     if (!files || files.length === 0) {
         body += `No files saved yet.\n`;
     } else {
@@ -402,11 +528,13 @@ function buildCorporateEmailBody({ facility, job, project, files, followups }) {
 
 function detectFileType(fileName, fileUrl) {
     const valueToCheck = `${fileName || ''} ${fileUrl || ''}`.toLowerCase();
+
     if (/\.(png|jpg|jpeg|webp|gif)/.test(valueToCheck)) return 'image';
     if (/invoice/.test(valueToCheck)) return 'invoice';
     if (/quote|estimate/.test(valueToCheck)) return 'quote';
     if (/approval/.test(valueToCheck)) return 'approval';
     if (/\.(pdf)/.test(valueToCheck)) return 'pdf';
+
     return 'file';
 }
 
@@ -425,11 +553,16 @@ function value(id) {
     return el ? String(el.value || '').trim() : '';
 }
 
+function clearValue(id) {
+    const el = byId(id);
+    if (el) el.value = '';
+}
+
 function byId(id) {
     return document.getElementById(id);
 }
 
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-08 @ 11:30 PM
+UPDATED: 2026-06-09 @ 12:35 AM
 ================================================================*/
