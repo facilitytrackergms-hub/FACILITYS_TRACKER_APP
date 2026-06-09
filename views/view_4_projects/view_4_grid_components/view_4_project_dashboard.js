@@ -5,7 +5,7 @@ FILE NAME    : view_4_project_dashboard.js
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-09 @ 02:05 AM
+LAST UPDATED : 2026-06-09 @ 02:25 AM
 ================================================================*/
 const __FILENAME = 'view_4_project_dashboard.js';
 
@@ -56,12 +56,8 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                     <h2 class="cabinet-section-title">Project Action Dashboard</h2>
 
                     <div class="cabinet-action-grid">
-                        <button id="projectAddVendorBtn" class="cabinet-btn cabinet-btn-green">
-                            ➕ Add Vendor
-                        </button>
-
-                        <button id="projectAddVendorQuoteBtn" class="cabinet-btn cabinet-btn-green">
-                            📄 Add Vendor Quote
+                        <button id="projectVendorQuotesFilesBtn" class="cabinet-btn cabinet-btn-green">
+                            📄 Vendor Quotes / Files
                         </button>
 
                         <button id="projectSuppliesNeededBtn" class="cabinet-btn cabinet-btn-blue">
@@ -69,15 +65,11 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                         </button>
 
                         <button id="projectStatusBtn" class="cabinet-btn cabinet-btn-blue">
-                            📌 Status
+                            📌 Project Status
                         </button>
 
-                        <button id="projectFollowUpNotesBtn" class="cabinet-btn cabinet-btn-blue">
-                            📝 Follow-Up Notes
-                        </button>
-
-                        <button id="projectEmailReportBtn" class="cabinet-btn cabinet-btn-blue">
-                            📧 Email Report
+                        <button id="projectCreateReportBtn" class="cabinet-btn cabinet-btn-blue">
+                            📋 Create Report
                         </button>
 
                         <button id="projectSpecialNotesBtn" class="cabinet-btn cabinet-btn-blue">
@@ -104,7 +96,7 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-09 02:05 AM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-09 02:25 AM
                 </div>
             </div>
         </div>
@@ -124,5 +116,5 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
 
 /*================================================================
 END FILE: view_4_project_dashboard.js
-UPDATED: 2026-06-09 @ 02:05 AM
+UPDATED: 2026-06-09 @ 02:25 AM
 ================================================================*/
