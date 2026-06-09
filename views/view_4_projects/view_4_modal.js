@@ -22,9 +22,7 @@ import {
     getVendorName
 } from './view_4_data.js';
 
-import {
-    renderVendorQuotesFilesDashboard
-} from './view_4_render_helpers.js';
+import { renderVendorQuotesFilesDashboard } from './view_4_grid_components/view_4_render_helpers.js';
 
 // --- Existing setupCabinetHomeEvents, setupVendorDashboardEvents, setupVendorJobDashboardEvents remain unchanged ---
 
