@@ -28,7 +28,7 @@ import {
     renderFollowupRows,
     renderFileCards,
     renderVendorJobModals
-} from './view_4_render_helpers.js';
+} from './view_4_grid_components/view_4_render_helpers.js';
 
 import {
     renderStyles
