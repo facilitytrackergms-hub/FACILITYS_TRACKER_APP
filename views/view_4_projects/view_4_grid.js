@@ -4,8 +4,8 @@ FILE METADATA
 FILE NAME    : view_4_grid.js
 SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
-POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-09 @ 12:20 AM
+POP-UP TITLE : Create New Project / Add Project Action
+LAST UPDATED : 2026-06-09 @ 12:50 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -125,7 +125,7 @@ export async function renderPendingProjects(data) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Facility Projects Dashboard | Updated: 2026-06-09 12:20 AM
+                    Source: view_4_grid.js | Facility Projects Dashboard | Updated: 2026-06-09 12:50 AM
                 </div>
             </div>
         </div>
@@ -190,8 +190,10 @@ export async function renderProjectDashboard({ facility, project }) {
                     </div>
                 </div>
 
+                ${renderProjectActionModal()}
+
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Project Dashboard | Updated: 2026-06-09 12:20 AM
+                    Source: view_4_grid.js | Project Dashboard | Updated: 2026-06-09 12:50 AM
                 </div>
             </div>
         </div>
@@ -203,9 +205,28 @@ export async function renderProjectDashboard({ facility, project }) {
     }
 
     const addActionBtn = document.getElementById('projectAddActionBtn');
-    if (addActionBtn) {
+    const actionModal = document.getElementById('projectActionModal');
+    const closeActionBtn = document.getElementById('closeProjectActionModalBtn');
+    const saveActionBtn = document.getElementById('saveProjectActionBtn');
+    const actionNotice = document.getElementById('projectActionModalNotice');
+
+    if (addActionBtn && actionModal) {
         addActionBtn.onclick = () => {
-            alert('[view_4_grid.js] Project Action Notice: The project dashboard is ready. Next update is view_4_modal.js to open the Add Project Action popup.');
+            clearProjectActionModal();
+            actionModal.style.display = 'flex';
+        };
+    }
+
+    if (closeActionBtn && actionModal) {
+        closeActionBtn.onclick = () => {
+            actionModal.style.display = 'none';
+        };
+    }
+
+    if (saveActionBtn && actionNotice) {
+        saveActionBtn.onclick = () => {
+            actionNotice.textContent = 'Project action popup is ready. Next update will connect this Save Action button to the project_actions table.';
+            actionNotice.style.display = 'block';
         };
     }
 }
@@ -268,7 +289,7 @@ export async function renderVendorDashboard({ facility, vendorId }) {
                 ${renderVendorDashboardModals(projects, vendor)}
 
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Vendor Dashboard | Updated: 2026-06-09 12:20 AM
+                    Source: view_4_grid.js | Vendor Dashboard | Updated: 2026-06-09 12:50 AM
                 </div>
             </div>
         </div>
@@ -345,7 +366,7 @@ export async function renderVendorJobDashboard({ facility, vendorJobId }) {
                 ${renderVendorJobModals(followups)}
 
                 <div id="uiTag_view_4_grid" class="ui-metadata-tag-view4">
-                    Source: view_4_grid.js | Vendor Job Dashboard | Updated: 2026-06-09 12:20 AM
+                    Source: view_4_grid.js | Vendor Job Dashboard | Updated: 2026-06-09 12:50 AM
                 </div>
             </div>
         </div>
@@ -373,6 +394,52 @@ function renderProjectButtons(projects) {
             ${project.notes ? `<span class="project-button-sub">${escapeHtml(project.notes)}</span>` : ''}
         </button>
     `).join('');
+}
+
+function renderProjectActionModal() {
+    return `
+        <div id="projectActionModal" class="cabinet-modal">
+            <div class="cabinet-modal-body">
+                <h3>Add Project Action</h3>
+
+                <label>Action Type</label>
+                <select id="projectActionTypeInput" class="cabinet-input">
+                    <option value="note">Note</option>
+                    <option value="task">Task</option>
+                    <option value="vendor">Vendor</option>
+                    <option value="status_update">Status Update</option>
+                    <option value="photo">Photo / Image</option>
+                    <option value="cost">Cost</option>
+                    <option value="follow_up">Follow Up</option>
+                    <option value="completed">Completed</option>
+                </select>
+
+                <label>Action Title</label>
+                <input id="projectActionTitleInput" class="cabinet-input" placeholder="Example: Called AC vendor">
+
+                <label>Notes</label>
+                <textarea id="projectActionNotesInput" class="cabinet-input cabinet-textarea" placeholder="What happened?"></textarea>
+
+                <div id="projectActionModalNotice" class="custom-modal-notice" style="display:none;"></div>
+
+                <button id="saveProjectActionBtn" class="cabinet-btn cabinet-btn-green">Save Action</button>
+                <button id="closeProjectActionModalBtn" class="cabinet-btn cabinet-btn-gray">Cancel</button>
+            </div>
+        </div>
+    `;
+}
+
+function clearProjectActionModal() {
+    const titleInput = document.getElementById('projectActionTitleInput');
+    const notesInput = document.getElementById('projectActionNotesInput');
+    const notice = document.getElementById('projectActionModalNotice');
+
+    if (titleInput) titleInput.value = '';
+    if (notesInput) notesInput.value = '';
+    if (notice) {
+        notice.textContent = '';
+        notice.style.display = 'none';
+    }
 }
 
 function renderVendorCards(vendors, jobs) {
@@ -655,6 +722,7 @@ function renderStyles() {
             .cabinet-modal-body label { display:block; font-size:12px; font-weight:bold; color:#374151; margin-top:10px; text-transform:uppercase; }
             .cabinet-input { width:100%; box-sizing:border-box; padding:10px; border:1px solid #d1d5db; border-radius:7px; margin-top:4px; font-size:14px; }
             .cabinet-textarea { min-height:70px; resize:vertical; }
+            .custom-modal-notice { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:8px; padding:10px; margin:12px 0; font-size:13px; text-align:center; }
             .vendor-info-box { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:13px; color:#374151; line-height:1.6; }
             .file-card { border:1px solid #d1d5db; border-radius:10px; padding:10px; color:#00264d; text-decoration:none; display:flex; flex-direction:column; gap:6px; min-height:90px; justify-content:center; align-items:center; text-align:center; }
             .file-card img { max-width:100%; width:110px; height:90px; object-fit:cover; border-radius:8px; }
@@ -701,5 +769,5 @@ function escapeAttr(value) {
 
 /*================================================================
 END FILE: view_4_grid.js
-UPDATED: 2026-06-09 @ 12:20 AM
+UPDATED: 2026-06-09 @ 12:50 AM
 ================================================================*/
