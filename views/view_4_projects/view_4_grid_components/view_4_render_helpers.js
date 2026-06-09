@@ -50,16 +50,22 @@ export function renderProjectActionModal() {
                 <h3>Add Project Action</h3>
 
                 <label>Action Type</label>
-                <select id="projectActionTypeInput" class="cabinet-input">
-                    <option value="note">Note</option>
-                    <option value="task">Task</option>
-                    <option value="vendor">Vendor</option>
-                    <option value="status_update">Status Update</option>
-                    <option value="photo">Photo / Image</option>
-                    <option value="cost">Cost</option>
-                    <option value="follow_up">Follow Up</option>
-                    <option value="completed">Completed</option>
-                </select>
+                <input id="projectActionTypeInput" class="cabinet-input" list="projectActionTypeChoices" placeholder="Type or choose action type" value="Note">
+                <datalist id="projectActionTypeChoices">
+                    <option value="Note"></option>
+                    <option value="Task"></option>
+                    <option value="Vendor"></option>
+                    <option value="Vendor Quote"></option>
+                    <option value="Quote"></option>
+                    <option value="Estimate"></option>
+                    <option value="Status Update"></option>
+                    <option value="Photo / Image"></option>
+                    <option value="Cost"></option>
+                    <option value="Follow Up"></option>
+                    <option value="Parts Ordered"></option>
+                    <option value="Waiting on Vendor"></option>
+                    <option value="Completed"></option>
+                </datalist>
 
                 <label>Action Title</label>
                 <input id="projectActionTitleInput" class="cabinet-input" placeholder="Example: Called AC vendor">
