@@ -18,15 +18,17 @@ import {
     setupProjectDashboardEvents
 } from '../view_4_modal.js';
 
+// ================= UPDATED IMPORT PATH =================
 import {
     escapeHtml,
     renderProjectActionModal,
     renderProjectActions
-} from './view_4_render_helpers.js';
+} from './view_4_grid_components/view_4_render_helpers.js';
+// ========================================================
 
 import {
     renderStyles
-} from './view_4_styles.js';
+} from './view_4_grid_components/view_4_styles.js';
 
 export async function renderSingleProjectDashboard({ facility, project }, nav) {
     const app = document.getElementById('app');
