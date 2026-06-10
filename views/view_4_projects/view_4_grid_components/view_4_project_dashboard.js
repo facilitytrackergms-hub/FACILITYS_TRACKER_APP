@@ -18,13 +18,13 @@ import {
     setupProjectDashboardEvents
 } from '../view_4_modal.js';
 
-// ================= UPDATED IMPORT PATH =================
+// =================== UPDATED IMPORT ===================
 import {
     escapeHtml,
     renderProjectActionModal,
     renderProjectActions
 } from './view_4_grid_components/view_4_render_helpers.js';
-// ========================================================
+// ======================================================
 
 import {
     renderStyles
@@ -118,5 +118,5 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
 
 /*================================================================
 END FILE: view_4_project_dashboard.js
-UPDATED: 2026-06-09 @ 02:40 AM
+UPDATED: 2026-06-09 @ 03:35 AM
 ================================================================*/
