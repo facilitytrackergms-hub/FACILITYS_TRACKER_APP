@@ -5,7 +5,7 @@ FILE NAME    : view_4_project_dashboard.js
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-09 @ 02:40 AM
+LAST UPDATED : 2026-06-10 @ 07:45 AM
 ================================================================*/
 const __FILENAME = 'view_4_project_dashboard.js';
 
@@ -96,17 +96,35 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-09 02:40 AM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-10 07:45 AM
                 </div>
             </div>
         </div>
     `;
 
+    // Explicitly bind all buttons to ensure they work
     const backBtn = document.getElementById('projectBackBtn');
-    if (backBtn) {
-        backBtn.onclick = () => nav.renderPendingProjects({ facility });
-    }
+    if (backBtn) backBtn.onclick = () => nav.renderPendingProjects({ facility });
 
+    const vendorBtn = document.getElementById('projectVendorQuotesFilesBtn');
+    if (vendorBtn) vendorBtn.onclick = () => nav.renderVendorDashboard ? nav.renderVendorDashboard({ facility, project }) : alert('Vendor Quotes / Files clicked');
+
+    const suppliesBtn = document.getElementById('projectSuppliesNeededBtn');
+    if (suppliesBtn) suppliesBtn.onclick = () => nav.renderSuppliesDashboard ? nav.renderSuppliesDashboard({ facility, project }) : alert('Supplies / Parts Needed clicked');
+
+    const statusBtn = document.getElementById('projectStatusBtn');
+    if (statusBtn) statusBtn.onclick = () => nav.renderProjectStatus ? nav.renderProjectStatus({ facility, project }) : alert('Project Status clicked');
+
+    const reportBtn = document.getElementById('projectCreateReportBtn');
+    if (reportBtn) reportBtn.onclick = () => nav.renderCreateReport ? nav.renderCreateReport({ facility, project }) : alert('Create Report clicked');
+
+    const specialNotesBtn = document.getElementById('projectSpecialNotesBtn');
+    if (specialNotesBtn) specialNotesBtn.onclick = () => nav.renderSpecialNotes ? nav.renderSpecialNotes({ facility, project }) : alert('Project Special Notes clicked');
+
+    const addActionBtn = document.getElementById('projectAddActionBtn');
+    if (addActionBtn) addActionBtn.onclick = () => nav.renderAddAction ? nav.renderAddAction({ facility, project }) : alert('Create New Action clicked');
+
+    // Call setupProjectDashboardEvents for other internal modal events
     setupProjectDashboardEvents({
         facility,
         project,
@@ -116,5 +134,4 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
 
 /*================================================================
 END FILE: view_4_project_dashboard.js
-UPDATED: 2026-06-09 @ 03:35 AM
 ================================================================*/
