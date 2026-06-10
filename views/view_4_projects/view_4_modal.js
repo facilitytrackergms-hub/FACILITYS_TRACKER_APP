@@ -5,7 +5,7 @@ FILE NAME    : view_4_modal.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-10 @ 03:48 AM
+LAST UPDATED : 2026-06-10 @ 03:52 AM
 ================================================================*/
 const __FILENAME = 'view_4_modal.js';
 
@@ -23,7 +23,7 @@ import {
 } from './view_4_data.js';
 
 // ================= UPDATED IMPORT =================
-import { renderVendorQuotesFilesDashboard } from './view_4_render_helpers.js';
+import { renderVendorQuotesFilesDashboard } from './view_4_grid_components/view_4_render_helpers.js';
 // ===================================================
 
 // --- Existing setupCabinetHomeEvents, setupVendorDashboardEvents, setupVendorJobDashboardEvents remain unchanged ---
@@ -145,5 +145,5 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
 
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-10 @ 03:48 AM
+UPDATED: 2026-06-10 @ 03:52 AM
 ================================================================*/
