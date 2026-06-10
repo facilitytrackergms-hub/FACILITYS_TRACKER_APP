@@ -103,6 +103,15 @@ export async function renderProjectsHome(data, nav) {
             nav.renderProjectDashboard({ facility, project: selectedProject });
         };
     });
+
+    // ─── FIX: BACK BUTTON EVENT LISTENER ────────────────────────────────────
+    const backBtn = document.getElementById('cabinetBackBtn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            window.history.back();
+        };
+    }
+    // ────────────────────────────────────────────────────────────────────────
 }
 
 /*================================================================
