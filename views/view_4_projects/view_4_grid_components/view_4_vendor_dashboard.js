@@ -34,7 +34,7 @@ import {
 
 import {
     renderStyles
-} from './view_4_styles.js';
+} from './view_4_grid_components/view_4_styles.js';
 
 export async function renderSingleVendorDashboard({ facility, vendorId }, nav) {
     const app = document.getElementById('app');
