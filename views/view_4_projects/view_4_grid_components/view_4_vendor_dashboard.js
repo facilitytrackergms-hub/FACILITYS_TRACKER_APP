@@ -21,6 +21,7 @@ import {
     setupVendorDashboardEvents
 } from '../view_4_modal.js';
 
+// =================== UPDATED IMPORT ===================
 import {
     escapeHtml,
     escapeAttr,
@@ -29,6 +30,7 @@ import {
     renderFileCards,
     renderVendorDashboardModals
 } from './view_4_render_helpers.js';
+// ======================================================
 
 import {
     renderStyles
@@ -110,5 +112,5 @@ export async function renderSingleVendorDashboard({ facility, vendorId }, nav) {
 
 /*================================================================
 END FILE: view_4_vendor_dashboard.js
-UPDATED: 2026-06-09 @ 01:45 AM
+UPDATED: 2026-06-09 @ 03:35 AM
 ================================================================*/
