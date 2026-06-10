@@ -6,7 +6,7 @@ File Pach : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-10 @ 03:55 AM
+LAST UPDATED : 2026-06-10 @ 04:00 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -259,6 +259,130 @@ export async function insertVendorFile(payload) {
     return { data, error: null };
 }
 
+// Missing function requested by view_4_modal.js imports
+export async function insertProjectVendorJob(payload) {
+    if (!payload?.project_id || !payload?.vendor_id) {
+        const error = { message: '[view_4_data.js] Missing project_id or vendor_id for project_vendor_jobs.' };
+        console.error(error.message, payload);
+        return { data: null, error };
+    }
+
+    const clean = removeEmptyKeys({
+        project_id: payload.project_id,
+        vendor_id: payload.vendor_id,
+        job_title: payload.job_title || payload.title,
+        status: payload.status || 'pending',
+        notes: payload.notes,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    });
+
+    const { data, error } = await supabase
+        .from('project_vendor_jobs')
+        .insert([clean])
+        .select();
+
+    if (error) {
+        console.error('[view_4_data.js] Error inserting project vendor job:', error);
+        return { data: null, error };
+    }
+    return { data, error: null };
+}
+
+// Missing function requested by view_4_modal.js imports
+export async function insertVendorJobFile(payload) {
+    if (!payload?.job_id) {
+        const error = { message: '[view_4_data.js] Missing job_id for project_vendor_job_files.' };
+        console.error(error.message, payload);
+        return { data: null, error };
+    }
+
+    const clean = removeEmptyKeys({
+        job_id: payload.job_id,
+        file_type: payload.file_type || 'document',
+        file_label: payload.file_label,
+        file_name: payload.file_name,
+        file_url: payload.file_url,
+        storage_path: payload.storage_path,
+        notes: payload.notes,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    });
+
+    const { data, error } = await supabase
+        .from('project_vendor_job_files')
+        .insert([clean])
+        .select();
+
+    if (error) {
+        console.error('[view_4_data.js] Error inserting vendor job file:', error);
+        return { data: null, error };
+    }
+    return { data, error: null };
+}
+
+// Missing function requested by view_4_modal.js imports
+export async function insertVendorJobFollowup(payload) {
+    if (!payload?.job_id) {
+        const error = { message: '[view_4_data.js] Missing job_id for project_vendor_job_followups.' };
+        console.error(error.message, payload);
+        return { data: null, error };
+    }
+
+    const clean = removeEmptyKeys({
+        job_id: payload.job_id,
+        followup_notes: payload.followup_notes || payload.notes,
+        created_by_text: payload.created_by_text || payload.created_by,
+        followup_date: payload.followup_date || new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    });
+
+    const { data, error } = await supabase
+        .from('project_vendor_job_followups')
+        .insert([clean])
+        .select();
+
+    if (error) {
+        console.error('[view_4_data.js] Error inserting vendor job followup:', error);
+        return { data: null, error };
+    }
+    return { data, error: null };
+}
+
+// Missing bucket storage upload wrapper requested by view_4_modal.js imports
+export async function uploadCabinetFile(filePath, fileBody) {
+    if (!filePath || !fileBody) {
+        const error = { message: '[view_4_data.js] Cannot upload file: missing filePath or fileBody.' };
+        console.error(error.message);
+        return { data: null, error };
+    }
+
+    const { data, error } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(filePath, fileBody, {
+            cacheControl: '3600',
+            upsert: true
+        });
+
+    if (error) {
+        console.error('[view_4_data.js] Storage error uploading file:', error);
+        return { data: null, error };
+    }
+
+    const { data: publicUrlData } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(filePath);
+
+    return { 
+        data: { 
+            path: data.path, 
+            publicUrl: publicUrlData?.publicUrl || null 
+        }, 
+        error: null 
+    };
+}
+
 // Helper parsing fallbacks added to fix Module exports errors
 export function getProjectTitle(project) {
     if (!project) return 'Untitled Project';
@@ -290,5 +414,5 @@ function removeEmptyKeys(obj) {
 
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-10 @ 03:55 AM
+UPDATED: 2026-06-10 @ 04:00 AM
 ================================================================*/
