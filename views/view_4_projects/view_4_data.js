@@ -5,7 +5,7 @@ FILE NAME    : view_4_data.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-09 @ 01:05 AM
+LAST UPDATED : 2026-06-10 @ 03:55 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -46,16 +46,16 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
    into the prompt. If missing, stop and ask for it.
 
 10. UNIQUE ALERTS: Never use generic default message boxes for 
-    custom notifications. Always add a distinct, visible ID or tag 
-    to the message box UI referencing its specific component/file.
+     custom notifications. Always add a distinct, visible ID or tag 
+     to the message box UI referencing its specific component/file.
 
 11. CODE BLOCK DELIVERY: Always deliver the entire updated file, 
-    including this header and all rules, wrapped completely inside 
-    a single markdown code block to allow for easy copying.
+     including this header and all rules, wrapped completely inside 
+     a single markdown code block to allow for easy copying.
 
 12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
-    (File Name, Table, View, Title, Date, Time) are fully updated 
-    and preserved at the top of the file.
+     (File Name, Table, View, Title, Date, Time) are fully updated 
+     and preserved at the top of the file.
 ================================================================*/
 const __FILENAME = 'view_4_data.js';
 
@@ -258,9 +258,36 @@ export async function insertVendorFile(payload) {
     return { data, error: null };
 }
 
-// All other functions remain exactly the same as your last uploaded file
+// Helper parsing fallbacks added to fix Module exports errors
+export function getProjectTitle(project) {
+    if (!project) return 'Untitled Project';
+    return project.project_title_text || project.project_name_text || project.title || project.project_name || 'Untitled Project';
+}
+
+export function getVendorName(vendor) {
+    if (!vendor) return 'Unknown Vendor';
+    return vendor.company_name || vendor.vendor_name || vendor.name || 'Unknown Vendor';
+}
+
+async function resolveFacilityId(facilityRef) {
+    if (!facilityRef) return null;
+    if (typeof facilityRef === 'number') return facilityRef;
+    if (typeof facilityRef === 'string' && !isNaN(facilityRef)) return Number(facilityRef);
+    if (typeof facilityRef === 'object' && facilityRef.id) return Number(facilityRef.id);
+    return null;
+}
+
+function removeEmptyKeys(obj) {
+    const out = {};
+    for (const k in obj) {
+        if (obj[k] !== undefined) {
+            out[k] = obj[k];
+        }
+    }
+    return out;
+}
 
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-09 @ 01:05 AM
+UPDATED: 2026-06-10 @ 03:55 AM
 ================================================================*/
