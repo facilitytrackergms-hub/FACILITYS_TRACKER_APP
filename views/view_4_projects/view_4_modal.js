@@ -2,7 +2,7 @@
 FILE METADATA
 ================================================================
 FILE NAME    : view_4_modal.js
-File pash :
+File pash : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_modal.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
