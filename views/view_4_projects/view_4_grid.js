@@ -9,11 +9,13 @@ LAST UPDATED : 2026-06-09 @ 03:45 AM
 ================================================================*/
 const __FILENAME = 'view_4_grid.js';
 
+// =================== UPDATED IMPORTS ===================
 import { renderProjectsHome } from './view_4_grid_components/view_4_home.js';
 import { renderSingleProjectDashboard } from './view_4_grid_components/view_4_project_dashboard.js';
 import { renderSingleVendorDashboard } from './view_4_grid_components/view_4_vendor_dashboard.js';
 import { renderSingleVendorJobDashboard } from './view_4_grid_components/view_4_vendor_job_dashboard.js';
 import { renderVendorQuotesFilesDashboard } from './view_4_grid_components/view_4_render_helpers.js';
+// ======================================================
 
 export async function renderPendingProjects(data) {
     return renderProjectsHome(data, {
@@ -45,5 +47,5 @@ export async function renderVendorJobDashboard(data) {
 
 /*================================================================
 END FILE: view_4_grid.js
-UPDATED: 2026-06-09 @ 03:45 AM
+UPDATED: 2026-06-09 @ 03:50 AM
 ================================================================*/
