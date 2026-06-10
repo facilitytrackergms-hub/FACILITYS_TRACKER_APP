@@ -6,7 +6,7 @@ File Pach : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-10 @ 04:00 AM
+LAST UPDATED : 2026-06-10 @ 04:10 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -259,7 +259,6 @@ export async function insertVendorFile(payload) {
     return { data, error: null };
 }
 
-// Missing function requested by view_4_modal.js imports
 export async function insertProjectVendorJob(payload) {
     if (!payload?.project_id || !payload?.vendor_id) {
         const error = { message: '[view_4_data.js] Missing project_id or vendor_id for project_vendor_jobs.' };
@@ -289,7 +288,6 @@ export async function insertProjectVendorJob(payload) {
     return { data, error: null };
 }
 
-// Missing function requested by view_4_modal.js imports
 export async function insertVendorJobFile(payload) {
     if (!payload?.job_id) {
         const error = { message: '[view_4_data.js] Missing job_id for project_vendor_job_files.' };
@@ -321,7 +319,6 @@ export async function insertVendorJobFile(payload) {
     return { data, error: null };
 }
 
-// Missing function requested by view_4_modal.js imports
 export async function insertVendorJobFollowup(payload) {
     if (!payload?.job_id) {
         const error = { message: '[view_4_data.js] Missing job_id for project_vendor_job_followups.' };
@@ -350,7 +347,6 @@ export async function insertVendorJobFollowup(payload) {
     return { data, error: null };
 }
 
-// Missing bucket storage upload wrapper requested by view_4_modal.js imports
 export async function uploadCabinetFile(filePath, fileBody) {
     if (!filePath || !fileBody) {
         const error = { message: '[view_4_data.js] Cannot upload file: missing filePath or fileBody.' };
@@ -383,7 +379,35 @@ export async function uploadCabinetFile(filePath, fileBody) {
     };
 }
 
-// Helper parsing fallbacks added to fix Module exports errors
+// Missing fetch operation requested by view_4_vendor_dashboard.js imports
+export async function fetchVendorJobsForVendorInFacility(vendorId, facilityRef) {
+    if (!vendorId || !facilityRef) return [];
+
+    const facilityId = await resolveFacilityId(facilityRef);
+    if (!facilityId) {
+        console.warn('[view_4_data.js] fetchVendorJobsForVendorInFacility blocked: missing facilityId.');
+        return [];
+    }
+
+    // Pull jobs matching vendor, filtering on nested project mapping to isolate the facility layout match
+    const { data, error } = await supabase
+        .from('project_vendor_jobs')
+        .select(`
+            *,
+            facility_projects!inner(facility_id)
+        `)
+        .eq('vendor_id', vendorId)
+        .eq('facility_projects.facility_id', facilityId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('[view_4_data.js] Error fetching vendor jobs for vendor in facility:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
 export function getProjectTitle(project) {
     if (!project) return 'Untitled Project';
     return project.project_title_text || project.project_name_text || project.title || project.project_name || 'Untitled Project';
@@ -414,5 +438,5 @@ function removeEmptyKeys(obj) {
 
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-10 @ 04:00 AM
+UPDATED: 2026-06-10 @ 04:10 AM
 ================================================================*/
