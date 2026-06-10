@@ -91,7 +91,13 @@ export async function renderProjectsHome(data, nav) {
         openVendor: vendorId => nav.renderVendorDashboard({ facility, vendorId }),
         openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
     });
+// After your app.innerHTML = ...
+console.log('nav object:', nav);
+const addBtn = document.getElementById('cabinetAddProjectBtn');
+const backBtn = document.getElementById('cabinetBackBtn');
 
+addBtn.onclick = () => { console.log('Create Project clicked'); }
+backBtn.onclick = () => { console.log('Back clicked'); }
     // 2. Context-Safe BACK BUTTON EVENT LISTENER 
     const backBtn = document.getElementById('cabinetBackBtn');
     if (backBtn) {
