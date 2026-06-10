@@ -22,6 +22,7 @@ import {
     setupVendorJobDashboardEvents
 } from '../view_4_modal.js';
 
+// =================== UPDATED IMPORT ===================
 import {
     escapeHtml,
     escapeAttr,
@@ -29,6 +30,7 @@ import {
     renderFileCards,
     renderVendorJobModals
 } from './view_4_render_helpers.js';
+// ======================================================
 
 import {
     renderStyles
@@ -115,5 +117,5 @@ export async function renderSingleVendorJobDashboard({ facility, vendorJobId }, 
 
 /*================================================================
 END FILE: view_4_vendor_job_dashboard.js
-UPDATED: 2026-06-09 @ 01:45 AM
+UPDATED: 2026-06-09 @ 03:40 AM
 ================================================================*/
