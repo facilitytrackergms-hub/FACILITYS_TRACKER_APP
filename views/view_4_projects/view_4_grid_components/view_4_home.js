@@ -1,11 +1,11 @@
-/*================================================================
+/*================================================================ 
 FILE METADATA
 ================================================================
 FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-10 @ 04:30 AM
+LAST UPDATED : 2026-06-10 @ 06:50 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -75,14 +75,13 @@ export async function renderProjectsHome(data, nav) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-10 04:30 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-10 06:50 AM
                 </div>
             </div>
         </div>
     `;
 
     // 1. Initialize modal triggers and core events
-    // This function automatically attaches event listeners to '#cabinetAddProjectBtn'
     setupCabinetHomeEvents({
         facility,
         projects,
@@ -91,15 +90,9 @@ export async function renderProjectsHome(data, nav) {
         openVendor: vendorId => nav.renderVendorDashboard({ facility, vendorId }),
         openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
     });
-// After your app.innerHTML = ...
-console.log('nav object:', nav);
-const addBtn = document.getElementById('cabinetAddProjectBtn');
-const backBtn = document.getElementById('cabinetBackBtn');
 
-addBtn.onclick = () => { console.log('Create Project clicked'); }
-backBtn.onclick = () => { console.log('Back clicked'); }
     // 2. Context-Safe BACK BUTTON EVENT LISTENER 
-    const backBtn = document.getElementById('cabinetBackBtn');
+    let backBtn = document.getElementById('cabinetBackBtn');
     if (backBtn) {
         backBtn.onclick = () => {
             if (nav && typeof nav.renderFacilitiesDashboard === 'function') {
@@ -112,7 +105,19 @@ backBtn.onclick = () => { console.log('Back clicked'); }
         };
     }
 
-    // 3. Bind existing project tile list items
+    // 3. Bind CREATE NEW PROJECT button safely
+    let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
+    if (addProjectBtn) {
+        addProjectBtn.onclick = () => {
+            if (nav && typeof nav.renderPendingProjects === 'function') {
+                nav.renderPendingProjects({ facility });
+            } else {
+                alert('Create Project: navigation method not available.');
+            }
+        };
+    }
+
+    // 4. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
