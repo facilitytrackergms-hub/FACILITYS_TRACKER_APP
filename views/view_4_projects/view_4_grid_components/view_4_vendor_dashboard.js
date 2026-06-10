@@ -5,7 +5,7 @@ FILE NAME    : view_4_vendor_dashboard.js
 SUPABASE TBL : vendors, vendor_files, facility_projects, project_vendor_jobs
 VIEW NAME    : Vendor Dashboard
 POP-UP TITLE : Vendor Files / Start Vendor Job
-LAST UPDATED : 2026-06-09 @ 01:45 AM
+LAST UPDATED : 2026-06-09 @ 03:35 AM
 ================================================================*/
 const __FILENAME = 'view_4_vendor_dashboard.js';
 
@@ -29,7 +29,7 @@ import {
     renderJobRows,
     renderFileCards,
     renderVendorDashboardModals
-} from './view_4_render_helpers.js';
+} from './view_4_grid_components/view_4_render_helpers.js';
 // ======================================================
 
 import {
@@ -94,7 +94,7 @@ export async function renderSingleVendorDashboard({ facility, vendorId }, nav) {
                 ${renderVendorDashboardModals(projects, vendor)}
 
                 <div id="uiTag_view_4_vendor_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_vendor_dashboard.js | Vendor Dashboard | Updated: 2026-06-09 01:45 AM
+                    Source: view_4_vendor_dashboard.js | Vendor Dashboard | Updated: 2026-06-09 03:35 AM
                 </div>
             </div>
         </div>
