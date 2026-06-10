@@ -6,7 +6,7 @@ File Pach : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-10 @ 04:10 AM
+LAST UPDATED : 2026-06-10 @ 04:12 AM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -379,7 +379,6 @@ export async function uploadCabinetFile(filePath, fileBody) {
     };
 }
 
-// Missing fetch operation requested by view_4_vendor_dashboard.js imports
 export async function fetchVendorJobsForVendorInFacility(vendorId, facilityRef) {
     if (!vendorId || !facilityRef) return [];
 
@@ -389,7 +388,6 @@ export async function fetchVendorJobsForVendorInFacility(vendorId, facilityRef) 
         return [];
     }
 
-    // Pull jobs matching vendor, filtering on nested project mapping to isolate the facility layout match
     const { data, error } = await supabase
         .from('project_vendor_jobs')
         .select(`
@@ -405,6 +403,52 @@ export async function fetchVendorJobsForVendorInFacility(vendorId, facilityRef) 
         return [];
     }
 
+    return data || [];
+}
+
+// Missing singular fetch operation requested by view_4_vendor_job_dashboard.js imports
+export async function fetchVendorJobById(jobId) {
+    if (!jobId) return null;
+
+    const { data, error } = await supabase
+        .from('project_vendor_jobs')
+        .select('*')
+        .eq('id', jobId)
+        .maybeSingle();
+
+    if (error) {
+        console.error('[view_4_data.js] Error fetching vendor job by ID:', error);
+        return null;
+    }
+    return data;
+}
+
+// Added additional sub-table fetches anticipating sub-dashboard requirements
+export async function fetchVendorJobFiles(jobId) {
+    if (!jobId) return [];
+    const { data, error } = await supabase
+        .from('project_vendor_job_files')
+        .select('*')
+        .eq('job_id', jobId)
+        .order('created_at', { ascending: false });
+    if (error) {
+        console.error('[view_4_data.js] Error fetching vendor job files:', error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function fetchVendorJobFollowups(jobId) {
+    if (!jobId) return [];
+    const { data, error } = await supabase
+        .from('project_vendor_job_followups')
+        .select('*')
+        .eq('job_id', jobId)
+        .order('created_at', { ascending: false });
+    if (error) {
+        console.error('[view_4_data.js] Error fetching vendor job followups:', error);
+        return [];
+    }
     return data || [];
 }
 
@@ -438,5 +482,5 @@ function removeEmptyKeys(obj) {
 
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-10 @ 04:10 AM
+UPDATED: 2026-06-10 @ 04:12 AM
 ================================================================*/
