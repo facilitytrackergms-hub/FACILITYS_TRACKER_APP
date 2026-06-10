@@ -9,10 +9,12 @@ LAST UPDATED : 2026-06-09 @ 03:30 AM
 ================================================================*/
 const __FILENAME = 'view_4_render_helpers.js';
 
+// ================= UPDATED IMPORT PATH =================
 import {
     getProjectTitle,
     getVendorName
 } from '../view_4_data.js';
+// ========================================================
 
 // ===================== EXISTING FUNCTIONS =====================
 export function renderVendorQuotesFilesDashboard(project, vendors) {
