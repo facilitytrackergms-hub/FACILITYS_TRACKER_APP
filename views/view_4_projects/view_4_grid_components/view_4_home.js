@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-10 @ 04:20 AM
+LAST UPDATED : 2026-06-10 @ 04:30 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -75,13 +75,14 @@ export async function renderProjectsHome(data, nav) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-10 04:20 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-10 04:30 AM
                 </div>
             </div>
         </div>
     `;
 
-    // 1. Initialize modal triggers and core events (e.g., Opening the Create Project modal setup)
+    // 1. Initialize modal triggers and core events
+    // This function automatically attaches event listeners to '#cabinetAddProjectBtn'
     setupCabinetHomeEvents({
         facility,
         projects,
@@ -91,37 +92,21 @@ export async function renderProjectsHome(data, nav) {
         openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
     });
 
-    // 2. Explicitly bind Create Project button fallback if setupCabinetHomeEvents requires a manual click handler
-    const addProjectBtn = document.getElementById('cabinetAddProjectBtn');
-    if (addProjectBtn) {
-        addProjectBtn.onclick = () => {
-            // Checks if a custom modal opener function exists, or falls back to showing your modal template wrapper 
-            const modal = document.getElementById('createProjectModal') || document.querySelector('.modal');
-            if (modal) {
-                modal.style.display = 'block';
-            } else {
-                console.warn('[view_4_home.js] Create Project modal wrapper element not found in DOM.');
-            }
-        };
-    }
-
-    // 3. FIX: Context-Safe BACK BUTTON EVENT LISTENER 
+    // 2. Context-Safe BACK BUTTON EVENT LISTENER 
     const backBtn = document.getElementById('cabinetBackBtn');
     if (backBtn) {
         backBtn.onclick = () => {
             if (nav && typeof nav.renderFacilitiesDashboard === 'function') {
-                // If your app has a main menu/facilities screen router method:
                 nav.renderFacilitiesDashboard();
             } else if (nav && typeof nav.back === 'function') {
                 nav.back();
             } else {
-                // SPA Safe Fallback if the router isn't available
                 window.history.back();
             }
         };
     }
 
-    // 4. Bind existing project tile list items
+    // 3. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
