@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-10 @ 06:50 AM
+LAST UPDATED : 2026-06-10 @ 07:10 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -75,7 +75,7 @@ export async function renderProjectsHome(data, nav) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-10 06:50 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-10 07:10 AM
                 </div>
             </div>
         </div>
