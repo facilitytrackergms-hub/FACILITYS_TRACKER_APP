@@ -5,7 +5,7 @@ FILE NAME    : view_4_vendor_job_dashboard.js
 SUPABASE TBL : project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Vendor Job Dashboard
 POP-UP TITLE : Add Follow-up / Add Job File
-LAST UPDATED : 2026-06-09 @ 01:45 AM
+LAST UPDATED : 2026-06-09 @ 03:40 AM
 ================================================================*/
 const __FILENAME = 'view_4_vendor_job_dashboard.js';
 
@@ -29,7 +29,7 @@ import {
     renderFollowupRows,
     renderFileCards,
     renderVendorJobModals
-} from './view_4_render_helpers.js';
+} from './view_4_grid_components/view_4_render_helpers.js';
 // ======================================================
 
 import {
@@ -98,7 +98,7 @@ export async function renderSingleVendorJobDashboard({ facility, vendorJobId }, 
                 ${renderVendorJobModals(followups)}
 
                 <div id="uiTag_view_4_vendor_job_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_vendor_job_dashboard.js | Vendor Job Dashboard | Updated: 2026-06-09 01:45 AM
+                    Source: view_4_vendor_job_dashboard.js | Vendor Job Dashboard | Updated: 2026-06-09 03:40 AM
                 </div>
             </div>
         </div>
