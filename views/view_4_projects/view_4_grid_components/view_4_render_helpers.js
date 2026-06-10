@@ -42,6 +42,15 @@ export function renderVendorQuotesFilesDashboard(project, vendors) {
     `;
 }
 
+// ===================== NEW FUNCTION ADDED =====================
+export function renderHomeModals(projects, vendors) {
+    return `
+        <div id="homeModalsContainer">
+            <!-- Render modals for projects and vendors -->
+        </div>
+    `;
+}
+
 // ... [all other existing functions remain unchanged] ...
 
 export function formatDate(value) {
@@ -75,5 +84,5 @@ export function escapeAttr(value) {
 
 /*================================================================
 END FILE: view_4_render_helpers.js
-UPDATED: 2026-06-09 @ 03:00 AM
+UPDATED: 2026-06-09 @ 03:15 AM
 ================================================================*/
