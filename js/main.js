@@ -1,67 +1,132 @@
-/*================================================================
-FILE METADATA
+/* =================================================================
+AUTOMATED PATH UPDATE INSTRUCTION
 ================================================================
-FILE NAME    : main.js
-File Path    : FACILITYS_TRACKER_APP/js/main.js
-VIEW NAME    : Central App Engine Router Controller
-LAST UPDATED : 2026-06-12 @ 12:25 PM
-================================================================*/
+NEW ROOT DIRECTORY FOR COMPONENT:
+FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/
 
-// Mock State Controller tracking
-const appState = {
-    currentView: 'default',
-    // FIXED: Defaulting to a valid numeric database row ID context object instead of a text code string
-    currentFacility: { id: 1, name: "Default Facility" }
-};
+ACTION REQUIRED BY AI:
+1. Scan this file for any import statements or paths pointing to 'view_3_grid.js'.
+2. Update those paths so they correctly target the new folder and split files:
+   - view_3_grid.js
+   - view_3_grid_logic.js
+3. Ensure all other local relative paths (../) are mathematically adjusted 
+   to account for the deeper directory depth of the new folder level.
+4. Run the LINE COUNT AUDIT before writing code.
+================================================================*/   
+/* =================================================
+FILE: main.js
+UPDATED: 2026-06-12 12:35:00 PM
 
-// Global App Runtime Engine Nav object mapping pipeline rules
-window.appNavigation = {
-    navigateTo: async function(viewId, payload = {}) {
-        console.log(`[main.js] Engine intercepting routing navigation request to: ${viewId}`);
-        appState.currentView = viewId;
-        
-        const mainContentArea = document.getElementById('main-content-display-area') || document.body;
-        
-        try {
-            if (viewId === 'default' || viewId === 'projects_home') {
-                // Dynamically fetch component view mapping layers
-                const modulePath = 'https://facilitytrackergms-hub.github.io/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid.js?v=2026_vendor_jobs_v1';
-                const gridModule = await import(modulePath);
-                
-                // Expose globally to enable structural fallback lookups in views subcomponents
-                window.view4Engine = gridModule;
-                
-                // Construct the data context using the fixed numeric object structure
-                const dataContext = { facility: appState.currentFacility, ...payload };
-                const renderedUI = await gridModule.renderPendingProjects(dataContext, window.appNavigation);
-                
-                mainContentArea.innerHTML = '';
-                mainContentArea.appendChild(renderedUI);
-            } else if (viewId === 'project_dashboard') {
-                const modulePath = 'https://facilitytrackergms-hub.github.io/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid.js?v=2026_vendor_jobs_v1';
-                const gridModule = await import(modulePath);
-                
-                window.view4Engine = gridModule;
-                
-                const renderedUI = await gridModule.renderProjectDashboard(payload, window.appNavigation);
-                mainContentArea.innerHTML = '';
-                mainContentArea.appendChild(renderedUI);
-            }
-        } catch (error) {
-            console.error('[main.js] Dynamic Routing Context Generation Error:', error);
+STRICT HEADER RULE:
+Do not ever remove or change this header section.
+Always keep the header at the top of current files and new files.
+================================================= */
+
+window.navigateTo = async (view, context = {}) => {
+    const app = document.getElementById('app');
+    if (!app) {
+        console.error("App container not found.");
+        return;
+    }
+
+    // Ensure a fallback valid numeric database ID context exists if context arrives empty
+    if (!context || Object.keys(context).length === 0) {
+        context = {
+            id: 1,
+            name: "Default Facility Headquarter"
+        };
+    }
+
+    // DEFENSIVE REPAIR: preserve UUID/string IDs. Do not force Number().
+    const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups', 'view_4_photo_dashboard'];
+    if (facilityViews.includes(view)) {
+        const facilityId = context?.facility?.id || context?.id || context?.facilityId;
+        if (facilityId === undefined || facilityId === null || String(facilityId) === '[object Object]') {
+            console.warn(`Navigation altered to "${view}": Overriding empty payload context with active fallback numeric instance.`);
+            context = { id: 1, name: "Default Facility Headquarter" };
+        } else if (!context.facility && facilityId) {
+            context.facility = { ...context, id: facilityId };
         }
     }
+
+    app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
+
+    const cb = "?v=2026_vendor_jobs_v1";
+
+    // Reusable runtime navigation object passed down to individual view render functions
+    const navRuntime = {
+        renderPendingProjects: (ctx) => window.navigateTo('view_4_projects', ctx),
+        renderPhotoDashboard: (ctx) => window.navigateTo('view_4_photo_dashboard', ctx),
+        renderSingleProjectDashboard: (ctx) => window.navigateTo('view_4_project_dashboard', ctx),
+        renderVendorDashboard: (ctx) => alert('Vendor Dashboard module coming soon!'),
+        renderSuppliesDashboard: (ctx) => alert('Supplies Dashboard module coming soon!'),
+        renderProjectStatus: (ctx) => alert('Project Status module coming soon!'),
+        renderCreateReport: (ctx) => alert('Create Report module coming soon!'),
+        renderSpecialNotes: (ctx) => alert('Special Notes module coming soon!'),
+        renderAddAction: (ctx) => alert('Add Action module coming soon!')
+    };
+
+    try {
+        if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility' || view === 'view_1_dashboard') {
+            const { renderFacilities } = await import(`/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_grid.js${cb}`);
+            await renderFacilities(context);
+        } 
+        else if (view === 'view_2_controls') {
+            const { renderFacilityControls } = await import(`/FACILITYS_TRACKER_APP/views/view_2_controls/view_2_grid.js${cb}`);
+            await renderFacilityControls(context);
+        }
+        else if (view === 'view_3_contacts') {
+            const { renderFacilityContacts } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
+            await renderFacilityContacts(context);
+        }
+        else if (view === 'view_4_projects') {
+            const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid.js${cb}`);
+            await renderPendingProjects(context, navRuntime);
+        }
+        else if (view === 'view_4_project_dashboard') {
+            const { renderSingleProjectDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_project_dashboard.js${cb}`);
+            await renderSingleProjectDashboard(context, navRuntime);
+        }
+        else if (view === 'view_4_photo_dashboard') {
+            if (!context.photoType && context.type) {
+                context.photoType = context.type;
+            }
+            const { renderPhotoDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_photo_dashboard.js${cb}`);
+            await renderPhotoDashboard(context, navRuntime);
+        }
+        else if (view === 'view_5_issues') {
+            const { renderFacilityIssues } = await import(`/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_grid.js${cb}`);
+            await renderFacilityIssues(context);
+        }
+        else if (view === 'view_6_images') {
+            const { renderFacilityImages } = await import(`/FACILITYS_TRACKER_APP/views/view_6_images/view_6_grid.js${cb}`);
+            await renderFacilityImages(context);
+        }
+        else if (view === 'view_7_followups') {
+            const { renderIssueFollowups } = await import(`/FACILITYS_TRACKER_APP/views/view_7_followups/view_7_grid.js${cb}`);
+            await renderIssueFollowups(context);
+        }
+        else if (view === 'view_8_reports' || view === 'reports') {
+            const { renderReports } = await import(`/FACILITYS_TRACKER_APP/views/view_8_reports/view_8_grid.js${cb}`);
+            await renderReports(context);
+        }
+        else {
+            console.warn(`Unknown view "${view}"`);
+            app.innerHTML = `<p style="text-align:center; padding:20px; color:#6b7280;">View not found.</p>`;
+        }
+    } catch (err) {
+        console.error("Navigation error:", err);
+        app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}<br><small>${err.message || err}</small></p>`;
+    }
 };
 
-// Auto boot initializer
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('main.js:120 App loaded, navigating to default view...');
-    if (typeof window.appNavigation.navigateTo === 'function') {
-        window.appNavigation.navigateTo('default');
-    }
+window.addEventListener('DOMContentLoaded', () => {
+    console.log("App loaded, navigating to default view...");
+    // FIXED: Directing the application to load the view_1_facility index grid on boot up
+    window.navigateTo('view_1_facility');
 });
 
-/*================================================================
+/* =================================================
 END FILE: main.js
-UPDATED: 2026-06-12 @ 12:25 PM
-================================================================*/
+UPDATED: 2026-06-12 12:35:00 PM
+================================================= */
