@@ -5,57 +5,7 @@ FILE NAME    : view_2_grid.js
 SUPABASE TBL : facilities
 VIEW NAME    : Modify Facility Information
 POP-UP TITLE : Modify Facility Information
-LAST UPDATED : 2026-06-06 @ 08:35 PM
-================================================================
-AI CODING RULES & CONSTRAINTS (Read before making any changes)
-================================================================
-1. STRICT ADHERENCE: Always follow these rules without exception.
-
-2. MISSING METADATA HANDLING: If any fields in the FILE METADATA 
-   section above are generic placeholders or missing, the AI must 
-   immediately read the provided source code below to determine the 
-   correct tables/views/titles. CRITICAL FOR FILE NAME: Look strictly 
-   at the user's prompt text or comments for the exact sequential 
-   filename (e.g., view_2_data.js). NEVER invent, guess, or substitute 
-   a descriptive semantic name (like facility_data_service.js) based 
-   on the code context. If the exact filename cannot be verified, 
-   leave the placeholder intact or ask the user.
-
-3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
-   in this header unless explicitly asked by the user.
-
-4. SCOPE OF WORK: Only modify the specific functions, lines, or 
-   features requested in the prompt.
-
-5. PRESERVATION: Do NOT refactor, rename, or optimize any other 
-   part of the code. Leave all working logic exactly as it is.
-
-6. LOGGING CHANGES: If a variable name or structure must change to 
-   make a fix work, explicitly state *why* in the text response 
-   before showing the code.
-
-7. CODE COMPLETENESS: Provide the full updated function or file so 
-   nothing gets accidentally lost in translation.
-
-8. VIEW IDENTIFIERS: Ensure the view/pop-up has a visible UI tag 
-   identifying its source file, last update date, and time. If missing, 
-   add it to the UI layout. Update this tag on every modification.
-
-9. NO BLIND CODE: Never create a new file or assume the contents of 
-   an existing file unless the current code is fully pasted into 
-   the prompt. If missing, stop and ask for it.
-
-10. UNIQUE ALERTS: Never use generic default message boxes for custom 
-    notifications. Always add a distinct, visible ID or tag to the 
-    message box UI referencing its specific component/file.
-
-11. CODE BLOCK DELIVERY: Always deliver the entire updated file, 
-    including this header and all rules, wrapped completely inside 
-    a single markdown code block to allow for easy copying.
-
-12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
-    in this header (File Name, Table, View, Title, Date, Time) are 
-    fully updated and preserved at the top of the file.
+LAST UPDATED : 2026-06-12 @ 01:20 PM
 ================================================================*/
 const __FILENAME = 'view_2_grid.js';
 
@@ -128,7 +78,7 @@ export async function renderFacilityControls(data) {
                             </a>
                         </div>
                         <div class="info-row" style="margin-top:10px;">
-                            <span class="info-label">📞Phone Contact</span>
+                            <span class="info-label">📞 Phone Contact</span>
                             ${phoneLink}
                         </div>
                     </div>
@@ -149,30 +99,28 @@ export async function renderFacilityControls(data) {
 
     setupControlsEvents(facility);
 
-  setTimeout(() => {
-    const addressLink = document.getElementById('facilityAddressLink');
-    if (addressLink) {
-        addressLink.onclick = () => {
-            if (window.navigateTo) window.navigateTo('view_4_projects', { facility: facility });
-        };
-    } else {
-        console.warn('[view_2_grid.js] facilityAddressLink not found in DOM');
-    }
-}, 0);
+    // Safely attach click handlers after DOM is ready
+    requestAnimationFrame(() => {
+        const addressLink = document.getElementById('facilityAddressLink');
+        if (addressLink) {
+            addressLink.onclick = () => {
+                if (window.navigateTo) window.navigateTo('view_4_projects', { facility: facility });
+            };
+        } else {
+            console.warn('[view_2_grid.js] facilityAddressLink not found in DOM');
+        }
 
-// Back button for dashboard
-setTimeout(() => {
-    const backDashBtn = document.getElementById('backDash');
-    if (backDashBtn) {
-        backDashBtn.onclick = () => {
-            if (window.navigateTo) window.navigateTo('view_1_facility');
-        };
-    } else {
-        console.warn('[view_2_grid.js] backDash button not found in DOM');
-    }
-}, 0);
+        const backDashBtn = document.getElementById('backDash');
+        if (backDashBtn) {
+            backDashBtn.onclick = () => {
+                if (window.navigateTo) window.navigateTo('view_1_facility');
+            };
+        } else {
+            console.warn('[view_2_grid.js] backDash button not found in DOM');
+        }
+    });
 
-    // Additional existing handlers for edit, save, delete etc.
+    // Remaining existing handlers for edit, save, delete...
     const mgmtOverlay = document.getElementById('mgmtOverlay');
     const openMgmtBtn = document.getElementById('openMgmtBtn');
     const closeMgmtBtn = document.getElementById('closeMgmtBtn');
@@ -255,3 +203,7 @@ setTimeout(() => {
         console.warn("Could not sync active issue count badge parameters:", err);
     }
 }
+/*================================================================
+END FILE: view_2_grid.js
+UPDATED: 2026-06-12 @ 01:20 PM
+================================================================*/
