@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 04:25 AM
+LAST UPDATED : 2026-06-12 @ 04:35 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -100,7 +100,7 @@ export async function renderProjectsHome(data, nav) {
                 </div>
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 04:25 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 04:35 AM
                 </div>
             </div>
         </div>
@@ -143,7 +143,7 @@ export async function renderProjectsHome(data, nav) {
         };
     }
 
-    // 4. Clean Database Insert Hook Using Dynamic Environment Fallbacks
+    // 4. Robust Database Insert Handling via Independent Direct CDN Import Fallback
     const directForm = document.getElementById('directProjectSubmissionForm');
     if (directForm) {
         directForm.onsubmit = async (e) => {
@@ -155,15 +155,15 @@ export async function renderProjectsHome(data, nav) {
             if (!titleValue) return;
 
             try {
-                // Resolve client dynamically from available scopes to bypass relative path variations
                 let databaseClient = window.supabase;
-                
+
+                // Fallback: If global object doesn't exist, safely initialize from CDN module instantly
                 if (!databaseClient || typeof databaseClient.from !== 'function') {
-                    // Import dynamically from absolute context path fallback if window object isn't global yet
-                    const moduleContext = await import('../../supabaseClient.js').catch(() => null);
-                    if (moduleContext && moduleContext.supabase) {
-                        databaseClient = moduleContext.supabase;
-                    }
+                    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+                    databaseClient = createClient(
+                        'https://uqrgjmzptliursudexbx.supabase.co',
+                        'sb_publishable_YdowS2hJJlYITNEHEIQpag_tgYk6f7P'
+                    );
                 }
 
                 if (databaseClient && typeof databaseClient.from === 'function') {
@@ -181,14 +181,14 @@ export async function renderProjectsHome(data, nav) {
 
                     if (error) throw error;
                 } else {
-                    throw new Error('Supabase Client instance context could not be resolved from scope context references.');
+                    throw new Error('Supabase SDK initialization target unresolvable from scope window runtime context.');
                 }
 
-                // Hide modal and clear values
+                // Hide modal frame and clear form text values
                 projectModal.style.display = 'none';
                 directForm.reset();
 
-                // Instantly re-render dashboard screen with new live database list values
+                // Instantly re-render dashboard screen to show newly inserted project card tile
                 if (nav && typeof nav.renderProjectsHome === 'function') {
                     nav.renderProjectsHome({ facility }, nav);
                 } else {
@@ -197,7 +197,7 @@ export async function renderProjectsHome(data, nav) {
 
             } catch (err) {
                 console.error('Database insertion runtime transaction failure error details:', err);
-                alert('Database Error: Unable to complete project save operations. Check console for details.');
+                alert('Database Error: Unable to complete project save operations. Check console logs.');
             }
         };
     }
