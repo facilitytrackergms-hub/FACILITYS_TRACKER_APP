@@ -5,7 +5,7 @@ FILE NAME    : view_4_project_dashboard.js
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-12 @ 06:40 AM
+LAST UPDATED : 2026-06-12 @ 06:45 AM
 ================================================================*/
 const __FILENAME = 'view_4_project_dashboard.js';
 
@@ -75,24 +75,24 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                     </div>
 
                     <div class="cabinet-action-grid">
-                        <button id="projectVendorQuotesFilesBtn" class="cabinet-btn cabinet-btn-green">
-                            4. 📄 Vendor Quotes / Files
-                        </button>
-
-                        <button id="projectSuppliesNeededBtn" class="cabinet-btn cabinet-btn-blue">
-                            5. 🧰 Supplies / Parts Needed
-                        </button>
-
                         <button id="projectStatusBtn" class="cabinet-btn cabinet-btn-blue">
-                            6. 📌 Project Status
-                        </button>
-
-                        <button id="projectCreateReportBtn" class="cabinet-btn cabinet-btn-blue">
-                            7. 📋 Create Report
+                            4. 📌 Project Status
                         </button>
 
                         <button id="projectSpecialNotesBtn" class="cabinet-btn cabinet-btn-blue">
-                            8. ⭐ Project Special Notes
+                            5. ⭐ Project Special Notes
+                        </button>
+
+                        <button id="projectSuppliesNeededBtn" class="cabinet-btn cabinet-btn-blue">
+                            6. 🧰 Supplies / Parts Needed
+                        </button>
+
+                        <button id="projectVendorQuotesFilesBtn" class="cabinet-btn cabinet-btn-green">
+                            7. 📄 Vendor Quotes / Files
+                        </button>
+
+                        <button id="projectCreateReportBtn" class="cabinet-btn cabinet-btn-blue">
+                            8. 📋 Create Report
                         </button>
 
                         <button id="projectAddActionBtn" class="cabinet-btn cabinet-btn-green">
@@ -115,7 +115,7 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 06:40 AM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 06:45 AM
                 </div>
             </div>
         </div>
@@ -129,8 +129,6 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Show a temporary visual loading state
-        const originalText = document.getElementById('app').innerHTML;
         const targetBtnId = `project${activePhotoType}PicBtn`;
         const targetBtn = document.getElementById(targetBtnId);
         if (targetBtn) targetBtn.innerText = '⏳ UPLOADING...';
@@ -138,7 +136,6 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
         try {
             let publicUrl = '';
 
-            // 1. If storage client exists, upload raw binary file to Supabase Storage Bucket
             if (supabaseClient && supabaseClient.storage) {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${project.id}/${activePhotoType.toLowerCase()}_${Date.now()}.${fileExt}`;
@@ -146,7 +143,7 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
 
                 const { data: uploadData, error: uploadError } = await supabaseClient
                     .storage
-                    .from('facility-assets') // Make sure this matches your active Supabase storage bucket name
+                    .from('facility-assets')
                     .upload(filePath, file);
 
                 if (uploadError) throw uploadError;
@@ -158,7 +155,6 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 
                 publicUrl = urlData?.publicUrl || '';
             } else {
-                // Fallback: Convert image directly into a base64 string asset if storage bucket access is unconfigured
                 publicUrl = await new Promise((resolve) => {
                     const reader = new FileReader();
                     reader.onloadend = () => resolve(reader.result);
@@ -166,7 +162,6 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 });
             }
 
-            // 2. Insert record into project_actions table detailing the captured image
             if (supabaseClient && supabaseClient.from) {
                 const { error: dbError } = await supabaseClient
                     .from('project_actions')
@@ -179,11 +174,8 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                     }]);
 
                 if (dbError) throw dbError;
-            } else {
-                console.warn("Supabase data client unavailable. Logging photo payload instead:", publicUrl);
             }
 
-            // Refresh the dashboard component view to immediately show your newly added photo action item
             await renderSingleProjectDashboard({ facility, project }, nav);
 
         } catch (error) {
@@ -200,8 +192,8 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
     const openCameraForType = (type) => {
         activePhotoType = type;
         if (cameraInput) {
-            cameraInput.value = ''; // Reset file value buffer
-            cameraInput.click();     // Dispatches actual physical device call trigger
+            cameraInput.value = '';
+            cameraInput.click();
         }
     };
 
