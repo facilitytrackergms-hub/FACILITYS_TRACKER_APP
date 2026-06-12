@@ -96,7 +96,7 @@ export async function renderProjectsHome(data, nav) {
 if (backBtn) {
     backBtn.onclick = () => {
         if (window.navigateTo) {
-            window.navigateTo('view_1_facility'); // Always go to Facilities Dashboard
+            window.navigateTo('view_2_controls'); // Always go to Facilities Dashboard
         }
     };
 }
