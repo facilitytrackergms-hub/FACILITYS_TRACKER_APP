@@ -19,7 +19,7 @@
 
 4. MINIMALIST EXPLANATION RULE:
    - Limit your explanations to a maximum of one or two concise sentences. No fluff.
-==================================================================== */
+==================================================================== 
 
 /FACILITYS_TRACKER_APP/ pathUU
 /FACILITYS_TRACKER_APP/ README.md
@@ -71,3 +71,4 @@
 /FACILITYS_TRACKER_APP/ views/view_8_report/view_8_data.js
 /FACILITYS_TRACKER_APP/ views/view_8_report/view_8_grid.js
 /FACILITYS_TRACKER_APP/ views/view_8_report/view_8_modal.js
+*/
