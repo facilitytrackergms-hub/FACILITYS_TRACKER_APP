@@ -19,7 +19,11 @@
 
 4. MINIMALIST EXPLANATION RULE:
    - Limit your explanations to a maximum of one or two concise sentences. No fluff.
-==================================================================== 
+
+5. STRICT MODIFICATION RULE:
+   - DO NOT attempt to improve, refactor, or optimize any code unless explicitly requested.
+   - Execute ONLY the specific updates or bug fixes requested, and leave all other parts of the file completely untouched.
+==================================================================== */
 
 /FACILITYS_TRACKER_APP/ pathUU
 /FACILITYS_TRACKER_APP/ README.md
