@@ -5,7 +5,7 @@ FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
-LAST UPDATED : 2026-06-12 @ 06:58 PM
+LAST UPDATED : 2026-06-12 @ 07:05 PM
 ================================================================*/
 const __FILENAME = 'view_4_photo_dashboard.js';
 
@@ -54,11 +54,11 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                 <div class="cabinet-section" style="text-align: center; background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <input type="file" id="continuousCameraInput" accept="image/*" capture="environment" style="display: none;" />
                     
-                    <button id="triggerCaptureBtn" class="cabinet-btn cabinet-btn-green" style="font-size: 16px; padding: 12px; width: 100%; max-width: 300px; margin: 0 auto; display: block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <button type="button" id="triggerCaptureBtn" class="cabinet-btn cabinet-btn-green" style="font-size: 16px; padding: 12px; width: 100%; max-width: 300px; margin: 0 auto; display: block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                         📸 Take New Picture
                     </button>
                     <p style="font-size: 11px; color: #6b7280; margin-top: 6px; margin-bottom: 0;">
-                        App automatically reopens your camera to take consecutive shots until you hit Finish.
+                        Tap to capture. The app stays open so you can capture photo after photo instantly!
                     </p>
                 </div>
 
@@ -69,8 +69,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                             Captured Gallery (<span id="galleryCountBadge">${photos.length}</span>)
                         </h2>
                         <div id="bulkActionsWrapper" style="display: ${photos.length > 0 ? 'flex' : 'none'}; gap: 8px;">
-                            <button id="bulkTextBtn" class="cabinet-btn" style="padding: 4px 8px; font-size: 11px; margin: 0;">💬 Text</button>
-                            <button id="bulkEmailBtn" class="cabinet-btn cabinet-btn-blue" style="padding: 4px 8px; font-size: 11px; margin: 0;">✉️ Email Report</button>
+                            <button type="button" id="bulkTextBtn" class="cabinet-btn" style="padding: 4px 8px; font-size: 11px; margin: 0;">💬 Text</button>
+                            <button type="button" id="bulkEmailBtn" class="cabinet-btn cabinet-btn-blue" style="padding: 4px 8px; font-size: 11px; margin: 0;">✉️ Email Report</button>
                         </div>
                     </div>
                     
@@ -89,7 +89,7 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                                         <img src="${escapeAttr(p.image_url)}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
                                         <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                             <span style="font-size: 10px; color: #4b5563;">${formatDate(p.created_at)}</span>
-                                            <button class="delete-photo-btn" data-id="${escapeAttr(p.id)}" style="background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
+                                            <button type="button" class="delete-photo-btn" data-id="${escapeAttr(p.id)}" style="background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -122,15 +122,15 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                             `).join('')}
                         </div>
                         <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                            <button id="closeShareModalBtn" class="cabinet-btn cabinet-btn-gray" style="margin:0; padding: 8px 12px; font-size:12px;">Cancel</button>
-                            <button id="confirmShareBtn" class="cabinet-btn cabinet-btn-green" style="margin:0; padding: 8px 12px; font-size:12px;">Send Report</button>
+                            <button type="button" id="closeShareModalBtn" class="cabinet-btn cabinet-btn-gray" style="margin:0; padding: 8px 12px; font-size:12px;">Cancel</button>
+                            <button type="button" id="confirmShareBtn" class="cabinet-btn cabinet-btn-green" style="margin:0; padding: 8px 12px; font-size:12px;">Send Report</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Exit Navigation Options -->
                 <div style="margin-top: 25px;">
-                    <button id="photoDashboardBackBtn" class="cabinet-btn cabinet-btn-gray" style="width: 100%;">
+                    <button type="button" id="photoDashboardBackBtn" class="cabinet-btn cabinet-btn-gray" style="width: 100%;">
                         ⬅️ Finish & Back to Dashboard
                     </button>
                 </div>
@@ -149,7 +149,11 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
     let localPhotoCount = photos.length;
 
     if (captureBtn && cameraInput) {
-        captureBtn.onclick = () => cameraInput.click();
+        captureBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            cameraInput.click();
+        };
 
         cameraInput.onchange = async (e) => {
             const file = e.target.files?.[0];
@@ -203,12 +207,12 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     if (liveGrid) {
                         const cardMarkup = `
                             <div class="photo-card" id="photo-card-${newPhotoId}" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05); animation: fadeIn 0.3s ease-out;">
-                                <!-- FIXED: Newly taken photos also start unchecked -->
+                                <!-- Newly taken photos also start unchecked -->
                                 <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(urlData.publicUrl)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" />
                                 <img src="${escapeAttr(urlData.publicUrl)}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
                                 <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                     <span style="font-size: 10px; color: #4b5563;">Just now</span>
-                                    <button class="delete-photo-btn" data-id="${escapeAttr(newPhotoId)}" style="background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
+                                    <button type="button" class="delete-photo-btn" data-id="${escapeAttr(newPhotoId)}" style="background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
                                 </div>
                             </div>
                         `;
@@ -219,7 +223,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                         if (newCard) {
                             const deleteBtn = newCard.querySelector('.delete-photo-btn');
                             if (deleteBtn) {
-                                deleteBtn.onclick = async () => {
+                                deleteBtn.onclick = async (delEvt) => {
+                                    delEvt.preventDefault();
                                     if (!confirm("Are you sure you want to delete this captured image?")) return;
                                     try {
                                         await supabase.from('facility_images').delete().eq('id', newPhotoId);
@@ -248,9 +253,6 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                 cameraInput.value = "";
                 captureBtn.disabled = false;
                 captureBtn.innerText = "📸 Take New Picture";
-                
-                // Programmatically trigger next camera click immediately for infinite loops
-                cameraInput.click();
 
             } catch (err) {
                 alert(`Upload failed: ${err.message || err}`);
@@ -279,7 +281,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
 
         // Close when clicking the close button
         if (closeLightboxBtn) {
-            closeLightboxBtn.onclick = () => {
+            closeLightboxBtn.onclick = (e) => {
+                e.preventDefault();
                 lightboxModal.style.display = 'none';
                 lightboxImg.src = '';
             };
@@ -297,7 +300,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
     // Connect delete hooks to pre-existing items loaded on page startup
     document.querySelectorAll('.delete-photo-btn').forEach(btn => {
         const photoId = btn.dataset.id;
-        btn.onclick = async () => {
+        btn.onclick = async (e) => {
+            e.preventDefault();
             if (!confirm("Are you sure you want to delete this captured image?")) return;
             try {
                 if (supabase) {
@@ -328,18 +332,19 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
     };
 
     const textBtn = document.getElementById('bulkTextBtn');
-    if (textBtn) textBtn.onclick = () => openShareFlow('text');
+    if (textBtn) textBtn.onclick = (e) => { e.preventDefault(); openShareFlow('text'); };
 
     const emailBtn = document.getElementById('bulkEmailBtn');
-    if (emailBtn) emailBtn.onclick = () => openShareFlow('email');
+    if (emailBtn) emailBtn.onclick = (e) => { e.preventDefault(); openShareFlow('email'); };
 
     const closeModalBtn = document.getElementById('closeShareModalBtn');
-    if (closeShareModalBtn) closeModalBtn.onclick = () => { if (shareModal) shareModal.style.display = 'none'; };
+    if (closeModalBtn) closeModalBtn.onclick = (e) => { e.preventDefault(); if (shareModal) shareModal.style.display = 'none'; };
 
     // Processing Report Delivery Target Packaging
     const confirmShareBtn = document.getElementById('confirmShareBtn');
     if (confirmShareBtn) {
-        confirmShareBtn.onclick = () => {
+        confirmShareBtn.onclick = (e) => {
+            e.preventDefault();
             const selectedPhotoUrls = Array.from(document.querySelectorAll('.photo-select-checkbox:checked')).map(cb => cb.dataset.url);
             const selectedContacts = Array.from(document.querySelectorAll('.contact-share-checkbox:checked')).map(cb => ({
                 name: cb.dataset.name,
@@ -384,7 +389,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
     }
 
     if (backBtn) {
-        backBtn.onclick = () => {
+        backBtn.onclick = (e) => {
+            e.preventDefault();
             if (nav && nav.renderSingleProjectDashboard) {
                 nav.renderSingleProjectDashboard({ facility, project });
             } else {
