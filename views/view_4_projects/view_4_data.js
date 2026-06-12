@@ -1,11 +1,11 @@
 /*================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : view_1_grid.js
-SUPABASE TBL : facilities
-VIEW NAME    : Facilities Dashboard
-POP-UP TITLE : Add New Facility
-LAST UPDATED : 2026-06-12 @ 01:35 PM
+FILE NAME    : view_4_grid.js
+SUPABASE TBL : projects
+VIEW NAME    : Pending Projects Dashboard
+POP-UP TITLE : Project Details
+LAST UPDATED : 2026-06-12 @ 02:45 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -46,103 +46,95 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 11. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
     in this header (File Name, Table, View, Title, Date, Time) are 
     fully updated and preserved at the top of the file.
-    
-12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
-    in this header (File Name, Table, View, Title, Date, Time) are 
-    fully updated and preserved at the top of the file.
 ================================================================*/
-const __FILENAME = 'view_1_grid.js';
-// FIXED: Converted paths to absolute roots matching master repo standards to eliminate loading blocks
-import { fetchFacilities } from '/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_data.js';
-import { setupFacilitiesEvents } from '/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_modal.js';
-import { renderImageManagerSection } from '/FACILITYS_TRACKER_APP/js/imageManager.js';
+const __FILENAME = 'view_4_grid.js';
 
-export async function renderFacilities() {
+// FIXED: Converted relative paths (./) to absolute paths beginning with /FACILITYS_TRACKER_APP/ to prevent loading locks
+import { fetchPendingProjects } from '/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js';
+import { setupPendingProjectsEvents } from '/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_modal.js';
+
+export async function renderPendingProjects(context, navRuntime) {
     const app = document.getElementById('app');
     
+    // Fallback context validation to match robust routing definitions
+    if (!context || !context.facility) {
+        context = { facility: context || { id: 1, name: "Default Facility Headquarter" } };
+    }
+
     const styles = `
         <style>
-            .dash-container { padding: 20px; text-align: center; font-family: Arial; background: #e3f2fd; min-height: 100vh; box-sizing: border-box; }
-            .dash-card { background: rgba(255,255,255,0.88); border-radius: 18px; padding: 18px 12px 24px; box-shadow: 0 10px 24px rgba(0,0,0,0.12); border: 1px solid rgba(255,255,255,0.8); max-width: 380px; margin: 0 auto; }
-            
-            /* Changed to a clean 3-column grid layout for compact initials stacking */
-            .button-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px; max-width: 400px; margin: 0 auto; }
-            
-            /* Center-aligned padding adjustments optimized for short names/initials */
-            .facility-btn { width: 100%; height: 60px; border-radius: 10px; background-color: #003366; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 1.1em; text-align: center; padding: 5px; box-sizing: border-box; }
-            
-            .new-btn { background-color: #28a745; margin-bottom: 20px; width: 200px; text-align: center; }
-            .dash-title { font-size: 1.25em; font-weight: 900; color: #003366; margin-bottom: 10px; text-transform: uppercase; border-bottom: 4px solid #003366; padding-bottom: 15px; display: inline-block; width: 90%; white-space: nowrap; }
-            .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10; overflow-y: auto; padding: 10px; }
-            .modal-content { position: relative; top: 5%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 400px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); box-sizing: border-box; }
-            input { display: block; width: 100%; margin: 10px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-            .warning-modal { display: none; position: fixed; inset: 0; background: rgba(255,0,0,0.2); z-index: 20; }
-            .warning-content { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); background: white; padding: 25px; border-radius: 8px; border: 2px solid #dc3545; text-align: center; max-width: 300px; }
-            .warning-content h4 { color: #dc3545; margin-top: 0; }
-            .warning-btn { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; margin-top: 15px; }
-            #post-save-images { display: none; margin-top: 20px; padding-top: 15px; border-top: 2px solid #eee; }
+            .projects-container { padding: 20px; text-align: center; font-family: Arial; background: #f4f6f9; min-height: 100vh; box-sizing: border-box; }
+            .projects-card { background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; text-align: left; }
+            .projects-title { font-size: 1.4em; font-weight: bold; color: #333; margin-bottom: 5px; text-transform: uppercase; border-bottom: 2px solid #003366; padding-bottom: 10px; }
+            .facility-subtitle { font-size: 1.1em; color: #003366; font-weight: 600; margin-bottom: 20px; }
+            .project-item { padding: 15px; background: #f8f9fa; border-left: 5px solid #28a745; margin-bottom: 15px; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+            .project-item:hover { background: #e9ecef; }
+            .project-header { display: flex; justify-content: space-between; font-weight: bold; color: #495057; }
+            .project-body { margin-top: 8px; color: #6c757d; font-size: 0.95em; }
+            .back-btn { background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+            .back-btn:hover { background-color: #5a6268; }
+            .no-projects { text-align: center; color: #6c757d; padding: 30px; font-style: italic; }
         </style>
     `;
 
     app.innerHTML = `
         ${styles}
-        <div class="dash-container">
-            <div class="dash-card">
-                <h1 class="dash-title">FACILITIES DASHBOARD</h1>
-                <br>
-                <button id="openModal" class="facility-btn new-btn">Create New Facility</button>
-                <div id="list" class="button-container">Loading...</div>
+        <div class="projects-container">
+            <div style="max-width: 600px; margin: 0 auto; text-align: left;">
+                <button id="backToControlsBtn" class="back-btn">← Back to Controls</button>
+            </div>
+            <div class="projects-card">
+                <h1 class="projects-title">Pending Projects</h1>
+                <div class="facility-subtitle">Facility: ${context.facility.name || 'Unknown'}</div>
+                <div id="projects-list">Loading projects...</div>
             </div>
 
-            <div id="modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h3 id="modalTitle">Add New Facility</h3>
-                    <div id="facility-fields">
-                        <input type="text" id="name" placeholder="Facility Name">
-                        <input type="text" id="address" placeholder="Address">
-                        <input type="text" id="phone" placeholder="Phone">
-                        <button id="prepareImageBtn" class="facility-btn" style="background:#f5c400; color:#111; width:100%; margin: 20px auto 0 auto; text-align: center;">
-                            Add/Delete Facility Image
-                        </button>
-                    </div>
-                    <div id="post-save-images">
-                        <p style="font-weight: bold; color: #28a745; margin-bottom: 10px;">Facility Saved. Add or Delete Image Below:</p>
-                        <div id="image-manager-mount"></div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-                        <button id="saveBtn" class="facility-btn new-btn" style="width:100%; margin: 0 auto; text-align: center;">Save Facility</button>
-                        <button id="closeModal" class="facility-btn" style="background:#666; width:100%; margin: 0 auto; text-align: center;">Close</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="warningModal" class="warning-modal">
-                <div class="warning-content" id="warning-content-view_1_grid">
-                    <h4>Missing Information</h4>
-                    <p id="warningText">All fields are required before adding the facility image.</p>
-                    <button id="closeWarning" class="warning-btn">OK</button>
-                </div>
-            </div>
-
-            <div style="margin-top: 50px; font-size: 0.8em; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
-                File: views/view_1_facility/view_1_grid.js | Updated: 2026-06-12 @ 01:35 PM
+            <div style="margin-top: 50px; font-size: 0.8em; color: #666; text-align: center; border-top: 1px solid #ccc; padding-top: 10px;">
+                File: views/view_4_projects/view_4_grid.js | Updated: 2026-06-12 @ 02:45 PM
             </div>
         </div>
     `;
 
-    setupFacilitiesEvents(renderFacilities);
+    // Handle Back Navigation click
+    document.getElementById('backToControlsBtn').onclick = () => {
+        window.navigateTo('view_2_controls', context);
+    };
 
-    const data = await fetchFacilities();
-    const list = document.getElementById('list');
-    list.innerHTML = '';
+    // Invoke view local operational business scripts
+    setupPendingProjectsEvents(context, navRuntime);
 
-    if (data) {
-        data.forEach(f => {
-            const btn = document.createElement('button');
-            btn.className = 'facility-btn';
-            btn.textContent = f.name;
-            btn.onclick = () => window.navigateTo('view_2_controls', { facility: f });
-            list.appendChild(btn);
-        });
+    // Retrieve database payload instance asynchronously
+    const projectsListContainer = document.getElementById('projects-list');
+    const projects = await fetchPendingProjects(context.facility.id);
+    projectsListContainer.innerHTML = '';
+
+    if (!projects || projects.length === 0) {
+        projectsListContainer.innerHTML = '<div class="no-projects">No pending projects recorded for this facility.</div>';
+        return;
     }
+
+    projects.forEach(project => {
+        const item = document.createElement('div');
+        item.className = 'project-item';
+        item.innerHTML = `
+            <div class="project-header">
+                <span>${project.title || 'Untitled Project'}</span>
+                <span style="color: #28a745;">${project.status || 'Pending'}</span>
+            </div>
+            <div class="project-body">
+                ${project.description || 'No summary overview provided.'}
+            </div>
+        `;
+        
+        // Execute nested dynamic dashboard handoffs on row touch interactions
+        item.onclick = () => {
+            if (navRuntime && typeof navRuntime.renderSingleProjectDashboard === 'function') {
+                navRuntime.renderSingleProjectDashboard({ ...context, project: project });
+            } else {
+                window.navigateTo('view_4_project_dashboard', { ...context, project: project });
+            }
+        };
+        
+        projectsListContainer.appendChild(item);
+    });
 }
