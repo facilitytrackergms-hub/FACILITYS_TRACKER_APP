@@ -149,19 +149,27 @@ export async function renderFacilityControls(data) {
 
     setupControlsEvents(facility);
 
-    // Back button
-    const addressLink = document.getElementById('facilityAddressLink');
-    if (addressLink) {
-        addressLink.onclick = () => {
-            if (window.navigateTo) {
-                window.navigateTo('view_4_projects', { facility: facility });
-            }
-        };
-    }
+   // Back button for address
+const addressLink = document.getElementById('facilityAddressLink');
+if (addressLink) {
+    addressLink.onclick = () => {
+        if (window.navigateTo) {
+            window.navigateTo('view_4_projects', { facility: facility });
+        }
+    };
+} else {
+    console.warn('[view_2_grid.js] facilityAddressLink not found in DOM');
+}
 
-    document.getElementById('backDash').onclick = () => {
+// Back button for dashboard
+const backDashBtn = document.getElementById('backDash');
+if (backDashBtn) {
+    backDashBtn.onclick = () => {
         if (window.navigateTo) window.navigateTo('view_1_facility');
     };
+} else {
+    console.warn('[view_2_grid.js] backDash button not found in DOM');
+}
 
     // Additional existing handlers for edit, save, delete etc.
     const mgmtOverlay = document.getElementById('mgmtOverlay');
