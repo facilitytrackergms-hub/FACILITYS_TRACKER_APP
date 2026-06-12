@@ -92,18 +92,14 @@ export async function renderProjectsHome(data, nav) {
     });
 
     // 2. Context-Safe BACK BUTTON EVENT LISTENER 
-    let backBtn = document.getElementById('cabinetBackBtn');
-    if (backBtn) {
-        backBtn.onclick = () => {
-            if (nav && typeof nav.renderFacilitiesDashboard === 'function') {
-                nav.renderFacilitiesDashboard();
-            } else if (nav && typeof nav.back === 'function') {
-                nav.back();
-            } else {
-                window.history.back();
-            }
-        };
-    }
+   let backBtn = document.getElementById('cabinetBackBtn');
+if (backBtn) {
+    backBtn.onclick = () => {
+        if (window.navigateTo) {
+            window.navigateTo('view_1_facility'); // Always go to Facilities Dashboard
+        }
+    };
+}
 
     // 3. Bind CREATE NEW PROJECT button safely
     let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
