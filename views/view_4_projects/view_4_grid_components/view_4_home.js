@@ -101,7 +101,25 @@ export async function renderProjectsHome(data, nav) {
         };
     }
 
-    // 3. Bind existing project tile list items
+    // 3. Bind CREATE NEW PROJECT button to safely show the modal wrapper
+    let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
+    if (addProjectBtn) {
+        addProjectBtn.onclick = () => {
+            const projectModal = document.getElementById('cabinetProjectModal') || document.getElementById('addProjectModal');
+            if (projectModal) {
+                projectModal.style.display = 'flex'; // Or 'block', depending on your CSS modal setup
+            } else {
+                console.warn('[view_4_home.js] Modal element target not found. Checking fallback navigation.');
+                if (nav && typeof nav.renderCreateProject === 'function') {
+                    nav.renderCreateProject({ facility });
+                } else {
+                    alert('Could not open Create Project window.');
+                }
+            }
+        };
+    }
+
+    // 4. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
