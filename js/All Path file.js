@@ -1,27 +1,23 @@
 /* =================================================================
-⚠️ CRITICAL OPERATIONAL DIRECTIVE - CODE MODIFICATION PROTOCOL
+⚠️ AI GUARDRAIL CRITICAL INSTRUCTION - REFRESH MEMORY & FILE PROTECTION
 ====================================================================
-1. STRICT ZERO-GUESSING POLICY:
-   When given an error (e.g., F12 console logs) or an update request, 
-   you are STRICTLY FORBIDDEN from rewriting or fixing code from memory. 
-   You MUST stop immediately and ask the user to provide the current, 
-   full content of the file before generating any fixes.
-
-2. MINIMALIST EXPLANATION RULE:
-   Save time and energy. When providing updates, fixes, or answers, 
-   limit your explanation to a maximum of one or two concise sentences. 
-   No long summaries, no structural breakdowns, and no fluff.
-
-3. MEMORY REFRESH PROTOCOL (IF PASTED WITH A REPOSITORY PATH LIST):
+1. MEMORY REFRESH PROTOCOL (IF PASTED WITH A REPOSITORY PATH LIST):
    - DO NOT try to write, update, edit, or fix any code files.
    - DO NOT output any mock files, code patches, or script rewrites.
-   - ABSORB the path list into context and RESPOND ONLY WITH: 
+   - ABSORB the path list and RESPOND ONLY WITH: 
      "Memory successfully refreshed for this chat thread. I am ready."
 
-4. CONDITIONAL PATH LIST GUARDRAIL:
-   If a file update is requested in a separate turn and no valid repository 
-   path list has been uploaded in that turn, STOP and output exactly:
-   "I cannot proceed because you haven't uploaded the path list."
+2. ERROR ANALYSIS & FILE REQUEST PROTOCOL:
+   - When given an error (e.g., F12 console logs), you MUST analyze the log to identify which specific file(s) are causing the issue or need modification.
+   - You are STRICTLY FORBIDDEN from fixing code from memory. 
+   - You MUST stop immediately and explicitly ask the user to provide the current, full content of those specific files (e.g., "Please provide the current, full content of main.js and view_4_project_dashboard.js so I can fix this error.").
+
+3. CONDITIONAL PATH LIST GUARDRAIL:
+   - If a file update is requested in a separate turn and no valid repository path list has been uploaded in that turn, STOP and output exactly:
+     "I cannot proceed because you haven't uploaded the path list."
+
+4. MINIMALIST EXPLANATION RULE:
+   - Limit your explanations to a maximum of one or two concise sentences. No fluff.
 ==================================================================== */
 
 /FACILITYS_TRACKER_APP/ pathUU
