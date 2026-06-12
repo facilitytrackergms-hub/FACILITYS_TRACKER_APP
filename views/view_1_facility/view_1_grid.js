@@ -5,7 +5,7 @@ FILE NAME    : view_1_grid.js
 SUPABASE TBL : facilities
 VIEW NAME    : Facilities Dashboard
 POP-UP TITLE : Add New Facility
-LAST UPDATED : 2026-06-06 @ 04:35 AM
+LAST UPDATED : 2026-06-12 @ 01:35 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -52,9 +52,10 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     fully updated and preserved at the top of the file.
 ================================================================*/
 const __FILENAME = 'view_1_grid.js';
-import { fetchFacilities } from './view_1_data.js';
-import { setupFacilitiesEvents } from './view_1_modal.js';
-import { renderImageManagerSection } from '../../js/imageManager.js';
+// FIXED: Converted paths to absolute roots matching master repo standards to eliminate loading blocks
+import { fetchFacilities } from '/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_data.js';
+import { setupFacilitiesEvents } from '/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_modal.js';
+import { renderImageManagerSection } from '/FACILITYS_TRACKER_APP/js/imageManager.js';
 
 export async function renderFacilities() {
     const app = document.getElementById('app');
@@ -124,7 +125,7 @@ export async function renderFacilities() {
             </div>
 
             <div style="margin-top: 50px; font-size: 0.8em; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
-                File: views/view_1_facility/view_1_grid.js | Updated: 2026-06-06 @ 04:35 AM
+                File: views/view_1_facility/view_1_grid.js | Updated: 2026-06-12 @ 01:35 PM
             </div>
         </div>
     `;
