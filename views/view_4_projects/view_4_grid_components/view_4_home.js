@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 04:15 AM
+LAST UPDATED : 2026-06-12 @ 04:25 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -27,9 +27,6 @@ import {
 import {
     renderStyles
 } from './view_4_styles.js';
-
-// IMPORT YOUR INITIALIZED SUPABASE INSTANCE DIRECTLY
-import { supabase } from '../supabaseClient.js'; 
 
 export async function renderProjectsHome(data, nav) {
     const facility = data?.facility ? data.facility : data;
@@ -103,7 +100,7 @@ export async function renderProjectsHome(data, nav) {
                 </div>
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 04:15 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 04:25 AM
                 </div>
             </div>
         </div>
@@ -146,7 +143,7 @@ export async function renderProjectsHome(data, nav) {
         };
     }
 
-    // 4. Clean Database Insert Hook Using Imported Instance
+    // 4. Clean Database Insert Hook Using Dynamic Environment Fallbacks
     const directForm = document.getElementById('directProjectSubmissionForm');
     if (directForm) {
         directForm.onsubmit = async (e) => {
@@ -158,9 +155,19 @@ export async function renderProjectsHome(data, nav) {
             if (!titleValue) return;
 
             try {
-                // Uses the direct imported instance cleanly
-                if (supabase) {
-                    const { error } = await supabase
+                // Resolve client dynamically from available scopes to bypass relative path variations
+                let databaseClient = window.supabase;
+                
+                if (!databaseClient || typeof databaseClient.from !== 'function') {
+                    // Import dynamically from absolute context path fallback if window object isn't global yet
+                    const moduleContext = await import('../../supabaseClient.js').catch(() => null);
+                    if (moduleContext && moduleContext.supabase) {
+                        databaseClient = moduleContext.supabase;
+                    }
+                }
+
+                if (databaseClient && typeof databaseClient.from === 'function') {
+                    const { error } = await databaseClient
                         .from('facility_projects')
                         .insert([
                             {
@@ -174,7 +181,7 @@ export async function renderProjectsHome(data, nav) {
 
                     if (error) throw error;
                 } else {
-                    throw new Error('Supabase Client import instance unresolvable.');
+                    throw new Error('Supabase Client instance context could not be resolved from scope context references.');
                 }
 
                 // Hide modal and clear values
