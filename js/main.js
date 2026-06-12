@@ -15,7 +15,7 @@ ACTION REQUIRED BY AI:
 ================================================================*/   
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-08 10:45:00 PM
+UPDATED: 2026-06-12 06:15:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -46,6 +46,18 @@ window.navigateTo = async (view, context = {}) => {
 
     const cb = "?v=2026_vendor_jobs_v1";
 
+    // Reusable runtime navigation object passed down to individual view render functions
+    const navRuntime = {
+        renderPendingProjects: (ctx) => window.navigateTo('view_4_projects', ctx),
+        renderPhotoDashboard: (ctx) => window.navigateTo('view_4_photo_dashboard', ctx),
+        renderVendorDashboard: (ctx) => alert('Vendor Dashboard module coming soon!'),
+        renderSuppliesDashboard: (ctx) => alert('Supplies Dashboard module coming soon!'),
+        renderProjectStatus: (ctx) => alert('Project Status module coming soon!'),
+        renderCreateReport: (ctx) => alert('Create Report module coming soon!'),
+        renderSpecialNotes: (ctx) => alert('Special Notes module coming soon!'),
+        renderAddAction: (ctx) => alert('Add Action module coming soon!')
+    };
+
     try {
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility' || view === 'view_1_dashboard') {
             const { renderFacilities } = await import(`/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_grid.js${cb}`);
@@ -61,7 +73,23 @@ window.navigateTo = async (view, context = {}) => {
         }
         else if (view === 'view_4_projects') {
             const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid.js${cb}`);
-            await renderPendingProjects(context);
+            await renderPendingProjects(context, navRuntime);
+        }
+        else if (view === 'view_4_project_dashboard') {
+            const { renderSingleProjectDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_project_dashboard.js${cb}`);
+            await renderSingleProjectDashboard(context, navRuntime);
+        }
+        else if (view === 'view_4_photo_dashboard') {
+            // Placeholder destination routing for your newly created custom image view
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h2>📸 Photo Management View: ${context.type || 'General'}</h2>
+                    <p>Project context loaded: <strong>${context.project?.id || 'Unknown Project'}</strong></p>
+                    <button id="photoBackToDashboardBtn" style="padding: 10px; cursor: pointer;">⬅️ Back to Project Dashboard</button>
+                </div>
+            `;
+            document.getElementById('photoBackToDashboardBtn').onclick = () => window.navigateTo('view_4_project_dashboard', context);
         }
         else if (view === 'view_5_issues') {
             const { renderFacilityIssues } = await import(`/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_grid.js${cb}`);
@@ -96,5 +124,5 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* =================================================
 END FILE: main.js
-UPDATED: 2026-06-08 10:45:00 PM
+UPDATED: 2026-06-12 06:15:00 AM
 ================================================= */
