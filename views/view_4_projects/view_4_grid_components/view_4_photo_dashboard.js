@@ -5,7 +5,7 @@ FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
-LAST UPDATED : 2026-06-12 @ 06:40 PM
+LAST UPDATED : 2026-06-12 @ 06:58 PM
 ================================================================*/
 const __FILENAME = 'view_4_photo_dashboard.js';
 
@@ -84,7 +84,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                             <div id="liveGridStream" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                                 ${photos.map(p => `
                                     <div class="photo-card" id="photo-card-${p.id}" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                                        <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(p.image_url)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" checked />
+                                        <!-- FIXED: Checkboxes now default to unchecked/blank -->
+                                        <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(p.image_url)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" />
                                         <img src="${escapeAttr(p.image_url)}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
                                         <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                             <span style="font-size: 10px; color: #4b5563;">${formatDate(p.created_at)}</span>
@@ -111,7 +112,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                             ${facilityContacts.length === 0 ? '<p style="color: #6b7280; font-size: 13px;">No directory contacts found for this facility.</p>' : 
                             facilityContacts.map(c => `
                                 <label style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; cursor: pointer;">
-                                    <input type="checkbox" class="contact-share-checkbox" data-phone="${escapeAttr(c.phone)}" data-email="${escapeAttr(c.email)}" data-name="${escapeAttr(c.contact_name)}" checked />
+                                    <!-- FIXED: Contact checkboxes now default to unchecked/blank -->
+                                    <input type="checkbox" class="contact-share-checkbox" data-phone="${escapeAttr(c.phone)}" data-email="${escapeAttr(c.email)}" data-name="${escapeAttr(c.contact_name)}" />
                                     <div>
                                         <div style="font-weight: 500; font-size: 13px;">${escapeHtml(c.contact_name)}</div>
                                         <div style="font-size: 11px; color: #6b7280;">${escapeHtml(c.phone || '')} ${c.email ? `· ${escapeHtml(c.email)}` : ''}</div>
@@ -201,7 +203,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     if (liveGrid) {
                         const cardMarkup = `
                             <div class="photo-card" id="photo-card-${newPhotoId}" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05); animation: fadeIn 0.3s ease-out;">
-                                <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(urlData.publicUrl)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" checked />
+                                <!-- FIXED: Newly taken photos also start unchecked -->
+                                <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(urlData.publicUrl)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" />
                                 <img src="${escapeAttr(urlData.publicUrl)}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
                                 <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                     <span style="font-size: 10px; color: #4b5563;">Just now</span>
