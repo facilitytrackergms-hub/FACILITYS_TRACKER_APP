@@ -91,29 +91,17 @@ export async function renderProjectsHome(data, nav) {
         openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
     });
 
-  // 2. Context-Safe BACK BUTTON EVENT LISTENER 
-let backBtn = document.getElementById('cabinetBackBtn');
-if (backBtn) {
-    backBtn.onclick = () => {
-        if (window.navigateTo) {
-            window.navigateTo('view_2_controls', { facility: facility }); // Go to View 2 Controls with current facility
-        }
-    };
-}
-
-    // 3. Bind CREATE NEW PROJECT button safely
-    let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
-    if (addProjectBtn) {
-        addProjectBtn.onclick = () => {
-            if (nav && typeof nav.renderPendingProjects === 'function') {
-                nav.renderPendingProjects({ facility });
-            } else {
-                alert('Create Project: navigation method not available.');
+    // 2. Context-Safe BACK BUTTON EVENT LISTENER 
+    let backBtn = document.getElementById('cabinetBackBtn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            if (window.navigateTo) {
+                window.navigateTo('view_2_controls', { facility: facility }); // Go to View 2 Controls with current facility
             }
         };
     }
 
-    // 4. Bind existing project tile list items
+    // 3. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
