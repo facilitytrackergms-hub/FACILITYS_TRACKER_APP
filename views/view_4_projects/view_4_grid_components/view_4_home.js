@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 03:55 AM
+LAST UPDATED : 2026-06-12 @ 04:15 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -27,6 +27,9 @@ import {
 import {
     renderStyles
 } from './view_4_styles.js';
+
+// IMPORT YOUR INITIALIZED SUPABASE INSTANCE DIRECTLY
+import { supabase } from '../supabaseClient.js'; 
 
 export async function renderProjectsHome(data, nav) {
     const facility = data?.facility ? data.facility : data;
@@ -100,7 +103,7 @@ export async function renderProjectsHome(data, nav) {
                 </div>
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 03:55 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 04:15 AM
                 </div>
             </div>
         </div>
@@ -143,7 +146,7 @@ export async function renderProjectsHome(data, nav) {
         };
     }
 
-    // 4. Intercept Submit and Write Directly to Supabase using Explicit Column Definitions
+    // 4. Clean Database Insert Hook Using Imported Instance
     const directForm = document.getElementById('directProjectSubmissionForm');
     if (directForm) {
         directForm.onsubmit = async (e) => {
@@ -155,14 +158,9 @@ export async function renderProjectsHome(data, nav) {
             if (!titleValue) return;
 
             try {
-                let databaseClient = window.supabase;
-                
-                if (!databaseClient && window.createClient) {
-                    databaseClient = window.createClient();
-                }
-
-                if (databaseClient) {
-                    const { error } = await databaseClient
+                // Uses the direct imported instance cleanly
+                if (supabase) {
+                    const { error } = await supabase
                         .from('facility_projects')
                         .insert([
                             {
@@ -176,23 +174,23 @@ export async function renderProjectsHome(data, nav) {
 
                     if (error) throw error;
                 } else {
-                    console.error('Supabase application environment reference context was not resolved.');
+                    throw new Error('Supabase Client import instance unresolvable.');
                 }
 
-                // Hide frame container and clear text buffer values
+                // Hide modal and clear values
                 projectModal.style.display = 'none';
                 directForm.reset();
 
-                // Force component stream interface refresh to re-pull records live from Supabase
-                if (nav && typeof nav.renderPendingProjects === 'function') {
-                    nav.renderPendingProjects({ facility });
+                // Instantly re-render dashboard screen with new live database list values
+                if (nav && typeof nav.renderProjectsHome === 'function') {
+                    nav.renderProjectsHome({ facility }, nav);
                 } else {
                     renderProjectsHome({ facility }, nav);
                 }
 
             } catch (err) {
                 console.error('Database insertion runtime transaction failure error details:', err);
-                alert('Database Error: Unable to complete project save operations. Verify schema constraints.');
+                alert('Database Error: Unable to complete project save operations. Check console for details.');
             }
         };
     }
