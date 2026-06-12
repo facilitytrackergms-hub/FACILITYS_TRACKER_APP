@@ -5,15 +5,13 @@ FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
-LAST UPDATED : 2026-06-12 @ 05:45 PM
+LAST UPDATED : 2026-06-12 @ 06:25 PM
 ================================================================*/
 const __FILENAME = 'view_4_photo_dashboard.js';
 
 import { escapeHtml, escapeAttr, formatDate } from './view_4_render_helpers.js';
 import { renderStyles } from './view_4_styles.js';
 import { fetchContacts } from '../../view_3_contacts/view_3_data.js';
-
-// FIXED IMPORT: Direct reference to the authentic database client module instance
 import { supabase } from '../../../js/supabaseClient.js';
 
 export async function renderPhotoDashboard({ facility, project, photoType }, nav) {
@@ -24,14 +22,14 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
     const facilityName = escapeHtml(facility?.name || facility?.Name || 'Facility');
     const projectTitle = escapeHtml(project?.title || project?.Name || 'Project');
 
-    // 1. Fetch existing pictures matching this project and photo type phase
+    // 1. Fetch existing pictures from the single facility_images table matching this project
     let photos = [];
     try {
         if (supabase) {
             const { data, error } = await supabase
                 .from('facility_images')
                 .select('*')
-                .eq('project_id', project.id)
+                .eq('project_id', String(project.id))
                 .eq('photo_type', currentType)
                 .order('created_at', { ascending: false });
 
@@ -52,6 +50,7 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                 <h1 class="vendor-cabinet-title">📸 ${currentType.toUpperCase()} PHOTOS</h1>
                 <p class="vendor-cabinet-sub">${projectTitle} · ${facilityName}</p>
 
+                <!-- Action Capture Matrix Controls -->
                 <div class="cabinet-section" style="text-align: center; background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <input type="file" id="continuousCameraInput" accept="image/*" capture="environment" style="display: none;" />
                     
@@ -63,6 +62,7 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     </p>
                 </div>
 
+                <!-- Picture Grid Stream with Action Checkboxes -->
                 <div class="cabinet-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <h2 class="cabinet-section-title" style="margin: 0;">Captured Gallery (${photos.length})</h2>
@@ -82,8 +82,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                             ${photos.map(p => `
                                 <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                                    <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(p.file_url)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" checked />
-                                    <img src="${escapeAttr(p.file_url)}" style="width:100%; height:120px; object-fit:cover; display:block;" alt="Capture">
+                                    <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(p.image_url)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" checked />
+                                    <img src="${escapeAttr(p.image_url)}" style="width:100%; height:120px; object-fit:cover; display:block;" alt="Capture">
                                     <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                         <span style="font-size: 10px; color: #4b5563;">${formatDate(p.created_at)}</span>
                                         <button class="delete-photo-btn" data-id="${escapeAttr(p.id)}" style="background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
@@ -94,6 +94,7 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     `}
                 </div>
 
+                <!-- Contact Selection Modal Popup Interface -->
                 <div id="shareContactModal" class="cabinet-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
                     <div class="cabinet-modal-body" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto;">
                         <h3 id="modalShareTitle" style="margin-top: 0;">Select Facility Contacts</h3>
@@ -116,6 +117,7 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     </div>
                 </div>
 
+                <!-- Exit Navigation Options -->
                 <div style="margin-top: 25px;">
                     <button id="photoDashboardBackBtn" class="cabinet-btn cabinet-btn-gray" style="width: 100%;">
                         ⬅️ Finish & Back to Dashboard
@@ -145,8 +147,10 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
             try {
                 if (supabase) {
                     const fileExt = file.name.split('.').pop();
-                    const fileName = `${project.id}_${currentType}_${Date.now()}.${fileExt}`;
-                    const filePath = `project_images/${fileName}`;
+                    const fileName = `${project.id}_${Date.now()}.${fileExt}`;
+                    
+                    // UPDATED STRUCTURE: Saving cleanly inside categorized folders in the storage bucket
+                    const filePath = `project_images/${currentType.toLowerCase()}/${fileName}`;
 
                     const { error: uploadError } = await supabase.storage
                         .from('facility-assets')
@@ -158,13 +162,14 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                         .from('facility-assets')
                         .getPublicUrl(filePath);
 
+                    // Payload mapped directly to columns in facility_images table
                     const { error: dbError } = await supabase
                         .from('facility_images')
                         .insert({
-                            project_id: project.id,
-                            facility_id: facility.id,
+                            project_id: String(project.id),
+                            facility_id: facility.id ? Number(facility.id) : null,
                             photo_type: currentType,
-                            file_url: urlData.publicUrl,
+                            image_url: urlData.publicUrl,
                             created_at: new Date().toISOString()
                         });
 
