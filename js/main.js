@@ -4,13 +4,14 @@ FILE METADATA
 FILE NAME    : main.js
 File Path    : FACILITYS_TRACKER_APP/js/main.js
 VIEW NAME    : Central App Engine Router Controller
-LAST UPDATED : 2026-06-12 @ 12:15 PM
+LAST UPDATED : 2026-06-12 @ 12:25 PM
 ================================================================*/
 
 // Mock State Controller tracking
 const appState = {
     currentView: 'default',
-    currentFacility: localStorage.getItem('current_facility_ref') || 'FAC-001'
+    // FIXED: Defaulting to a valid numeric database row ID context object instead of a text code string
+    currentFacility: { id: 1, name: "Default Facility" }
 };
 
 // Global App Runtime Engine Nav object mapping pipeline rules
@@ -30,7 +31,8 @@ window.appNavigation = {
                 // Expose globally to enable structural fallback lookups in views subcomponents
                 window.view4Engine = gridModule;
                 
-                const dataContext = { currentFacility: appState.currentFacility, ...payload };
+                // Construct the data context using the fixed numeric object structure
+                const dataContext = { facility: appState.currentFacility, ...payload };
                 const renderedUI = await gridModule.renderPendingProjects(dataContext, window.appNavigation);
                 
                 mainContentArea.innerHTML = '';
@@ -61,5 +63,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /*================================================================
 END FILE: main.js
-UPDATED: 2026-06-12 @ 12:15 PM
+UPDATED: 2026-06-12 @ 12:25 PM
 ================================================================*/
