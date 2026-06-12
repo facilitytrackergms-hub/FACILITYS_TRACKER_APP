@@ -6,7 +6,7 @@ File Path    : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-12 @ 2:20 PM
+LAST UPDATED : 2026-06-12 @ 2:15 PM
 ================================================================*/
 const __FILENAME = 'view_4_data.js';
 
@@ -54,40 +54,6 @@ export async function insertFacilityProject(projectData) {
     return data?.[0] || null;
 }
 
-export async function getProjectTitle(projectId) {
-    console.log('[view_4_data.js] getProjectTitle called for project:', projectId);
-    if (!projectId) return '';
-    
-    const { data, error } = await supabase
-        .from('facility_projects')
-        .select('title')
-        .eq('id', projectId)
-        .single();
-        
-    if (error) {
-        console.error('[view_4_data.js] Error fetching project title:', error);
-        return '';
-    }
-    
-    return data?.title || '';
-}
-export async function getVendorName(vendorId) {
-    console.log('[view_4_data.js] getVendorName called for vendor:', vendorId);
-    if (!vendorId) return '';
-    
-    const { data, error } = await supabase
-        .from('vendors')
-        .select('name')
-        .eq('id', vendorId)
-        .single();
-        
-    if (error) {
-        console.error('[view_4_data.js] Error fetching vendor name:', error);
-        return '';
-    }
-    
-    return data?.name || '';
-}
 /* ==========================================
    PROJECT ACTIONS
    ========================================== */
@@ -136,7 +102,7 @@ export async function insertVendor(vendorData) {
 }
 
 /* ==========================================
-   PROJECT VENDOR JOBS
+   PROJECT VENDOR JOBS (FIXES YOUR CRASH)
    ========================================== */
 export async function fetchProjectVendorJobs(projectId) {
     console.log('[view_4_data.js] fetchProjectVendorJobs called for project:', projectId);
@@ -207,5 +173,5 @@ function removeEmptyKeys(obj) {
 }
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-12 @ 2:20 PM
+UPDATED: 2026-06-12 @ 2:15 PM
 ================================================================*/
