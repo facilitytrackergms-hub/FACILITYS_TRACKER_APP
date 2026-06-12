@@ -71,7 +71,23 @@ export async function getProjectTitle(projectId) {
     
     return data?.title || '';
 }
-
+export async function getVendorName(vendorId) {
+    console.log('[view_4_data.js] getVendorName called for vendor:', vendorId);
+    if (!vendorId) return '';
+    
+    const { data, error } = await supabase
+        .from('vendors')
+        .select('name')
+        .eq('id', vendorId)
+        .single();
+        
+    if (error) {
+        console.error('[view_4_data.js] Error fetching vendor name:', error);
+        return '';
+    }
+    
+    return data?.name || '';
+}
 /* ==========================================
    PROJECT ACTIONS
    ========================================== */
