@@ -15,7 +15,7 @@ ACTION REQUIRED BY AI:
 ================================================================*/   
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-12 07:45:00 AM
+UPDATED: 2026-06-12 04:35:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -78,7 +78,8 @@ window.navigateTo = async (view, context = {}) => {
             await renderPendingProjects(context, navRuntime);
         }
         else if (view === 'view_4_project_dashboard') {
-            const { renderSingleProjectDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_project_dashboard.js${cb}`);
+            // UPDATED ROUTE LAYER: Directed straight to the sub folder path configuration
+            const { renderSingleProjectDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_project_dashboard.js${cb}`);
             await renderSingleProjectDashboard(context, navRuntime);
         }
         else if (view === 'view_4_photo_dashboard') {
@@ -124,5 +125,5 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* =================================================
 END FILE: main.js
-UPDATED: 2026-06-12 07:45:00 AM
+UPDATED: 2026-06-12 04:35:00 PM
 ================================================= */
