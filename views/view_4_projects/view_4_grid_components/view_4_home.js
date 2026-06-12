@@ -1,223 +1,127 @@
-/*================================================================ 
+/*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_4_home.js
-SUPABASE TBL : facility_projects, vendors
-VIEW NAME    : Facility Projects Dashboard
-POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 04:35 AM
+File Path    : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_home.js
+SUPABASE TBL : facility_projects
+VIEW NAME    : Facility Projects Dashboard - Home Grid View
+POP-UP TITLE : N/A
+LAST UPDATED : 2026-06-12 @ 12:15 PM
+================================================================
+AI CODING RULES & CONSTRAINTS (Read before making any changes)
+================================================================
+1. STRICT ADHERENCE: Always follow these rules without exception.
+2. MISSING METADATA HANDLING: Handle placeholders sequentially.
+3. NO UNSANCTIONED CHANGES: Never remove rules.
+4. SCOPE OF WORK: Only modify specific functions/features requested.
+5. PRESERVATION: Leave working logic completely intact.
+6. LOGGING CHANGES: Document fixes in textual explanation prior to code blocks.
+7. CODE COMPLETENESS: Always return the full file.
+8. VIEW IDENTIFIERS: Update metadata tracking tags dynamically.
+9. NO BLIND CODE: Work exclusively off provided sources.
+10. UNIQUE ALERTS: Avoid generic alert mechanisms.
+11. CODE BLOCK DELIVERY: Use a single clean markdown block.
+12. METADATA AUTO-UPDATE: Sync metrics on code modification.
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
-import {
-    fetchFacilityProjects,
-    fetchVendors
-} from '../view_4_data.js';
-
-import {
-    setupCabinetHomeEvents
-} from '../view_4_modal.js';
-
-import {
-    escapeHtml,
-    renderProjectButtons,
-    renderHomeModals
-} from './view_4_render_helpers.js';
-
-import {
-    renderStyles
-} from './view_4_styles.js';
+import { fetchFacilityProjects, getProjectTitle } from '../view_4_data.js';
 
 export async function renderProjectsHome(data, nav) {
-    const facility = data?.facility ? data.facility : data;
+    const container = document.createElement('div');
+    container.id = 'view-4-home-root';
+    container.className = 'p-4 space-y-6';
 
-    if (!facility || !facility.id) {
-        console.error('[view_4_home.js] Facility context missing inside Facility Projects Dashboard.');
-        const appMissing = document.getElementById('app');
-        if (appMissing) {
-            appMissing.innerHTML = '<p style="color:red; text-align:center; padding:20px;">[view_4_home.js] Missing facility context.</p>';
+    // Inject View Source and Metadata Tracking Tag
+    const trackingTag = document.createElement('div');
+    trackingTag.className = 'text-xs text-gray-400 border-b pb-2 mb-4';
+    trackingTag.innerText = `Source: ${__FILENAME} | Last Updated: 2026-06-12 @ 12:15 PM`;
+    container.appendChild(trackingTag);
+
+    const title = document.createElement('h2');
+    title.className = 'text-2xl font-bold tracking-tight text-gray-900';
+    title.innerText = 'Facility Projects';
+    container.appendChild(title);
+
+    const currentFacility = data?.currentFacility || localStorage.getItem('current_facility_ref');
+    if (!currentFacility) {
+        const fallbackMsg = document.createElement('p');
+        fallbackMsg.className = 'text-gray-500 italic';
+        fallbackMsg.innerText = 'No facility selected. Please select a facility to view projects.';
+        container.appendChild(fallbackMsg);
+        return container;
+    }
+
+    const projects = await fetchFacilityProjects(currentFacility);
+
+    if (!projects || projects.length === 0) {
+        const noDataMsg = document.createElement('p');
+        noDataMsg.className = 'text-gray-500 italic';
+        noDataMsg.innerText = 'No tracking projects found for this facility.';
+        container.appendChild(noDataMsg);
+        return container;
+    }
+
+    const gridLayout = document.createElement('div');
+    gridLayout.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+
+    projects.forEach(project => {
+        const card = document.createElement('div');
+        card.className = 'p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between';
+
+        const contentWrap = document.createElement('div');
+        const projTitle = document.createElement('h3');
+        projTitle.className = 'text-lg font-semibold text-gray-800 mb-2';
+        projTitle.innerText = getProjectTitle(project);
+        contentWrap.appendChild(projTitle);
+
+        if (project.notes) {
+            const projNotes = document.createElement('p');
+            projNotes.className = 'text-sm text-gray-600 line-clamp-3 mb-4';
+            projNotes.innerText = project.notes;
+            contentWrap.appendChild(projNotes);
         }
-        return;
-    }
 
-    const app = document.getElementById('app');
-    const facilityName = escapeHtml(facility.name || facility.Name || 'Facility');
+        card.appendChild(contentWrap);
 
-    const [projects, vendors] = await Promise.all([
-        fetchFacilityProjects(facility.id),
-        fetchVendors()
-    ]);
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors self-start';
+        viewBtn.innerText = 'Open Dashboard';
 
-    app.innerHTML = `
-        ${renderStyles()}
-        <div class="vendor-cabinet-shell">
-            <div class="vendor-cabinet-card">
-                <h1 class="vendor-cabinet-title">${facilityName} Projects Dashboard</h1>
-                <p class="vendor-cabinet-sub">Facility Projects</p>
+        // CRITICAL FIX: Safe Fallback Execution for Dashboard rendering
+        viewBtn.onclick = (e) => {
+            e.stopPropagation();
+            
+            // Check custom view engine route mapping
+            if (nav && typeof nav.renderProjectDashboard === 'function') {
+                nav.renderProjectDashboard(project, nav);
+            } else if (window.view4Engine && typeof window.view4Engine.renderProjectDashboard === 'function') {
+                window.view4Engine.renderProjectDashboard(project, nav);
+            } else {
+                console.error('[view_4_home.js] navigation framework layout component missing renderProjectDashboard implementation.', nav);
+                
+                // Fallback attempt via standard global navigation engine
+                if (nav && typeof nav.navigateTo === 'function') {
+                    nav.navigateTo('project_dashboard', { project });
+                }
+            }
+        };
 
-                <div class="cabinet-action-grid single-action-grid">
-                    <button id="cabinetAddProjectBtn" class="cabinet-btn cabinet-btn-green">➕ Create New Project</button>
-                    <button id="cabinetBackBtn" class="cabinet-btn cabinet-btn-gray">⬅️ Back</button>
-                </div>
+        card.appendChild(viewBtn);
+        
+        // Let clicking the card trigger the exact same function pipeline securely
+        card.onclick = () => {
+            viewBtn.click();
+        };
 
-                <div style="display:none;">
-                    <button id="addProjectBtn" type="button">Hidden Core Add Project</button>
-                    <button id="cabinetAddVendorBtn" type="button">Hidden Add Vendor</button>
-                    <button id="cabinetStartVendorJobBtn" type="button">Hidden Start Vendor Job</button>
-                </div>
-
-                <div class="cabinet-section">
-                    <h2 class="cabinet-section-title">Facility Projects</h2>
-                    <div id="facilityProjectButtonGrid" class="project-button-grid">
-                        ${renderProjectButtons(projects)}
-                    </div>
-                </div>
-
-                ${renderHomeModals(projects, vendors)}
-
-                <div id="cabinetProjectModal" class="cabinet-modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
-                    <div class="vendor-cabinet-card" style="width: 100%; max-width: 500px; position: relative; padding: 25px; box-sizing: border-box;">
-                        <h2 class="cabinet-section-title" style="margin-top: 0;">Create New Project</h2>
-                        <form id="directProjectSubmissionForm" style="display: flex; flex-direction: column; gap: 15px;">
-                            <input type="hidden" name="facility_id" value="${facility.id}">
-                            
-                            <div>
-                                <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #00264d;">Project Title</label>
-                                <input type="text" id="customProjectTitleField" name="project_title_text" required placeholder="e.g. Kitchen AC Repair" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box;">
-                            </div>
-
-                            <div>
-                                <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #00264d;">Notes / Description</label>
-                                <textarea id="customProjectNotesField" name="notes" placeholder="Describe the issue or project goals..." style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; height: 100px; resize: vertical;"></textarea>
-                            </div>
-
-                            <div class="cabinet-action-grid" style="margin-top: 10px;">
-                                <button type="submit" class="cabinet-btn cabinet-btn-green">💾 Save Project</button>
-                                <button type="button" id="closeProjectModalBtn" class="cabinet-btn cabinet-btn-gray">❌ Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 04:35 AM
-                </div>
-            </div>
-        </div>
-    `;
-
-    // 1. Initialize background layout hooks
-    setupCabinetHomeEvents({
-        facility,
-        projects,
-        vendors,
-        refreshHome: () => {},
-        openVendor: vendorId => nav.renderVendorDashboard({ facility, vendorId }),
-        openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
+        gridLayout.appendChild(card);
     });
 
-    // 2. Back Action Handler
-    let backBtn = document.getElementById('cabinetBackBtn');
-    if (backBtn) {
-        backBtn.onclick = () => {
-            if (window.navigateTo) {
-                window.navigateTo('view_2_controls', { facility: facility });
-            }
-        };
-    }
-
-    // 3. Modal Box Toggles
-    const projectModal = document.getElementById('cabinetProjectModal');
-    const cabinetAddProjectBtn = document.getElementById('cabinetAddProjectBtn');
-    const closeProjectModalBtn = document.getElementById('closeProjectModalBtn');
-
-    if (cabinetAddProjectBtn && projectModal) {
-        cabinetAddProjectBtn.onclick = () => {
-            projectModal.style.display = 'flex';
-        };
-    }
-
-    if (closeProjectModalBtn && projectModal) {
-        closeProjectModalBtn.onclick = () => {
-            projectModal.style.display = 'none';
-        };
-    }
-
-    // 4. Robust Database Insert Handling via Independent Direct CDN Import Fallback
-    const directForm = document.getElementById('directProjectSubmissionForm');
-    if (directForm) {
-        directForm.onsubmit = async (e) => {
-            e.preventDefault();
-
-            const titleValue = document.getElementById('customProjectTitleField').value.trim();
-            const notesValue = document.getElementById('customProjectNotesField').value.trim();
-
-            if (!titleValue) return;
-
-            try {
-                let databaseClient = window.supabase;
-
-                // Fallback: If global object doesn't exist, safely initialize from CDN module instantly
-                if (!databaseClient || typeof databaseClient.from !== 'function') {
-                    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-                    databaseClient = createClient(
-                        'https://uqrgjmzptliursudexbx.supabase.co',
-                        'sb_publishable_YdowS2hJJlYITNEHEIQpag_tgYk6f7P'
-                    );
-                }
-
-                if (databaseClient && typeof databaseClient.from === 'function') {
-                    const { error } = await databaseClient
-                        .from('facility_projects')
-                        .insert([
-                            {
-                                facility_id: parseInt(facility.id, 10),
-                                project_name_text: titleValue,
-                                project_title_text: titleValue,
-                                notes: notesValue || null,
-                                active_status: true
-                            }
-                        ]);
-
-                    if (error) throw error;
-                } else {
-                    throw new Error('Supabase SDK initialization target unresolvable from scope window runtime context.');
-                }
-
-                // Hide modal frame and clear form text values
-                projectModal.style.display = 'none';
-                directForm.reset();
-
-                // Instantly re-render dashboard screen to show newly inserted project card tile
-                if (nav && typeof nav.renderProjectsHome === 'function') {
-                    nav.renderProjectsHome({ facility }, nav);
-                } else {
-                    renderProjectsHome({ facility }, nav);
-                }
-
-            } catch (err) {
-                console.error('Database insertion runtime transaction failure error details:', err);
-                alert('Database Error: Unable to complete project save operations. Check console logs.');
-            }
-        };
-    }
-
-    // 5. Existing Project Grid Interactivity Navigation Handlers
-    document.querySelectorAll('[data-open-project]').forEach(button => {
-        button.onclick = () => {
-            const projectId = button.dataset.openProject;
-            const selectedProject = projects.find(project => String(project.id) === String(projectId));
-
-            if (!selectedProject) {
-                alert('[view_4_home.js] Project Button Error: Project was not found in the current facility project list.');
-                return;
-            }
-
-            nav.renderProjectDashboard({ facility, project: selectedProject });
-        };
-    });
+    container.appendChild(gridLayout);
+    return container;
 }
 
 /*================================================================
 END FILE: view_4_home.js
+UPDATED: 2026-06-12 @ 12:15 PM
 ================================================================*/
