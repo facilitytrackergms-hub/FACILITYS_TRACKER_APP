@@ -1,105 +1,140 @@
+/*================================================================ 
+FILE METADATA
+================================================================
+FILE NAME    : view_4_home.js
+SUPABASE TBL : facility_projects, vendors
+VIEW NAME    : Facility Projects Dashboard
+POP-UP TITLE : Create New Project
+LAST UPDATED : 2026-06-12 @ 12:55 PM
+================================================================*/
 const __FILENAME = 'view_4_home.js';
 
-import { fetchFacilityProjects, getProjectTitle } from '../view_4_data.js';
+import {
+    fetchFacilityProjects,
+    fetchVendors
+} from '../view_4_data.js';
+
+import {
+    setupCabinetHomeEvents
+} from '../view_4_modal.js';
+
+import {
+    escapeHtml,
+    renderProjectButtons,
+    renderHomeModals
+} from './view_4_render_helpers.js';
+
+import {
+    renderStyles
+} from './view_4_styles.js';
 
 export async function renderProjectsHome(data, nav) {
-    console.log('[view_4_home.js] renderProjectsHome called with', data);
+    let facility = data?.facility ? data.facility : data;
 
-    const container = document.createElement('div');
-    container.id = 'view-4-home-root';
-    container.className = 'p-4 space-y-6';
-
-    const trackingTag = document.createElement('div');
-    trackingTag.className = 'text-xs text-gray-400 border-b pb-2 mb-4';
-    trackingTag.innerText = `Source: ${__FILENAME} | Last Updated: 2026-06-12 @ 12:15 PM`;
-    container.appendChild(trackingTag);
-
-    const title = document.createElement('h2');
-    title.className = 'text-2xl font-bold tracking-tight text-gray-900';
-    title.innerText = 'Facility Projects';
-    container.appendChild(title);
-
-    let currentFacility = data?.currentFacility;
-    if (!currentFacility) {
+    if (!facility) {
         const stored = localStorage.getItem('current_facility_ref');
         if (stored) {
             try {
-                currentFacility = JSON.parse(stored);
+                facility = JSON.parse(stored);
             } catch(e) {
                 console.warn('[view_4_home.js] Failed to parse stored facility', e);
             }
         }
     }
 
-    console.log('[view_4_home.js] currentFacility resolved:', currentFacility);
-    if (!currentFacility) {
-        const fallbackMsg = document.createElement('p');
-        fallbackMsg.className = 'text-gray-500 italic';
-        fallbackMsg.innerText = 'No facility selected. Please select a facility to view projects.';
-        container.appendChild(fallbackMsg);
-        return container;
-    }
-
-    const projects = await fetchFacilityProjects(currentFacility);
-
-    if (!projects || projects.length === 0) {
-        console.warn('[view_4_home.js] No projects found for this facility.');
-        const noDataMsg = document.createElement('p');
-        noDataMsg.className = 'text-gray-500 italic';
-        noDataMsg.innerText = 'No tracking projects found for this facility.';
-        container.appendChild(noDataMsg);
-        return container;
-    }
-
-    const gridLayout = document.createElement('div');
-    gridLayout.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
-
-    projects.forEach(project => {
-        const card = document.createElement('div');
-        card.className = 'p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between';
-
-        const contentWrap = document.createElement('div');
-        const projTitle = document.createElement('h3');
-        projTitle.className = 'text-lg font-semibold text-gray-800 mb-2';
-        projTitle.innerText = getProjectTitle(project);
-        contentWrap.appendChild(projTitle);
-
-        if (project.notes) {
-            const projNotes = document.createElement('p');
-            projNotes.className = 'text-sm text-gray-600 line-clamp-3 mb-4';
-            projNotes.innerText = project.notes;
-            contentWrap.appendChild(projNotes);
+    if (!facility || !facility.id) {
+        console.error('[view_4_home.js] Facility context missing inside Facility Projects Dashboard.');
+        const appMissing = document.getElementById('app');
+        if (appMissing) {
+            appMissing.innerHTML = '<p style="color:red; text-align:center; padding:20px;">[view_4_home.js] Missing facility context.</p>';
         }
+        return;
+    }
 
-        card.appendChild(contentWrap);
+    const app = document.getElementById('app');
+    const facilityName = escapeHtml(facility.name || facility.Name || 'Facility');
 
-        const viewBtn = document.createElement('button');
-        viewBtn.className = 'mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors self-start';
-        viewBtn.innerText = 'Open Dashboard';
+    const [projects, vendors] = await Promise.all([
+        fetchFacilityProjects(facility.id),
+        fetchVendors()
+    ]);
 
-        viewBtn.onclick = async (e) => {
-            e.stopPropagation();
-            let dashboardEl;
-            if (nav && typeof nav.renderProjectDashboard === 'function') {
-                dashboardEl = await nav.renderProjectDashboard(project, nav);
-            } else if (window.view4Engine && typeof window.view4Engine.renderProjectDashboard === 'function') {
-                dashboardEl = await window.view4Engine.renderProjectDashboard(project, nav);
-            } else if (nav && typeof nav.navigateTo === 'function') {
-                return nav.navigateTo('project_dashboard', { project });
-            }
+    // Store facility in localStorage for fallback
+    localStorage.setItem('current_facility_ref', JSON.stringify(facility));
 
-            if (dashboardEl) {
-                const mainArea = document.getElementById('main-content-display-area') || document.body;
-                mainArea.innerHTML = '';
-                mainArea.appendChild(dashboardEl);
-            }
-        };
+    app.innerHTML = `
+        ${renderStyles()}
+        <div class="vendor-cabinet-shell">
+            <div class="vendor-cabinet-card">
+                <h1 class="vendor-cabinet-title">${facilityName} Projects Dashboard</h1>
+                <p class="vendor-cabinet-sub">Facility Projects</p>
 
-        card.appendChild(viewBtn);
-        card.onclick = () => viewBtn.click();
-        gridLayout.appendChild(card);
+                <div class="cabinet-action-grid single-action-grid">
+                    <button id="cabinetAddProjectBtn" class="cabinet-btn cabinet-btn-green">➕ Create New Project</button>
+                    <button id="cabinetBackBtn" class="cabinet-btn cabinet-btn-gray">⬅️ Back</button>
+                </div>
+
+                <div style="display:none;">
+                    <button id="cabinetAddVendorBtn" type="button">Hidden Add Vendor</button>
+                    <button id="cabinetStartVendorJobBtn" type="button">Hidden Start Vendor Job</button>
+                </div>
+
+                <div class="cabinet-section">
+                    <h2 class="cabinet-section-title">Facility Projects</h2>
+                    <div id="facilityProjectButtonGrid" class="project-button-grid">
+                        ${renderProjectButtons(projects)}
+                    </div>
+                </div>
+
+                ${renderHomeModals(projects, vendors)}
+
+                <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 12:55 PM
+                </div>
+            </div>
+        </div>
+    `;
+
+    setupCabinetHomeEvents({
+        facility,
+        projects,
+        vendors,
+        refreshHome: () => nav.renderPendingProjects({ facility }),
+        openVendor: vendorId => nav.renderVendorDashboard({ facility, vendorId }),
+        openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
     });
 
-    container.appendChild(gridLayout);
-    return container;
+    let backBtn = document.getElementById('cabinetBackBtn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            if (window.navigateTo) {
+                window.navigateTo('view_2_controls', { facility });
+            }
+        };
+    }
+
+    let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
+    if (addProjectBtn) {
+        addProjectBtn.onclick = () => {
+            if (nav && typeof nav.renderPendingProjects === 'function') {
+                nav.renderPendingProjects({ facility });
+            } else {
+                alert('Create Project: navigation method not available.');
+            }
+        };
+    }
+
+    document.querySelectorAll('[data-open-project]').forEach(button => {
+        button.onclick = () => {
+            const projectId = button.dataset.openProject;
+            const selectedProject = projects.find(project => String(project.id) === String(projectId));
+
+            if (!selectedProject) {
+                alert('[view_4_home.js] Project Button Error: Project was not found in the current facility project list.');
+                return;
+            }
+
+            nav.renderProjectDashboard({ facility, project: selectedProject });
+        };
+    });
 }
