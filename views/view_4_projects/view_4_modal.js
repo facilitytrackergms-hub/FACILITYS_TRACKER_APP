@@ -6,7 +6,7 @@ File pash : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_modal.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-12 @ 07:33 PM
+LAST UPDATED : 2026-06-12 @ 07:40 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -113,7 +113,7 @@ export function setupCabinetHomeEvents(context = {}) {
                     </div>
                     
                     <div id="uiTag_view_4_modal_home" class="ui-metadata-tag-view4" style="margin-top:15px; font-size:10px; color:#aaa; text-align:center;">
-                        Source: view_4_modal.js | Created: 2026-06-12 07:33 PM
+                        Source: view_4_modal.js | Created: 2026-06-12 07:40 PM
                     </div>
                 </div>
             </div>
@@ -162,9 +162,10 @@ export function setupCabinetHomeEvents(context = {}) {
                 return;
             }
 
+            // Variable Struct Log: Changed key parameter naming mapping logic from project_title to project_name_text to prevent database constraint failure rows
             const result = await insertFacilityProject({
                 facility_id: facility.id,
-                project_title: projectTitle,
+                project_name_text: projectTitle,
                 notes: projectNotes,
                 status: 'Pending',
                 active_status: true
@@ -189,14 +190,14 @@ export function setupCabinetHomeEvents(context = {}) {
     }
 }
 
+// =================================================================
+
 export function setupVendorDashboardEvents(context = {}) {
     console.log('[view_4_modal.js] setupVendorDashboardEvents initialized.', context);
-    // Wire up vendor summary layout events if DOM elements exist
 }
 
 export function setupVendorJobDashboardEvents(context = {}) {
     console.log('[view_4_modal.js] setupVendorJobDashboardEvents initialized.', context);
-    // Wire up line item job metrics elements if DOM elements exist
 }
 
 // =================================================================
@@ -316,5 +317,5 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
 
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-12 @ 07:33 PM
+UPDATED: 2026-06-12 @ 07:40 PM
 ================================================================*/
