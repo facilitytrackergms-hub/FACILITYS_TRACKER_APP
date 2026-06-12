@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 12:55 PM
+LAST UPDATED : 2026-06-10 @ 07:10 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -29,18 +29,7 @@ import {
 } from './view_4_styles.js';
 
 export async function renderProjectsHome(data, nav) {
-    let facility = data?.facility ? data.facility : data;
-
-    if (!facility) {
-        const stored = localStorage.getItem('current_facility_ref');
-        if (stored) {
-            try {
-                facility = JSON.parse(stored);
-            } catch(e) {
-                console.warn('[view_4_home.js] Failed to parse stored facility', e);
-            }
-        }
-    }
+    const facility = data?.facility ? data.facility : data;
 
     if (!facility || !facility.id) {
         console.error('[view_4_home.js] Facility context missing inside Facility Projects Dashboard.');
@@ -58,9 +47,6 @@ export async function renderProjectsHome(data, nav) {
         fetchFacilityProjects(facility.id),
         fetchVendors()
     ]);
-
-    // Store facility in localStorage for fallback
-    localStorage.setItem('current_facility_ref', JSON.stringify(facility));
 
     app.innerHTML = `
         ${renderStyles()}
@@ -89,12 +75,13 @@ export async function renderProjectsHome(data, nav) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 12:55 PM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-10 07:10 AM
                 </div>
             </div>
         </div>
     `;
 
+    // 1. Initialize modal triggers and core events
     setupCabinetHomeEvents({
         facility,
         projects,
@@ -104,15 +91,17 @@ export async function renderProjectsHome(data, nav) {
         openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
     });
 
-    let backBtn = document.getElementById('cabinetBackBtn');
-    if (backBtn) {
-        backBtn.onclick = () => {
-            if (window.navigateTo) {
-                window.navigateTo('view_2_controls', { facility });
-            }
-        };
-    }
+  // 2. Context-Safe BACK BUTTON EVENT LISTENER 
+let backBtn = document.getElementById('cabinetBackBtn');
+if (backBtn) {
+    backBtn.onclick = () => {
+        if (window.navigateTo) {
+            window.navigateTo('view_2_controls', { facility: facility }); // Go to View 2 Controls with current facility
+        }
+    };
+}
 
+    // 3. Bind CREATE NEW PROJECT button safely
     let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
     if (addProjectBtn) {
         addProjectBtn.onclick = () => {
@@ -124,6 +113,7 @@ export async function renderProjectsHome(data, nav) {
         };
     }
 
+    // 4. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
@@ -138,3 +128,7 @@ export async function renderProjectsHome(data, nav) {
         };
     });
 }
+
+/*================================================================
+END FILE: view_4_home.js
+================================================================*/
