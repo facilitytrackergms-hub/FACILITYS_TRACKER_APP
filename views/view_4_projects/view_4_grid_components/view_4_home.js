@@ -92,14 +92,14 @@ export async function renderProjectsHome(data, nav) {
     });
 
     // 2. Context-Safe BACK BUTTON EVENT LISTENER 
-   let backBtn = document.getElementById('cabinetBackBtn');
-if (backBtn) {
-    backBtn.onclick = () => {
-        if (window.navigateTo) {
-            window.navigateTo('view_1_facility'); // Always go to Facilities Dashboard
-        }
-    };
-}
+    let backBtn = document.getElementById('cabinetBackBtn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            if (window.navigateTo) {
+                window.navigateTo('view_1_facility'); // Always go to Facilities Dashboard
+            }
+        };
+    }
 
     // 3. Bind CREATE NEW PROJECT button safely
     let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
@@ -113,7 +113,7 @@ if (backBtn) {
         };
     }
 
-   // 4. Bind existing project tile list items
+    // 4. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
@@ -124,10 +124,12 @@ if (backBtn) {
                 return;
             }
 
-            // CHANGE THIS LINE RIGHT HERE:
+            // Updated to reference the correct function name from your dashboard file
             nav.renderSingleProjectDashboard({ facility, project: selectedProject });
         };
     });
+}
+
 /*================================================================
 END FILE: view_4_home.js
 ================================================================*/
