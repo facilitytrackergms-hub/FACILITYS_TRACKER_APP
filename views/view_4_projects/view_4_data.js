@@ -6,7 +6,7 @@ File Pach : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-10 @ 04:12 AM
+LAST UPDATED : 2026-06-12 @ 12:06 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -406,7 +406,6 @@ export async function fetchVendorJobsForVendorInFacility(vendorId, facilityRef) 
     return data || [];
 }
 
-// Missing singular fetch operation requested by view_4_vendor_job_dashboard.js imports
 export async function fetchVendorJobById(jobId) {
     if (!jobId) return null;
 
@@ -423,7 +422,6 @@ export async function fetchVendorJobById(jobId) {
     return data;
 }
 
-// Added additional sub-table fetches anticipating sub-dashboard requirements
 export async function fetchVendorJobFiles(jobId) {
     if (!jobId) return [];
     const { data, error } = await supabase
@@ -482,5 +480,5 @@ function removeEmptyKeys(obj) {
 
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-10 @ 04:12 AM
+UPDATED: 2026-06-12 @ 12:06 PM
 ================================================================*/
