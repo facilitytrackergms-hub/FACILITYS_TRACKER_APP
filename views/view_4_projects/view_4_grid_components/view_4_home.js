@@ -22,6 +22,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 10. UNIQUE ALERTS: Avoid generic alert mechanisms.
 11. CODE BLOCK DELIVERY: Use a single clean markdown block.
 12. METADATA AUTO-UPDATE: Sync metrics on code modification.
+13. Only change is async handling on project button click
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -88,22 +89,26 @@ export async function renderProjectsHome(data, nav) {
         viewBtn.className = 'mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors self-start';
         viewBtn.innerText = 'Open Dashboard';
 
-        // CRITICAL FIX: Safe Fallback Execution for Dashboard rendering
-        viewBtn.onclick = (e) => {
+        // CRITICAL FIX: Safe Fallback Execution for Dashboard rendering with async handling
+        viewBtn.onclick = async (e) => {
             e.stopPropagation();
             
-            // Check custom view engine route mapping
+            let dashboardEl;
             if (nav && typeof nav.renderProjectDashboard === 'function') {
-                nav.renderProjectDashboard(project, nav);
+                dashboardEl = await nav.renderProjectDashboard(project, nav);
             } else if (window.view4Engine && typeof window.view4Engine.renderProjectDashboard === 'function') {
-                window.view4Engine.renderProjectDashboard(project, nav);
+                dashboardEl = await window.view4Engine.renderProjectDashboard(project, nav);
             } else {
                 console.error('[view_4_home.js] navigation framework layout component missing renderProjectDashboard implementation.', nav);
-                
-                // Fallback attempt via standard global navigation engine
                 if (nav && typeof nav.navigateTo === 'function') {
-                    nav.navigateTo('project_dashboard', { project });
+                    return nav.navigateTo('project_dashboard', { project });
                 }
+            }
+
+            if (dashboardEl) {
+                const mainArea = document.getElementById('main-content-display-area') || document.body;
+                mainArea.innerHTML = '';
+                mainArea.appendChild(dashboardEl);
             }
         };
 
