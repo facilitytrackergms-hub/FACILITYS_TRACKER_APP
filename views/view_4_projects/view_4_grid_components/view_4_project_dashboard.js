@@ -5,7 +5,7 @@ FILE NAME    : view_4_project_dashboard.js
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-10 @ 07:45 AM
+LAST UPDATED : 2026-06-12 @ 06:00 AM
 ================================================================*/
 const __FILENAME = 'view_4_project_dashboard.js';
 
@@ -56,32 +56,44 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                     <h2 class="cabinet-section-title">Project Action Dashboard</h2>
 
                     <div class="cabinet-action-grid">
+                        <button id="projectBeforePicBtn" class="cabinet-btn cabinet-btn-blue">
+                            1. 📸 BEFORE PIC
+                        </button>
+
+                        <button id="projectDuringPicBtn" class="cabinet-btn cabinet-btn-blue">
+                            2. 📸 DURING PIC
+                        </button>
+
+                        <button id="projectAfterPicBtn" class="cabinet-btn cabinet-btn-blue">
+                            3. 📸 AFTER PIC
+                        </button>
+
                         <button id="projectVendorQuotesFilesBtn" class="cabinet-btn cabinet-btn-green">
-                            1. 📄 Vendor Quotes / Files
+                            4. 📄 Vendor Quotes / Files
                         </button>
 
                         <button id="projectSuppliesNeededBtn" class="cabinet-btn cabinet-btn-blue">
-                            2. 🧰 Supplies / Parts Needed
+                            5. 🧰 Supplies / Parts Needed
                         </button>
 
                         <button id="projectStatusBtn" class="cabinet-btn cabinet-btn-blue">
-                            3. 📌 Project Status
+                            6. 📌 Project Status
                         </button>
 
                         <button id="projectCreateReportBtn" class="cabinet-btn cabinet-btn-blue">
-                            4. 📋 Create Report
+                            7. 📋 Create Report
                         </button>
 
                         <button id="projectSpecialNotesBtn" class="cabinet-btn cabinet-btn-blue">
-                            5. ⭐ Project Special Notes
+                            8. ⭐ Project Special Notes
                         </button>
 
                         <button id="projectAddActionBtn" class="cabinet-btn cabinet-btn-green">
-                            6. ➕ Create New Action Button
+                            9. ➕ Create New Action Button
                         </button>
 
                         <button id="projectBackBtn" class="cabinet-btn cabinet-btn-gray">
-                            7. ⬅️ Back to Projects
+                            10. ⬅️ Back to Projects
                         </button>
                     </div>
                 </div>
@@ -96,13 +108,51 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-10 07:45 AM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 06:00 AM
                 </div>
             </div>
         </div>
     `;
 
-    // Explicitly bind all buttons to ensure they work
+    // --- Button Event Handlers ---
+
+    // 1. Before Pic Click Handling
+    const beforePicBtn = document.getElementById('projectBeforePicBtn');
+    if (beforePicBtn) {
+        beforePicBtn.onclick = () => {
+            if (nav.renderPhotoDashboard) {
+                nav.renderPhotoDashboard({ facility, project, type: 'Before' });
+            } else {
+                alert('Before Pic clicked. Hook up your nav.renderPhotoDashboard logic next!');
+            }
+        };
+    }
+
+    // 2. During Pic Click Handling
+    const duringPicBtn = document.getElementById('projectDuringPicBtn');
+    if (duringPicBtn) {
+        duringPicBtn.onclick = () => {
+            if (nav.renderPhotoDashboard) {
+                nav.renderPhotoDashboard({ facility, project, type: 'During' });
+            } else {
+                alert('During Pic clicked. Hook up your nav.renderPhotoDashboard logic next!');
+            }
+        };
+    }
+
+    // 3. After Pic Click Handling
+    const afterPicBtn = document.getElementById('projectAfterPicBtn');
+    if (afterPicBtn) {
+        afterPicBtn.onclick = () => {
+            if (nav.renderPhotoDashboard) {
+                nav.renderPhotoDashboard({ facility, project, type: 'After' });
+            } else {
+                alert('After Pic clicked. Hook up your nav.renderPhotoDashboard logic next!');
+            }
+        };
+    }
+
+    // Remaining Existing Button Event Logic
     const backBtn = document.getElementById('projectBackBtn');
     if (backBtn) backBtn.onclick = () => nav.renderPendingProjects({ facility });
 
@@ -131,7 +181,3 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
         refreshProject: () => renderSingleProjectDashboard({ facility, project }, nav)
     });
 }
-
-/*================================================================
-END FILE: view_4_project_dashboard.js
-================================================================*/
