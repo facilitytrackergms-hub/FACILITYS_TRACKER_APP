@@ -4,12 +4,12 @@ FILE METADATA
 FILE NAME    : main.js
 File Path    : FACILITYS_TRACKER_APP/js/main.js
 VIEW NAME    : Central App Engine Router Controller
-LAST UPDATED : 2026-06-12 @ 12:15 PM
+LAST UPDATED : 2026-06-12 @ 03:05 PM
 ================================================================*/
 
 // Mock State Controller tracking
 const appState = {
-    currentView: 'default',
+    currentView: 'view_1_facility',
     currentFacility: localStorage.getItem('current_facility_ref') || 'FAC-001'
 };
 
@@ -22,7 +22,17 @@ window.appNavigation = {
         const mainContentArea = document.getElementById('main-content-display-area') || document.body;
         
         try {
-            if (viewId === 'default' || viewId === 'projects_home') {
+            if (viewId === 'view_1_facility') {
+                // Dynamically fetch the facility dashboard landing view component 
+                const modulePath = 'https://facilitytrackergms-hub.github.io/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_grid.js?v=2026_vendor_jobs_v1';
+                const facilityModule = await import(modulePath);
+                
+                const dataContext = { currentFacility: appState.currentFacility, ...payload };
+                const renderedUI = await facilityModule.renderFacilityDashboard(dataContext, window.appNavigation);
+                
+                mainContentArea.innerHTML = '';
+                mainContentArea.appendChild(renderedUI);
+            } else if (viewId === 'default' || viewId === 'projects_home') {
                 // Dynamically fetch component view mapping layers
                 const modulePath = 'https://facilitytrackergms-hub.github.io/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid.js?v=2026_vendor_jobs_v1';
                 const gridModule = await import(modulePath);
@@ -53,13 +63,13 @@ window.appNavigation = {
 
 // Auto boot initializer
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('main.js:120 App loaded, navigating to default view...');
+    console.log('main.js:120 App loaded, navigating to default facility view...');
     if (typeof window.appNavigation.navigateTo === 'function') {
-        window.appNavigation.navigateTo('default');
+        window.appNavigation.navigateTo('view_1_facility');
     }
 });
 
 /*================================================================
 END FILE: main.js
-UPDATED: 2026-06-12 @ 12:15 PM
+UPDATED: 2026-06-12 @ 03:05 PM
 ================================================================*/
