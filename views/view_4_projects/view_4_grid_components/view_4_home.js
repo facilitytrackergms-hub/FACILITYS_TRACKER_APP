@@ -113,7 +113,7 @@ if (backBtn) {
         };
     }
 
-    // 4. Bind existing project tile list items
+   // 4. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
@@ -124,11 +124,10 @@ if (backBtn) {
                 return;
             }
 
-            nav.renderProjectDashboard({ facility, project: selectedProject });
+            // CHANGE THIS LINE RIGHT HERE:
+            nav.renderSingleProjectDashboard({ facility, project: selectedProject });
         };
     });
-}
-
 /*================================================================
 END FILE: view_4_home.js
 ================================================================*/
