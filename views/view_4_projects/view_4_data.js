@@ -6,7 +6,7 @@ File Path    : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-12 @ 2:15 PM
+LAST UPDATED : 2026-06-12 @ 2:20 PM
 ================================================================*/
 const __FILENAME = 'view_4_data.js';
 
@@ -52,6 +52,24 @@ export async function insertFacilityProject(projectData) {
         .select();
     if (error) { console.error('[view_4_data.js] Error inserting project:', error); throw error; }
     return data?.[0] || null;
+}
+
+export async function getProjectTitle(projectId) {
+    console.log('[view_4_data.js] getProjectTitle called for project:', projectId);
+    if (!projectId) return '';
+    
+    const { data, error } = await supabase
+        .from('facility_projects')
+        .select('title')
+        .eq('id', projectId)
+        .single();
+        
+    if (error) {
+        console.error('[view_4_data.js] Error fetching project title:', error);
+        return '';
+    }
+    
+    return data?.title || '';
 }
 
 /* ==========================================
@@ -102,7 +120,7 @@ export async function insertVendor(vendorData) {
 }
 
 /* ==========================================
-   PROJECT VENDOR JOBS (FIXES YOUR CRASH)
+   PROJECT VENDOR JOBS
    ========================================== */
 export async function fetchProjectVendorJobs(projectId) {
     console.log('[view_4_data.js] fetchProjectVendorJobs called for project:', projectId);
@@ -173,5 +191,5 @@ function removeEmptyKeys(obj) {
 }
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-12 @ 2:15 PM
+UPDATED: 2026-06-12 @ 2:20 PM
 ================================================================*/
