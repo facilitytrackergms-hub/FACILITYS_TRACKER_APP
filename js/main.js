@@ -1,17 +1,19 @@
 /* =================================================================
+AUTOMATED PATH UPDATE INSTRUCTION
+================================================================
+NEW ROOT DIRECTORY FOR COMPONENT:
+FACILITYS_TRACKER_APP/views/view_3_contacts/
 
 ACTION REQUIRED BY AI:
 1. Scan this file for any import statements or paths pointing to 'view_3_grid.js'.
-2. Update those paths so they correctly target the new folder and split files:
+2. Update those paths so they correctly target the root folder:
    - view_3_grid.js
-   - view_3_grid_logic.js
-3. Ensure all other local relative paths (../) are mathematically adjusted 
-   to account for the deeper directory depth of the new folder level.
+3. Ensure all paths follow the absolute repository rule matching the spreadsheet list.
 4. Run the LINE COUNT AUDIT before writing code.
 ================================================================*/   
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-12 12:35:00 PM
+UPDATED: 2026-06-12 01:15:00 PM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -72,7 +74,8 @@ window.navigateTo = async (view, context = {}) => {
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_contacts') {
-            const { renderFacilityContacts } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
+            // FIXED: Removed the incorrect 'view_3_grid_components' subfolder to match the repo path list
+            const { renderFacilityContacts } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid.js${cb}`);
             await renderFacilityContacts(context);
         }
         else if (view === 'view_4_projects') {
@@ -118,11 +121,10 @@ window.navigateTo = async (view, context = {}) => {
 
 window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
-    // FIXED: Directing the application to load the view_1_facility index grid on boot up
     window.navigateTo('view_1_facility');
 });
 
 /* =================================================
 END FILE: main.js
-UPDATED: 2026-06-12 12:35:00 PM
+UPDATED: 2026-06-12 01:15:00 PM
 ================================================= */
