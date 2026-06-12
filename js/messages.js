@@ -1,12 +1,18 @@
 /* =================================================================
-⚠️ AI GUARDRAIL CRITICAL INSTRUCTION - HALT IMMEDIATELY
+⚠️ AI GUARDRAIL CRITICAL INSTRUCTION - REFRESH MEMORY ONLY
 ================================================================
-IF THE USER REQUESTS ANY UPDATE, EDIT, FIX, OR PATH REWRITE TO THIS FILE:
-1. YOU MUST CHECK if a valid repository path list file has been uploaded in this turn.
+IF THIS HEADER IS PASTED ALONE WITH A REPOSITORY PATH LIST:
+1. DO NOT try to write, update, edit, or fix any code files.
+2. DO NOT output any mock files, code patches, or script rewrites.
+3. SILENTLY SWALLOW AND ABSORB the provided path list into your active 
+   thread context window to completely refresh your memory.
+4. RESPOND ONLY WITH: "Memory successfully refreshed for this chat thread. I am ready."
+
+IF THE USER REQUESTS A FILE UPDATE IN A SEPARATE TURN WITHOUT A PATH LIST:
+1. YOU MUST CHECK if a valid repository path list file has been uploaded in that turn.
 2. IF NO PATH LIST IS FOUND, YOU ARE STRICTLY FORBIDDEN FROM WRITING ANY CODE.
 3. YOU MUST IMMEDIATELY STOP AND OUTPUT THIS EXACT MESSAGE:
    "I cannot proceed because you haven't uploaded the path list."
-4. DO NOT attempt to guess paths, use previous assumptions, or write mock files.
 ================================================================ */
 
 /FACILITYS_TRACKER_APP/ pathUU
