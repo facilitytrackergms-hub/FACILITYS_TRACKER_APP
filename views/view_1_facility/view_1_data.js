@@ -54,29 +54,64 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
     fully updated and preserved at the top of the file.
 ================================================================*/
 
+/*================================================================
+FILE METADATA
+================================================================
+FILE NAME    : view_1_data.js
+SUPABASE TBL : facilities
+VIEW NAME    : Add New Facility
+POP-UP TITLE : Create Directory Entry
+LAST UPDATED : 2026-06-12 @ 01:55 PM
+================================================================*/
+
 const __FILENAME = 'view_1_data.js';
-import { supabase } from '../../js/supabaseClient.js';
+import { supabase } from '/FACILITYS_TRACKER_APP/js/supabaseClient.js';
 
 export async function fetchFacilities() {
-    const { data, error } = await supabase
-        .from('facilities')
-        .select('*');
-    if (error) {
-        console.error("Database Error:", error);
+    try {
+        const { data, error } = await supabase
+            .from('facilities')
+            .select('*');
+
+        if (error) {
+            console.error("Database Error:", error);
+            return [];
+        }
+
+        if (!data || data.length === 0) {
+            console.warn("fetchFacilities: No data returned from Supabase.");
+        } else {
+            console.log("fetchFacilities: Retrieved", data.length, "records.");
+        }
+
+        return data || [];
+    } catch (err) {
+        console.error("fetchFacilities Exception:", err);
         return [];
     }
-    return data || [];
 }
 
 export async function insertFacility(name, address, phone) {
-    const { data, error } = await supabase
-        .from('facilities')
-        .insert([{ name: name, address: address, phone: phone }])
-        .select();
+    try {
+        const { data, error } = await supabase
+            .from('facilities')
+            .insert([{ name: name, address: address, phone: phone }])
+            .select();
 
-    if (error) {
-        console.error("Database Error:", error);
+        if (error) {
+            console.error("Database Error:", error);
+            return null;
+        }
+
+        if (!data || data.length === 0) {
+            console.warn("insertFacility: No data returned after insert.");
+        } else {
+            console.log("insertFacility: Inserted record", data[0]);
+        }
+
+        return data && data[0] ? data[0] : null;
+    } catch (err) {
+        console.error("insertFacility Exception:", err);
         return null;
     }
-    return data && data[0] ? data[0] : null;
 }
