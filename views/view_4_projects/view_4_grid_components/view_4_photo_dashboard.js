@@ -5,7 +5,7 @@ FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
-LAST UPDATED : 2026-06-12 @ 07:30 PM
+LAST UPDATED : 2026-06-12 @ 07:45 PM
 ================================================================*/
 const __FILENAME = 'view_4_photo_dashboard.js';
 
@@ -62,13 +62,23 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
 
                 <!-- Action Capture Matrix Controls -->
                 <div class="cabinet-section" style="text-align: center; background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <!-- Native camera continuous stream input -->
                     <input type="file" id="continuousCameraInput" accept="image/*" capture="environment" style="display: none;" />
                     
+                    <!-- NEW: Bulk photo gallery picker element -->
+                    <input type="file" id="bulkGalleryInput" accept="image/*" multiple style="display: none;" />
+                    
+                    <!-- Green Camera Capture Trigger Button -->
                     <button type="button" id="triggerCaptureBtn" class="cabinet-btn cabinet-btn-green" style="font-size: 16px; padding: 12px; width: 100%; max-width: 300px; margin: 0 auto; display: block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                         📸 Take New Picture
                     </button>
 
-                    <!-- Relocated Finish & Back Button directly under green button -->
+                    <!-- NEW: Styled Blue Bulk Gallery Upload Button directly under green camera button -->
+                    <button type="button" id="triggerBulkUploadBtn" class="cabinet-btn" style="font-size: 16px; padding: 12px; width: 100%; max-width: 300px; margin: 10px auto 0 auto; display: block; background-color: #3b82f6; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; font-weight: bold; border-radius: 6px;">
+                        📂 Upload Images
+                    </button>
+
+                    <!-- Relocated Finish & Back Button directly under green and blue action keys -->
                     <button type="button" id="photoDashboardBackBtn" class="cabinet-btn cabinet-btn-gray" style="font-size: 14px; padding: 10px; width: 100%; max-width: 300px; margin: 10px auto 0 auto; display: block;">
                         ⬅️ Finish & Back to Dashboard
                     </button>
@@ -100,7 +110,6 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                                         <img src="${escapeAttr(p.image_url)}" data-id="${p.id}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
                                         <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                             <span style="font-size: 10px; color: #4b5563;">${formatDate(p.created_at)}</span>
-                                            <!-- FIXED: Styled with inline SVG for a consistent vibrant red look -->
                                             <button type="button" class="delete-photo-btn" data-id="${escapeAttr(p.id)}" style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; height: 24px; width: 24px;">
                                                 ${redTrashIcon}
                                             </button>
@@ -122,7 +131,7 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
 
                     <img id="lightboxImage" src="" style="max-width: 95%; max-height: 80%; object-fit: contain; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: scale(1); transition: transform 0.2s ease, opacity 0.15s ease; opacity: 1;" />
                     
-                    <!-- Delete from Fullscreen View (Fixed to incorporate beautiful SVG structure) -->
+                    <!-- Delete from Fullscreen View -->
                     <button type="button" id="lightboxDeleteBtn" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 2100; font-size: 14px;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block;">
                             <polyline points="3 6 5 6 21 6"></polyline>
@@ -175,6 +184,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
     // 4. Connect Core System Event Logic Hooks
     const cameraInput = document.getElementById('continuousCameraInput');
     const captureBtn = document.getElementById('triggerCaptureBtn');
+    const bulkInput = document.getElementById('bulkGalleryInput');
+    const bulkBtn = document.getElementById('triggerBulkUploadBtn');
     const backBtn = document.getElementById('photoDashboardBackBtn');
     const shareModal = document.getElementById('shareContactModal');
     let shareMode = 'text'; 
@@ -245,7 +256,48 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
         };
     }
 
-    // --- UPLOAD LOGIC ---
+    // --- REUSABLE CARD INJECTION HELPER (Instantly adds image card with handlers) ---
+    const injectImageToGallery = (imageUrl, dbPhotoId) => {
+        const placeholder = document.getElementById('emptyPhotosPlaceholder');
+        if (placeholder) placeholder.style.display = 'none';
+
+        const liveGrid = document.getElementById('liveGridStream');
+        if (liveGrid) {
+            const cardMarkup = `
+                <div class="photo-card" id="photo-card-${dbPhotoId}" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05); animation: fadeIn 0.3s ease-out;">
+                    <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(imageUrl)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" />
+                    <img src="${escapeAttr(imageUrl)}" data-id="${dbPhotoId}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
+                    <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 10px; color: #4b5563;">Just now</span>
+                        <button type="button" class="delete-photo-btn" data-id="${escapeAttr(dbPhotoId)}" style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; height: 24px; width: 24px;">
+                            ${redTrashIcon}
+                        </button>
+                    </div>
+                </div>
+            `;
+            liveGrid.insertAdjacentHTML('afterbegin', cardMarkup);
+
+            // Attach dynamic click events to the trash button inside the new card
+            const newCard = document.getElementById(`photo-card-${dbPhotoId}`);
+            if (newCard) {
+                const deleteBtn = newCard.querySelector('.delete-photo-btn');
+                if (deleteBtn) {
+                    deleteBtn.onclick = (delEvt) => {
+                        delEvt.preventDefault();
+                        triggerDeleteConfirmation(dbPhotoId, `photo-card-${dbPhotoId}`);
+                    };
+                }
+            }
+        }
+
+        localPhotoCount++;
+        const badge = document.getElementById('galleryCountBadge');
+        if (badge) badge.innerText = localPhotoCount;
+        const bulkWrapper = document.getElementById('bulkActionsWrapper');
+        if (bulkWrapper) bulkWrapper.style.display = 'flex';
+    };
+
+    // --- CONTINUOUS SINGLE CAMERA UPLOAD LOGIC ---
     if (captureBtn && cameraInput) {
         captureBtn.onclick = (e) => {
             e.preventDefault();
@@ -258,13 +310,13 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
             if (!file) return;
 
             captureBtn.disabled = true;
+            if (bulkBtn) bulkBtn.disabled = true;
             captureBtn.innerText = "⏳ Uploading Pic...";
 
             try {
                 if (supabase) {
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${project.id}_${Date.now()}.${fileExt}`;
-                    
                     const filePath = `project_images/${currentType.toLowerCase()}/${fileName}`;
 
                     const { error: uploadError } = await supabase.storage
@@ -291,52 +343,94 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     if (dbError) throw dbError;
 
                     const newPhotoId = insertData?.[0]?.id || Date.now();
-
-                    const placeholder = document.getElementById('emptyPhotosPlaceholder');
-                    if (placeholder) placeholder.style.display = 'none';
-
-                    const liveGrid = document.getElementById('liveGridStream');
-                    if (liveGrid) {
-                        const cardMarkup = `
-                            <div class="photo-card" id="photo-card-${newPhotoId}" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05); animation: fadeIn 0.3s ease-out;">
-                                <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(urlData.publicUrl)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" />
-                                <img src="${escapeAttr(urlData.publicUrl)}" data-id="${newPhotoId}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
-                                <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 10px; color: #4b5563;">Just now</span>
-                                    <button type="button" class="delete-photo-btn" data-id="${escapeAttr(newPhotoId)}" style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; height: 24px; width: 24px;">
-                                        ${redTrashIcon}
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        liveGrid.insertAdjacentHTML('afterbegin', cardMarkup);
-
-                        // Attach trigger event to newly uploaded dynamic item
-                        const newCard = document.getElementById(`photo-card-${newPhotoId}`);
-                        if (newCard) {
-                            const deleteBtn = newCard.querySelector('.delete-photo-btn');
-                            if (deleteBtn) {
-                                deleteBtn.onclick = (delEvt) => {
-                                    delEvt.preventDefault();
-                                    triggerDeleteConfirmation(newPhotoId, `photo-card-${newPhotoId}`);
-                                };
-                            }
-                        }
-                    }
-
-                    localPhotoCount++;
-                    document.getElementById('galleryCountBadge').innerText = localPhotoCount;
-                    document.getElementById('bulkActionsWrapper').style.display = 'flex';
+                    injectImageToGallery(urlData.publicUrl, newPhotoId);
                 }
 
                 cameraInput.value = "";
                 captureBtn.disabled = false;
+                if (bulkBtn) bulkBtn.disabled = false;
                 captureBtn.innerText = "📸 Take New Picture";
 
             } catch (err) {
                 alert(`Upload failed: ${err.message || err}`);
                 captureBtn.disabled = false;
+                if (bulkBtn) bulkBtn.disabled = false;
                 captureBtn.innerText = "📸 Take New Picture";
+            }
+        };
+    }
+
+    // --- NEW: MULTI-FILE GALLERY UPLOAD LOGIC ---
+    if (bulkBtn && bulkInput) {
+        bulkBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            bulkInput.click();
+        };
+
+        bulkInput.onchange = async (e) => {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+
+            // Lock controls
+            bulkBtn.disabled = true;
+            captureBtn.disabled = true;
+
+            let failedUploads = 0;
+
+            // Sequentially upload selected gallery files
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                bulkBtn.innerText = `⏳ Uploading (${i + 1}/${files.length})...`;
+
+                try {
+                    if (supabase) {
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${project.id}_bulk_${Date.now()}_${i}.${fileExt}`;
+                        const filePath = `project_images/${currentType.toLowerCase()}/${fileName}`;
+
+                        const { error: uploadError } = await supabase.storage
+                            .from('facility-assets')
+                            .upload(filePath, file);
+
+                        if (uploadError) throw uploadError;
+
+                        const { data: urlData } = supabase.storage
+                            .from('facility-assets')
+                            .getPublicUrl(filePath);
+
+                        const { data: insertData, error: dbError } = await supabase
+                            .from('facility_images')
+                            .insert({
+                                project_id: String(project.id),
+                                facility_id: facility.id ? Number(facility.id) : null,
+                                photo_type: currentType,
+                                image_url: urlData.publicUrl,
+                                created_at: new Date().toISOString()
+                            })
+                            .select();
+
+                        if (dbError) throw dbError;
+
+                        const newPhotoId = insertData?.[0]?.id || (Date.now() + i);
+                        
+                        // Inject into gallery view immediately
+                        injectImageToGallery(urlData.publicUrl, newPhotoId);
+                    }
+                } catch (err) {
+                    console.error(`Bulk upload failed for file #${i}:`, err);
+                    failedUploads++;
+                }
+            }
+
+            // Unlock controls
+            bulkInput.value = "";
+            bulkBtn.disabled = false;
+            captureBtn.disabled = false;
+            bulkBtn.innerText = "📂 Upload Images";
+
+            if (failedUploads > 0) {
+                alert(`Batch upload finished. ${files.length - failedUploads} images uploaded successfully. ${failedUploads} failed.`);
             }
         };
     }
