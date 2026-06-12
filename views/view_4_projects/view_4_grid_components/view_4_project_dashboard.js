@@ -5,7 +5,7 @@ FILE NAME    : view_4_project_dashboard.js
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-12 @ 06:25 AM
+LAST UPDATED : 2026-06-12 @ 06:40 AM
 ================================================================*/
 const __FILENAME = 'view_4_project_dashboard.js';
 
@@ -27,6 +27,9 @@ import {
 import {
     renderStyles
 } from './view_4_styles.js';
+
+// Import supabase client if available globally, or look for it on the window object
+const supabaseClient = window.supabase;
 
 export async function renderSingleProjectDashboard({ facility, project }, nav) {
     const app = document.getElementById('app');
@@ -54,6 +57,8 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
 
                 <div class="cabinet-section">
                     <h2 class="cabinet-section-title">Project Action Dashboard</h2>
+
+                    <input type="file" id="dashboardCameraInput" accept="image/*" capture="environment" style="display: none;" />
 
                     <div class="photo-buttons-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; width: 100%;">
                         <button id="projectBeforePicBtn" class="cabinet-btn cabinet-btn-blue" style="margin: 0; padding: 12px 5px; font-size: 13px;">
@@ -110,51 +115,107 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 06:25 AM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 06:40 AM
                 </div>
             </div>
         </div>
     `;
 
-    // --- Button Event Handlers ---
+    // --- Unified Camera & Database Upload Logic ---
+    const cameraInput = document.getElementById('dashboardCameraInput');
+    let activePhotoType = '';
 
-    // 1. Before Pic Click Handling
+    const handlePhotoSelection = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Show a temporary visual loading state
+        const originalText = document.getElementById('app').innerHTML;
+        const targetBtnId = `project${activePhotoType}PicBtn`;
+        const targetBtn = document.getElementById(targetBtnId);
+        if (targetBtn) targetBtn.innerText = '⏳ UPLOADING...';
+
+        try {
+            let publicUrl = '';
+
+            // 1. If storage client exists, upload raw binary file to Supabase Storage Bucket
+            if (supabaseClient && supabaseClient.storage) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${project.id}/${activePhotoType.toLowerCase()}_${Date.now()}.${fileExt}`;
+                const filePath = `project_images/${fileName}`;
+
+                const { data: uploadData, error: uploadError } = await supabaseClient
+                    .storage
+                    .from('facility-assets') // Make sure this matches your active Supabase storage bucket name
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                const { data: urlData } = supabaseClient
+                    .storage
+                    .from('facility-assets')
+                    .getPublicUrl(filePath);
+                
+                publicUrl = urlData?.publicUrl || '';
+            } else {
+                // Fallback: Convert image directly into a base64 string asset if storage bucket access is unconfigured
+                publicUrl = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // 2. Insert record into project_actions table detailing the captured image
+            if (supabaseClient && supabaseClient.from) {
+                const { error: dbError } = await supabaseClient
+                    .from('project_actions')
+                    .insert([{
+                        project_id: project.id,
+                        action_title: `${activePhotoType.toUpperCase()} Photo Captured`,
+                        action_notes: `Captured snapshot from dashboard camera hardware.`,
+                        file_url: publicUrl,
+                        created_at: new Date().toISOString()
+                    }]);
+
+                if (dbError) throw dbError;
+            } else {
+                console.warn("Supabase data client unavailable. Logging photo payload instead:", publicUrl);
+            }
+
+            // Refresh the dashboard component view to immediately show your newly added photo action item
+            await renderSingleProjectDashboard({ facility, project }, nav);
+
+        } catch (error) {
+            console.error("Camera processing error:", error);
+            alert(`Failed to store photo asset: ${error.message || error}`);
+            await renderSingleProjectDashboard({ facility, project }, nav);
+        }
+    };
+
+    if (cameraInput) {
+        cameraInput.onchange = handlePhotoSelection;
+    }
+
+    const openCameraForType = (type) => {
+        activePhotoType = type;
+        if (cameraInput) {
+            cameraInput.value = ''; // Reset file value buffer
+            cameraInput.click();     // Dispatches actual physical device call trigger
+        }
+    };
+
+    // --- Button Click Linkings ---
     const beforePicBtn = document.getElementById('projectBeforePicBtn');
-    if (beforePicBtn) {
-        beforePicBtn.onclick = () => {
-            if (nav.renderPhotoDashboard) {
-                nav.renderPhotoDashboard({ facility, project, type: 'Before' });
-            } else {
-                alert('Before Pic clicked. Hook up your nav.renderPhotoDashboard logic next!');
-            }
-        };
-    }
+    if (beforePicBtn) beforePicBtn.onclick = () => openCameraForType('Before');
 
-    // 2. During Pic Click Handling
     const duringPicBtn = document.getElementById('projectDuringPicBtn');
-    if (duringPicBtn) {
-        duringPicBtn.onclick = () => {
-            if (nav.renderPhotoDashboard) {
-                nav.renderPhotoDashboard({ facility, project, type: 'During' });
-            } else {
-                alert('During Pic clicked. Hook up your nav.renderPhotoDashboard logic next!');
-            }
-        };
-    }
+    if (duringPicBtn) duringPicBtn.onclick = () => openCameraForType('During');
 
-    // 3. After Pic Click Handling
     const afterPicBtn = document.getElementById('projectAfterPicBtn');
-    if (afterPicBtn) {
-        afterPicBtn.onclick = () => {
-            if (nav.renderPhotoDashboard) {
-                nav.renderPhotoDashboard({ facility, project, type: 'After' });
-            } else {
-                alert('After Pic clicked. Hook up your nav.renderPhotoDashboard logic next!');
-            }
-        };
-    }
+    if (afterPicBtn) afterPicBtn.onclick = () => openCameraForType('After');
 
-    // Remaining Existing Button Event Logic
+    // Remaining Dashboard Navigation Links
     const backBtn = document.getElementById('projectBackBtn');
     if (backBtn) backBtn.onclick = () => nav.renderPendingProjects({ facility });
 
@@ -176,7 +237,6 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
     const addActionBtn = document.getElementById('projectAddActionBtn');
     if (addActionBtn) addActionBtn.onclick = () => nav.renderAddAction ? nav.renderAddAction({ facility, project }) : alert('Create New Action clicked');
 
-    // Call setupProjectDashboardEvents for other internal modal events
     setupProjectDashboardEvents({
         facility,
         project,
