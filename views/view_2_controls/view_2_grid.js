@@ -79,12 +79,17 @@ export async function renderFacilityControls(data) {
                     <h1 class="controls-title">${facility?.name || 'FACILITY'}</h1>
                     ${imageHtml}
                     <div class="info-panel">
-                        <div class="info-row">
-                            <span class="info-label">📍 Address</span>
-                            <a href="#" id="facilityAddressLink" style="color:#00264d; font-weight:500; text-decoration:underline;">
-                                ${addressDisplay}
-                            </a>
-                        </div>
+                 const encodedAddress = encodeURIComponent(facility?.address || '');
+const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+
+// ... inside your app.innerHTML backticks:
+
+<div class="info-row">
+    <span class="info-label">📍 Address</span>
+    <a href="${mapsUrl}" id="facilityAddressLink" target="_blank" rel="noopener noreferrer" style="color:#00264d; font-weight:500; text-decoration:underline;">
+        ${addressDisplay}
+    </a>
+</div>
                         <div class="info-row" style="margin-top:10px;">
                             <span class="info-label">📞 Phone Contact</span>
                             ${phoneLink}
