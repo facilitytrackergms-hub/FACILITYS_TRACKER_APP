@@ -1,8 +1,4 @@
 /* =================================================================
-AUTOMATED PATH UPDATE INSTRUCTION
-================================================================
-NEW ROOT DIRECTORY FOR COMPONENT:
-FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/
 
 ACTION REQUIRED BY AI:
 1. Scan this file for any import statements or paths pointing to 'view_3_grid.js'.
