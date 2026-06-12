@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-10 @ 07:10 AM
+LAST UPDATED : 2026-06-12 @ 03:00 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -75,7 +75,7 @@ export async function renderProjectsHome(data, nav) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-10 07:10 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 03:00 AM
                 </div>
             </div>
         </div>
@@ -101,25 +101,7 @@ export async function renderProjectsHome(data, nav) {
         };
     }
 
-    // 3. Bind CREATE NEW PROJECT button to safely show the modal wrapper
-    let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
-    if (addProjectBtn) {
-        addProjectBtn.onclick = () => {
-            const projectModal = document.getElementById('cabinetProjectModal') || document.getElementById('addProjectModal');
-            if (projectModal) {
-                projectModal.style.display = 'flex'; // Or 'block', depending on your CSS modal setup
-            } else {
-                console.warn('[view_4_home.js] Modal element target not found. Checking fallback navigation.');
-                if (nav && typeof nav.renderCreateProject === 'function') {
-                    nav.renderCreateProject({ facility });
-                } else {
-                    alert('Could not open Create Project window.');
-                }
-            }
-        };
-    }
-
-    // 4. Bind existing project tile list items
+    // 3. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
