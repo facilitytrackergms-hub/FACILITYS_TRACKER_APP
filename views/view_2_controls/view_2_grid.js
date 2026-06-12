@@ -145,15 +145,11 @@ const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddres
     setupControlsEvents(facility);
 
     // Attach click handlers safely
-    requestAnimationFrame(() => {
-        const addressLink = document.getElementById('facilityAddressLink');
-        if (addressLink) {
-            addressLink.onclick = () => {
-                if (window.navigateTo) window.navigateTo('view_4_projects', { facility: facility });
-            };
-        } else {
-            console.warn('[view_2_grid.js] facilityAddressLink not found in DOM');
-        }
+ const addressLink = document.getElementById('facilityAddressLink');
+if (!addressLink) {
+    console.warn('[view_2_grid.js] facilityAddressLink not found in DOM');
+}
+// Removed the onclick override entirely so the <a> tag behaves normally and opens the map
 
         const backDashBtn = document.getElementById('backDash');
         if (backDashBtn) {
