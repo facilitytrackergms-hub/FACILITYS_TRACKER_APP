@@ -135,11 +135,12 @@ export async function renderFacilityControls(data) {
                     
                     ${imageHtml}
 
-                    <div class="info-panel">
-                        <div class="info-row">
-                            <span class="info-label">📍 Address</span>
-                            <span style="color:#1e293b; font-weight:500;">${addressDisplay}</span>
-                        </div>
+                   <div class="info-row">
+    <span class="info-label">📍 Address</span>
+    <a href="#" id="facilityAddressLink" style="color:#00264d; font-weight:500; text-decoration:underline;">
+        ${addressDisplay}
+    </a>
+</div>
                         <div class="info-row" style="margin-top:10px;">
                             <span class="info-label">📞 Phone Contact</span>
                             ${phoneLink}
