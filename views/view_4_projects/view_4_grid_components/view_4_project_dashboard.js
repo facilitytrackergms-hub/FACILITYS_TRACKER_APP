@@ -5,7 +5,7 @@ FILE NAME    : view_4_project_dashboard.js
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-12 @ 06:45 AM
+LAST UPDATED : 2026-06-12 @ 07:15 AM
 ================================================================*/
 const __FILENAME = 'view_4_project_dashboard.js';
 
@@ -115,97 +115,36 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 06:45 AM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 07:15 AM
                 </div>
             </div>
         </div>
     `;
 
-    // --- Unified Camera & Database Upload Logic ---
-    const cameraInput = document.getElementById('dashboardCameraInput');
-    let activePhotoType = '';
-
-    const handlePhotoSelection = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const targetBtnId = `project${activePhotoType}PicBtn`;
-        const targetBtn = document.getElementById(targetBtnId);
-        if (targetBtn) targetBtn.innerText = '⏳ UPLOADING...';
-
-        try {
-            let publicUrl = '';
-
-            if (supabaseClient && supabaseClient.storage) {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${project.id}/${activePhotoType.toLowerCase()}_${Date.now()}.${fileExt}`;
-                const filePath = `project_images/${fileName}`;
-
-                const { data: uploadData, error: uploadError } = await supabaseClient
-                    .storage
-                    .from('facility-assets')
-                    .upload(filePath, file);
-
-                if (uploadError) throw uploadError;
-
-                const { data: urlData } = supabaseClient
-                    .storage
-                    .from('facility-assets')
-                    .getPublicUrl(filePath);
-                
-                publicUrl = urlData?.publicUrl || '';
-            } else {
-                publicUrl = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            if (supabaseClient && supabaseClient.from) {
-                const { error: dbError } = await supabaseClient
-                    .from('project_actions')
-                    .insert([{
-                        project_id: project.id,
-                        action_title: `${activePhotoType.toUpperCase()} Photo Captured`,
-                        action_notes: `Captured snapshot from dashboard camera hardware.`,
-                        file_url: publicUrl,
-                        created_at: new Date().toISOString()
-                    }]);
-
-                if (dbError) throw dbError;
-            }
-
-            await renderSingleProjectDashboard({ facility, project }, nav);
-
-        } catch (error) {
-            console.error("Camera processing error:", error);
-            alert(`Failed to store photo asset: ${error.message || error}`);
-            await renderSingleProjectDashboard({ facility, project }, nav);
-        }
-    };
-
-    if (cameraInput) {
-        cameraInput.onchange = handlePhotoSelection;
-    }
-
-    const openCameraForType = (type) => {
-        activePhotoType = type;
-        if (cameraInput) {
-            cameraInput.value = '';
-            cameraInput.click();
+    // --- Unified Camera Navigation Router ---
+    const routeToPhotoDashboard = (photoType) => {
+        if (nav.renderPhotoDashboard) {
+            nav.renderPhotoDashboard({ 
+                facility, 
+                project, 
+                photoType: photoType, // 'Before', 'During', or 'After'
+                dashboardTitle: `${photoType.toUpperCase()} Photo Dashboard`
+            });
+        } else {
+            // Fallback alert detailing expected operational capabilities if view has not loaded down stream
+            alert(`${photoType} Dashboard routing requested.\n- Capture New Images\n- Delete Actions\n- Assign to Reports & Contacts (Text/Email)`);
         }
     };
 
     // --- Button Click Linkings ---
     const beforePicBtn = document.getElementById('projectBeforePicBtn');
-    if (beforePicBtn) beforePicBtn.onclick = () => openCameraForType('Before');
+    if (beforePicBtn) beforePicBtn.onclick = () => routeToPhotoDashboard('Before');
 
     const duringPicBtn = document.getElementById('projectDuringPicBtn');
-    if (duringPicBtn) duringPicBtn.onclick = () => openCameraForType('During');
+    if (duringPicBtn) duringPicBtn.onclick = () => routeToPhotoDashboard('During');
 
     const afterPicBtn = document.getElementById('projectAfterPicBtn');
-    if (afterPicBtn) afterPicBtn.onclick = () => openCameraForType('After');
+    if (afterPicBtn) afterPicBtn.onclick = () => routeToPhotoDashboard('After');
 
     // Remaining Dashboard Navigation Links
     const backBtn = document.getElementById('projectBackBtn');
