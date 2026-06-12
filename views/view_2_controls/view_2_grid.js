@@ -5,7 +5,7 @@ FILE NAME    : view_2_grid.js
 SUPABASE TBL : facilities
 VIEW NAME    : Modify Facility Information
 POP-UP TITLE : Modify Facility Information
-LAST UPDATED : 2026-06-12 @ 02:15 PM
+LAST UPDATED : 2026-06-12 @ 02:30 PM
 ================================================================*/
 const __FILENAME = 'view_2_grid.js';
 
@@ -79,17 +79,12 @@ export async function renderFacilityControls(data) {
                     <h1 class="controls-title">${facility?.name || 'FACILITY'}</h1>
                     ${imageHtml}
                     <div class="info-panel">
-                 const encodedAddress = encodeURIComponent(facility?.address || '');
-const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-
-// ... inside your app.innerHTML backticks:
-
-<div class="info-row">
-    <span class="info-label">📍 Address</span>
-    <a href="${mapsUrl}" id="facilityAddressLink" target="_blank" rel="noopener noreferrer" style="color:#00264d; font-weight:500; text-decoration:underline;">
-        ${addressDisplay}
-    </a>
-</div>
+                        <div class="info-row">
+                            <span class="info-label">📍 Address</span>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressDisplay)}" target="_blank" id="facilityAddressLink" style="color:#00264d; font-weight:500; text-decoration:underline;">
+                                ${addressDisplay}
+                            </a>
+                        </div>
                         <div class="info-row" style="margin-top:10px;">
                             <span class="info-label">📞 Phone Contact</span>
                             ${phoneLink}
@@ -137,7 +132,7 @@ const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddres
             </div>
 
             <div class="footer-tag">
-                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-12 @ 02:15 PM
+                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-12 @ 02:30 PM
             </div>
         </div>
     `;
@@ -145,11 +140,16 @@ const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddres
     setupControlsEvents(facility);
 
     // Attach click handlers safely
- const addressLink = document.getElementById('facilityAddressLink');
-if (!addressLink) {
-    console.warn('[view_2_grid.js] facilityAddressLink not found in DOM');
-}
-// Removed the onclick override entirely so the <a> tag behaves normally and opens the map
+    requestAnimationFrame(() => {
+        const addressLink = document.getElementById('facilityAddressLink');
+        if (addressLink) {
+            addressLink.onclick = (e) => {
+                // Allows native anchor navigation to Google Maps to trigger smoothly
+                return true;
+            };
+        } else {
+            console.warn('[view_2_grid.js] facilityAddressLink not found in DOM');
+        }
 
         const backDashBtn = document.getElementById('backDash');
         if (backDashBtn) {
@@ -236,5 +236,4 @@ if (!addressLink) {
 }
 /*================================================================
 END FILE: view_2_grid.js
-UPDATED: 2026-06-12 @ 02:15 PM
 ================================================================*/
