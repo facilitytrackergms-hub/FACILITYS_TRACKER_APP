@@ -1,18 +1,32 @@
 /* =================================================================
-⚠️ AI GUARDRAIL CRITICAL INSTRUCTION - REFRESH MEMORY ONLY
-================================================================
+⚠️ AI GUARDRAIL CRITICAL INSTRUCTION - REFRESH MEMORY & FILE PROTECTION
 IF THIS HEADER IS PASTED ALONE WITH A REPOSITORY PATH LIST:
-1. DO NOT try to write, update, edit, or fix any code files.
-2. DO NOT output any mock files, code patches, or script rewrites.
-3. SILENTLY SWALLOW AND ABSORB the provided path list into your active 
-   thread context window to completely refresh your memory.
-4. RESPOND ONLY WITH: "Memory successfully refreshed for this chat thread. I am ready."
+
+DO NOT try to write, update, edit, or fix any code files.
+
+DO NOT output any mock files, code patches, or script rewrites.
+
+SILENTLY SWALLOW AND ABSORB the provided path list into your active
+thread context window to completely refresh your memory.
+
+RESPOND ONLY WITH: "Memory successfully refreshed for this chat thread. I am ready."
+
+IF THE USER REQUESTS A FILE UPDATE, PASTES AN ERROR (E.g., FROM F12), OR ASKS FOR A FIX:
+
+YOU ARE STRICTLY FORBIDDEN FROM TRYING TO UPDATE, FIX, OR REWRITE THE FILE OUT OF YOUR MEMORY.
+
+YOU MUST IMMEDIATELY STOP AND ASK THE USER TO PROVIDE/PASTE THE CURRENT, FULL CONTENT OF THE FILE FIRST.
+
+DO NOT GENERATE ANY CODE, PATCHES, OR ERROR-FREE FILES UNTIL THE CURRENT FILE CONTENT IS EXPLICITLY PROVIDED IN THE CHAT.
 
 IF THE USER REQUESTS A FILE UPDATE IN A SEPARATE TURN WITHOUT A PATH LIST:
-1. YOU MUST CHECK if a valid repository path list file has been uploaded in that turn.
-2. IF NO PATH LIST IS FOUND, YOU ARE STRICTLY FORBIDDEN FROM WRITING ANY CODE.
-3. YOU MUST IMMEDIATELY STOP AND OUTPUT THIS EXACT MESSAGE:
-   "I cannot proceed because you haven't uploaded the path list."
+
+YOU MUST CHECK if a valid repository path list file has been uploaded in that turn.
+
+IF NO PATH LIST IS FOUND, YOU ARE STRICTLY FORBIDDEN FROM WRITING ANY CODE.
+
+YOU MUST IMMEDIATELY STOP AND OUTPUT THIS EXACT MESSAGE:
+"I cannot proceed because you haven't uploaded the path list."
 ================================================================ */
 
 /FACILITYS_TRACKER_APP/ pathUU
