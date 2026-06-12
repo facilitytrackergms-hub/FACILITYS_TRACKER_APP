@@ -2,10 +2,11 @@
 FILE METADATA
 ================================================================
 FILE NAME    : view_4_home.js
+File Path    : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-10 @ 07:10 AM
+LAST UPDATED : 2026-06-12 @ 04:20 PM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -75,7 +76,7 @@ export async function renderProjectsHome(data, nav) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-10 07:10 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 04:20 PM
                 </div>
             </div>
         </div>
@@ -124,8 +125,18 @@ export async function renderProjectsHome(data, nav) {
                 return;
             }
 
-            // Updated to reference the correct function name from your dashboard file
-            nav.renderSingleProjectDashboard({ facility, project: selectedProject });
+            // CRITICAL ROUTING INTERCEPT: Checks all available nav parameters safely to prevent 404 imports
+            if (nav && typeof nav.renderSingleProjectDashboard === 'function') {
+                nav.renderSingleProjectDashboard({ facility, project: selectedProject });
+            } else if (nav && typeof nav.renderProjectDashboard === 'function') {
+                nav.renderProjectDashboard({ facility, project: selectedProject });
+            } else if (window.view4Engine && typeof window.view4Engine.renderProjectDashboard === 'function') {
+                window.view4Engine.renderProjectDashboard({ facility, project: selectedProject }, nav);
+            } else {
+                if (window.appNavigation && typeof window.appNavigation.navigateTo === 'function') {
+                    window.appNavigation.navigateTo('project_dashboard', { facility, project: selectedProject });
+                }
+            }
         };
     });
 }
