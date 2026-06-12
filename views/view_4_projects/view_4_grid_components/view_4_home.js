@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 03:00 AM
+LAST UPDATED : 2026-06-12 @ 03:05 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -75,7 +75,7 @@ export async function renderProjectsHome(data, nav) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 03:00 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 03:05 AM
                 </div>
             </div>
         </div>
@@ -101,7 +101,36 @@ export async function renderProjectsHome(data, nav) {
         };
     }
 
-    // 3. Bind existing project tile list items
+    // 3. Bind CREATE NEW PROJECT button to safely show the modal wrapper layout
+    let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
+    if (addProjectBtn) {
+        addProjectBtn.onclick = () => {
+            // Check for potential naming schemas in your styles/templates
+            const projectModal = document.getElementById('cabinetProjectModal') || 
+                                 document.getElementById('addProjectModal') || 
+                                 document.querySelector('.modal') || 
+                                 document.querySelector('.cabinet-modal');
+                                 
+            if (projectModal) {
+                projectModal.style.display = 'flex';
+            } else {
+                // If it can't find a local modal container block, fall back cleanly to your nav router handler
+                if (nav && typeof nav.renderCreateProject === 'function') {
+                    nav.renderCreateProject({ facility });
+                } else {
+                    // Simulated trigger backup case for background listener hooks
+                    const modalInputTarget = document.getElementById('addProjectBtn');
+                    if (modalInputTarget && typeof modalInputTarget.click === 'function') {
+                        modalInputTarget.click();
+                    } else {
+                        alert('Could not open Create Project window. Target component missing.');
+                    }
+                }
+            }
+        };
+    }
+
+    // 4. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
