@@ -91,12 +91,12 @@ export async function renderProjectsHome(data, nav) {
         openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
     });
 
-    // 2. Context-Safe BACK BUTTON EVENT LISTENER 
-   let backBtn = document.getElementById('cabinetBackBtn');
+  // 2. Context-Safe BACK BUTTON EVENT LISTENER 
+let backBtn = document.getElementById('cabinetBackBtn');
 if (backBtn) {
     backBtn.onclick = () => {
         if (window.navigateTo) {
-            window.navigateTo('view_2_controls'); // Always go to Facilities Dashboard
+            window.navigateTo('view_2_controls', { facility: facility }); // Go to View 2 Controls with current facility
         }
     };
 }
