@@ -5,7 +5,7 @@ FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
-LAST UPDATED : 2026-06-12 @ 07:05 PM
+LAST UPDATED : 2026-06-12 @ 07:10 PM
 ================================================================*/
 const __FILENAME = 'view_4_photo_dashboard.js';
 
@@ -84,9 +84,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                             <div id="liveGridStream" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                                 ${photos.map(p => `
                                     <div class="photo-card" id="photo-card-${p.id}" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                                        <!-- FIXED: Checkboxes now default to unchecked/blank -->
                                         <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(p.image_url)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" />
-                                        <img src="${escapeAttr(p.image_url)}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
+                                        <img src="${escapeAttr(p.image_url)}" data-id="${p.id}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
                                         <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                             <span style="font-size: 10px; color: #4b5563;">${formatDate(p.created_at)}</span>
                                             <button type="button" class="delete-photo-btn" data-id="${escapeAttr(p.id)}" style="background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
@@ -101,7 +100,25 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                 <!-- Fullscreen Image Zoom Lightbox Modal Popup -->
                 <div id="imageLightboxModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; touch-action: none;">
                     <span id="closeLightboxBtn" style="position: absolute; top: 20px; right: 25px; color: #ffffff; font-size: 38px; font-weight: bold; cursor: pointer; user-select: none; z-index: 2100; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">&times;</span>
-                    <img id="lightboxImage" src="" style="max-width: 95%; max-height: 90%; object-fit: contain; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: scale(1); transition: transform 0.2s ease;" />
+                    <img id="lightboxImage" src="" style="max-width: 95%; max-height: 80%; object-fit: contain; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: scale(1); transition: transform 0.2s ease;" />
+                    
+                    <!-- NEW: Delete from Fullscreen View -->
+                    <button type="button" id="lightboxDeleteBtn" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 2100; font-size: 14px;">
+                        🗑️ Delete This Photo
+                    </button>
+                </div>
+
+                <!-- NEW: Custom Modal for Delete Confirmation (Prevents Accidental Deletes, Iframe Safe) -->
+                <div id="deleteConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center;">
+                    <div style="background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid #e5e7eb;">
+                        <div style="font-size: 40px; margin-bottom: 12px;">⚠️</div>
+                        <h3 style="margin-top: 0; color: #111827; font-size: 18px; font-weight: 700;">Delete Photo?</h3>
+                        <p style="color: #4b5563; font-size: 13px; line-height: 1.5; margin-bottom: 24px; margin-top: 8px;">Are you sure you want to permanently delete this photo? This action cannot be undone.</p>
+                        <div style="display: flex; gap: 12px; justify-content: center;">
+                            <button id="cancelDeleteBtn" type="button" class="cabinet-btn cabinet-btn-gray" style="margin: 0; padding: 10px 18px; font-size: 13px; width: 100%; border-radius: 6px;">Cancel</button>
+                            <button id="confirmDeleteBtn" type="button" class="cabinet-btn" style="margin: 0; padding: 10px 18px; font-size: 13px; width: 100%; background-color: #ef4444; color: white; border-radius: 6px; font-weight: 600;">Delete</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Contact Selection Modal Popup Interface -->
@@ -112,7 +129,6 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                             ${facilityContacts.length === 0 ? '<p style="color: #6b7280; font-size: 13px;">No directory contacts found for this facility.</p>' : 
                             facilityContacts.map(c => `
                                 <label style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; cursor: pointer;">
-                                    <!-- FIXED: Contact checkboxes now default to unchecked/blank -->
                                     <input type="checkbox" class="contact-share-checkbox" data-phone="${escapeAttr(c.phone)}" data-email="${escapeAttr(c.email)}" data-name="${escapeAttr(c.contact_name)}" />
                                     <div>
                                         <div style="font-weight: 500; font-size: 13px;">${escapeHtml(c.contact_name)}</div>
@@ -143,11 +159,75 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
     const captureBtn = document.getElementById('triggerCaptureBtn');
     const backBtn = document.getElementById('photoDashboardBackBtn');
     const shareModal = document.getElementById('shareContactModal');
-    let shareMode = 'text'; // 'text' or 'email'
+    let shareMode = 'text'; 
 
     // Local state tracking to update DOM incrementally
     let localPhotoCount = photos.length;
+    let pendingDeleteId = null;
+    let pendingDeleteCardId = null;
 
+    // --- CUSTOM CONFIRMATION MODAL LOGIC (IFRAME FRIENDLY) ---
+    const deleteModal = document.getElementById('deleteConfirmModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+    const triggerDeleteConfirmation = (photoId, cardId) => {
+        pendingDeleteId = photoId;
+        pendingDeleteCardId = cardId;
+        if (deleteModal) deleteModal.style.display = 'flex';
+    };
+
+    if (cancelDeleteBtn && deleteModal) {
+        cancelDeleteBtn.onclick = (e) => {
+            e.preventDefault();
+            deleteModal.style.display = 'none';
+            pendingDeleteId = null;
+            pendingDeleteCardId = null;
+        };
+    }
+
+    if (confirmDeleteBtn && deleteModal) {
+        confirmDeleteBtn.onclick = async (e) => {
+            e.preventDefault();
+            if (!pendingDeleteId) return;
+
+            try {
+                if (supabase) {
+                    await supabase.from('facility_images').delete().eq('id', pendingDeleteId);
+                }
+                
+                // Remove card from the grid
+                const card = document.getElementById(pendingDeleteCardId);
+                if (card) card.remove();
+
+                // If currently open in lightbox, close it too
+                if (lightboxModal && lightboxModal.style.display === 'flex' && lightboxImg.dataset.id === String(pendingDeleteId)) {
+                    lightboxModal.style.display = 'none';
+                    lightboxImg.src = '';
+                }
+
+                localPhotoCount--;
+                const badge = document.getElementById('galleryCountBadge');
+                if (badge) badge.innerText = localPhotoCount;
+
+                if (localPhotoCount === 0) {
+                    const placeholder = document.getElementById('emptyPhotosPlaceholder');
+                    if (placeholder) placeholder.style.display = 'block';
+                    const bulkWrapper = document.getElementById('bulkActionsWrapper');
+                    if (bulkWrapper) bulkWrapper.style.display = 'none';
+                }
+
+            } catch (err) {
+                console.error("Error deleting image:", err);
+            } finally {
+                deleteModal.style.display = 'none';
+                pendingDeleteId = null;
+                pendingDeleteCardId = null;
+            }
+        };
+    }
+
+    // --- UPLOAD LOGIC ---
     if (captureBtn && cameraInput) {
         captureBtn.onclick = (e) => {
             e.preventDefault();
@@ -167,7 +247,6 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${project.id}_${Date.now()}.${fileExt}`;
                     
-                    // Categorized clean storage folders inside your single bucket
                     const filePath = `project_images/${currentType.toLowerCase()}/${fileName}`;
 
                     const { error: uploadError } = await supabase.storage
@@ -180,7 +259,6 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                         .from('facility-assets')
                         .getPublicUrl(filePath);
 
-                    // Insert payload directly mapped to columns in your facility_images table
                     const { data: insertData, error: dbError } = await supabase
                         .from('facility_images')
                         .insert({
@@ -194,22 +272,17 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
 
                     if (dbError) throw dbError;
 
-                    // Get the newly inserted ID
                     const newPhotoId = insertData?.[0]?.id || Date.now();
 
-                    // --- HIGH-PERFORMANCE DOM INJECTION (Prevents context reload) ---
-                    // 1. Hide the placeholder if it exists
                     const placeholder = document.getElementById('emptyPhotosPlaceholder');
                     if (placeholder) placeholder.style.display = 'none';
 
-                    // 2. Add the photo to our live container
                     const liveGrid = document.getElementById('liveGridStream');
                     if (liveGrid) {
                         const cardMarkup = `
                             <div class="photo-card" id="photo-card-${newPhotoId}" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05); animation: fadeIn 0.3s ease-out;">
-                                <!-- Newly taken photos also start unchecked -->
                                 <input type="checkbox" class="photo-select-checkbox" data-url="${escapeAttr(urlData.publicUrl)}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10; cursor: pointer;" />
-                                <img src="${escapeAttr(urlData.publicUrl)}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
+                                <img src="${escapeAttr(urlData.publicUrl)}" data-id="${newPhotoId}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
                                 <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                     <span style="font-size: 10px; color: #4b5563;">Just now</span>
                                     <button type="button" class="delete-photo-btn" data-id="${escapeAttr(newPhotoId)}" style="background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
@@ -218,38 +291,24 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                         `;
                         liveGrid.insertAdjacentHTML('afterbegin', cardMarkup);
 
-                        // Attach delete listener on the newly created trash button immediately
+                        // Attach trigger event to newly uploaded dynamic item
                         const newCard = document.getElementById(`photo-card-${newPhotoId}`);
                         if (newCard) {
                             const deleteBtn = newCard.querySelector('.delete-photo-btn');
                             if (deleteBtn) {
-                                deleteBtn.onclick = async (delEvt) => {
+                                deleteBtn.onclick = (delEvt) => {
                                     delEvt.preventDefault();
-                                    if (!confirm("Are you sure you want to delete this captured image?")) return;
-                                    try {
-                                        await supabase.from('facility_images').delete().eq('id', newPhotoId);
-                                        newCard.remove();
-                                        localPhotoCount--;
-                                        document.getElementById('galleryCountBadge').innerText = localPhotoCount;
-                                        if (localPhotoCount === 0) {
-                                            if (placeholder) placeholder.style.display = 'block';
-                                            document.getElementById('bulkActionsWrapper').style.display = 'none';
-                                        }
-                                    } catch (err) {
-                                        console.error(err);
-                                    }
+                                    triggerDeleteConfirmation(newPhotoId, `photo-card-${newPhotoId}`);
                                 };
                             }
                         }
                     }
 
-                    // 3. Increment counters & show sharing buttons
                     localPhotoCount++;
                     document.getElementById('galleryCountBadge').innerText = localPhotoCount;
                     document.getElementById('bulkActionsWrapper').style.display = 'flex';
                 }
 
-                // Clean the input, reset button states safely
                 cameraInput.value = "";
                 captureBtn.disabled = false;
                 captureBtn.innerText = "📸 Take New Picture";
@@ -262,68 +321,62 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
         };
     }
 
-    // --- FULLSCREEN IMAGE INTERACTIVE PREVIEW ENGINE (EVENT DELEGATION) ---
+    // --- FULLSCREEN LIGHTBOX & PREVIEW ENGINE ---
     const photoGridContainer = document.getElementById('photoGridContainer');
     const lightboxModal = document.getElementById('imageLightboxModal');
     const lightboxImg = document.getElementById('lightboxImage');
     const closeLightboxBtn = document.getElementById('closeLightboxBtn');
+    const lightboxDeleteBtn = document.getElementById('lightboxDeleteBtn');
 
     if (photoGridContainer && lightboxModal && lightboxImg) {
-        // Monitor any tap/click on thumbnail images inside our grid container
         photoGridContainer.addEventListener('click', (e) => {
             const clickedImg = e.target;
-            // Ensure the clicked element is an image and is part of a photo card (not a checkbox/trash button)
             if (clickedImg.tagName === 'IMG' && clickedImg.closest('.photo-card')) {
                 lightboxImg.src = clickedImg.src;
+                lightboxImg.dataset.id = clickedImg.dataset.id; // Store active photo ID for deletion
                 lightboxModal.style.display = 'flex';
             }
         });
 
-        // Close when clicking the close button
         if (closeLightboxBtn) {
             closeLightboxBtn.onclick = (e) => {
                 e.preventDefault();
                 lightboxModal.style.display = 'none';
                 lightboxImg.src = '';
+                lightboxImg.removeAttribute('data-id');
             };
         }
 
-        // Close when tapping anywhere on the dark background
+        // Handle direct deletion from Zoom Screen
+        if (lightboxDeleteBtn) {
+            lightboxDeleteBtn.onclick = (e) => {
+                e.preventDefault();
+                const activeId = lightboxImg.dataset.id;
+                if (activeId) {
+                    triggerDeleteConfirmation(activeId, `photo-card-${activeId}`);
+                }
+            };
+        }
+
         lightboxModal.onclick = (e) => {
             if (e.target === lightboxModal || e.target === lightboxImg) {
                 lightboxModal.style.display = 'none';
                 lightboxImg.src = '';
+                lightboxImg.removeAttribute('data-id');
             }
         };
     }
 
-    // Connect delete hooks to pre-existing items loaded on page startup
+    // Connect standard card trash bin triggers
     document.querySelectorAll('.delete-photo-btn').forEach(btn => {
         const photoId = btn.dataset.id;
-        btn.onclick = async (e) => {
+        btn.onclick = (e) => {
             e.preventDefault();
-            if (!confirm("Are you sure you want to delete this captured image?")) return;
-            try {
-                if (supabase) {
-                    await supabase.from('facility_images').delete().eq('id', photoId);
-                }
-                const card = document.getElementById(`photo-card-${photoId}`);
-                if (card) card.remove();
-                
-                localPhotoCount--;
-                document.getElementById('galleryCountBadge').innerText = localPhotoCount;
-                if (localPhotoCount === 0) {
-                    const placeholder = document.getElementById('emptyPhotosPlaceholder');
-                    if (placeholder) placeholder.style.display = 'block';
-                    document.getElementById('bulkActionsWrapper').style.display = 'none';
-                }
-            } catch (err) {
-                console.error(err);
-            }
+            triggerDeleteConfirmation(photoId, `photo-card-${photoId}`);
         };
     });
 
-    // Opening Sharing Overlay Management Actions
+    // Share Overlays
     const openShareFlow = (mode) => {
         shareMode = mode;
         const titleEl = document.getElementById('modalShareTitle');
@@ -340,7 +393,6 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
     const closeModalBtn = document.getElementById('closeShareModalBtn');
     if (closeModalBtn) closeModalBtn.onclick = (e) => { e.preventDefault(); if (shareModal) shareModal.style.display = 'none'; };
 
-    // Processing Report Delivery Target Packaging
     const confirmShareBtn = document.getElementById('confirmShareBtn');
     if (confirmShareBtn) {
         confirmShareBtn.onclick = (e) => {
