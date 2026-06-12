@@ -15,7 +15,7 @@ ACTION REQUIRED BY AI:
 ================================================================*/   
 /* =================================================
 FILE: main.js
-UPDATED: 2026-06-12 06:15:00 AM
+UPDATED: 2026-06-12 07:45:00 AM
 
 STRICT HEADER RULE:
 Do not ever remove or change this header section.
@@ -30,7 +30,7 @@ window.navigateTo = async (view, context = {}) => {
     }
 
     // DEFENSIVE REPAIR: preserve UUID/string IDs. Do not force Number().
-    const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups'];
+    const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups', 'view_4_photo_dashboard'];
     if (facilityViews.includes(view)) {
         const facilityId = context?.facility?.id || context?.id || context?.facilityId;
         if (facilityId === undefined || facilityId === null || String(facilityId) === '[object Object]') {
@@ -50,6 +50,7 @@ window.navigateTo = async (view, context = {}) => {
     const navRuntime = {
         renderPendingProjects: (ctx) => window.navigateTo('view_4_projects', ctx),
         renderPhotoDashboard: (ctx) => window.navigateTo('view_4_photo_dashboard', ctx),
+        renderSingleProjectDashboard: (ctx) => window.navigateTo('view_4_project_dashboard', ctx),
         renderVendorDashboard: (ctx) => alert('Vendor Dashboard module coming soon!'),
         renderSuppliesDashboard: (ctx) => alert('Supplies Dashboard module coming soon!'),
         renderProjectStatus: (ctx) => alert('Project Status module coming soon!'),
@@ -80,16 +81,14 @@ window.navigateTo = async (view, context = {}) => {
             await renderSingleProjectDashboard(context, navRuntime);
         }
         else if (view === 'view_4_photo_dashboard') {
-            // Placeholder destination routing for your newly created custom image view
-            const app = document.getElementById('app');
-            app.innerHTML = `
-                <div style="padding: 20px; text-align: center;">
-                    <h2>📸 Photo Management View: ${context.type || 'General'}</h2>
-                    <p>Project context loaded: <strong>${context.project?.id || 'Unknown Project'}</strong></p>
-                    <button id="photoBackToDashboardBtn" style="padding: 10px; cursor: pointer;">⬅️ Back to Project Dashboard</button>
-                </div>
-            `;
-            document.getElementById('photoBackToDashboardBtn').onclick = () => window.navigateTo('view_4_project_dashboard', context);
+            // Normalize context parameters passed dynamically from project dashboard click triggers
+            if (!context.photoType && context.type) {
+                context.photoType = context.type;
+            }
+            
+            // Dynamic import loading the interactive communications center view
+            const { renderPhotoDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_photo_dashboard.js${cb}`);
+            await renderPhotoDashboard(context, navRuntime);
         }
         else if (view === 'view_5_issues') {
             const { renderFacilityIssues } = await import(`/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_grid.js${cb}`);
@@ -124,5 +123,5 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* =================================================
 END FILE: main.js
-UPDATED: 2026-06-12 06:15:00 AM
+UPDATED: 2026-06-12 07:45:00 AM
 ================================================= */
