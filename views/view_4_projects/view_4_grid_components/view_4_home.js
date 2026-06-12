@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 03:10 AM
+LAST UPDATED : 2026-06-12 @ 03:25 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -61,6 +61,7 @@ export async function renderProjectsHome(data, nav) {
                 </div>
 
                 <div style="display:none;">
+                    <button id="addProjectBtn" type="button">Hidden Core Add Project</button>
                     <button id="cabinetAddVendorBtn" type="button">Hidden Add Vendor</button>
                     <button id="cabinetStartVendorJobBtn" type="button">Hidden Start Vendor Job</button>
                 </div>
@@ -75,7 +76,7 @@ export async function renderProjectsHome(data, nav) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 03:10 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 03:25 AM
                 </div>
             </div>
         </div>
