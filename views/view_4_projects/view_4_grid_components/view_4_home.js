@@ -19,7 +19,18 @@ export async function renderProjectsHome(data, nav) {
     title.innerText = 'Facility Projects';
     container.appendChild(title);
 
-    const currentFacility = data?.currentFacility || localStorage.getItem('current_facility_ref');
+    let currentFacility = data?.currentFacility;
+    if (!currentFacility) {
+        const stored = localStorage.getItem('current_facility_ref');
+        if (stored) {
+            try {
+                currentFacility = JSON.parse(stored);
+            } catch(e) {
+                console.warn('[view_4_home.js] Failed to parse stored facility', e);
+            }
+        }
+    }
+
     console.log('[view_4_home.js] currentFacility resolved:', currentFacility);
     if (!currentFacility) {
         const fallbackMsg = document.createElement('p');
@@ -68,26 +79,19 @@ export async function renderProjectsHome(data, nav) {
 
         viewBtn.onclick = async (e) => {
             e.stopPropagation();
-            console.log('[view_4_home.js] Project button clicked:', project);
-
             let dashboardEl;
             if (nav && typeof nav.renderProjectDashboard === 'function') {
                 dashboardEl = await nav.renderProjectDashboard(project, nav);
             } else if (window.view4Engine && typeof window.view4Engine.renderProjectDashboard === 'function') {
                 dashboardEl = await window.view4Engine.renderProjectDashboard(project, nav);
-            } else {
-                console.error('[view_4_home.js] navigation framework missing renderProjectDashboard.');
-                if (nav && typeof nav.navigateTo === 'function') {
-                    return nav.navigateTo('project_dashboard', { project });
-                }
+            } else if (nav && typeof nav.navigateTo === 'function') {
+                return nav.navigateTo('project_dashboard', { project });
             }
 
             if (dashboardEl) {
                 const mainArea = document.getElementById('main-content-display-area') || document.body;
                 mainArea.innerHTML = '';
                 mainArea.appendChild(dashboardEl);
-            } else {
-                console.warn('[view_4_home.js] renderProjectDashboard returned nothing.');
             }
         };
 
