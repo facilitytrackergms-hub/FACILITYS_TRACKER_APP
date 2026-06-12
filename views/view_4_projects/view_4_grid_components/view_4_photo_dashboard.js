@@ -5,7 +5,7 @@ FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
-LAST UPDATED : 2026-06-12 @ 07:10 PM
+LAST UPDATED : 2026-06-12 @ 07:15 PM
 ================================================================*/
 const __FILENAME = 'view_4_photo_dashboard.js';
 
@@ -57,9 +57,11 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     <button type="button" id="triggerCaptureBtn" class="cabinet-btn cabinet-btn-green" style="font-size: 16px; padding: 12px; width: 100%; max-width: 300px; margin: 0 auto; display: block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                         📸 Take New Picture
                     </button>
-                    <p style="font-size: 11px; color: #6b7280; margin-top: 6px; margin-bottom: 0;">
-                        Tap to capture. The app stays open so you can capture photo after photo instantly!
-                    </p>
+
+                    <!-- Relocated Finish & Back Button directly under green button -->
+                    <button type="button" id="photoDashboardBackBtn" class="cabinet-btn cabinet-btn-gray" style="font-size: 14px; padding: 10px; width: 100%; max-width: 300px; margin: 10px auto 0 auto; display: block;">
+                        ⬅️ Finish & Back to Dashboard
+                    </button>
                 </div>
 
                 <!-- Picture Grid Stream with Action Checkboxes -->
@@ -97,18 +99,23 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     </div>
                 </div>
 
-                <!-- Fullscreen Image Zoom Lightbox Modal Popup -->
-                <div id="imageLightboxModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; touch-action: none;">
+                <!-- Fullscreen Image Zoom Lightbox Modal Popup (With Touch Navigation Support) -->
+                <div id="imageLightboxModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; touch-action: none; user-select: none;">
                     <span id="closeLightboxBtn" style="position: absolute; top: 20px; right: 25px; color: #ffffff; font-size: 38px; font-weight: bold; cursor: pointer; user-select: none; z-index: 2100; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">&times;</span>
-                    <img id="lightboxImage" src="" style="max-width: 95%; max-height: 80%; object-fit: contain; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: scale(1); transition: transform 0.2s ease;" />
                     
-                    <!-- NEW: Delete from Fullscreen View -->
+                    <!-- Swipe helper overlay indicators -->
+                    <div style="position: absolute; left: 15px; color: rgba(255,255,255,0.4); font-size: 24px; pointer-events: none; user-select: none;">〈</div>
+                    <div style="position: absolute; right: 15px; color: rgba(255,255,255,0.4); font-size: 24px; pointer-events: none; user-select: none;">〉</div>
+
+                    <img id="lightboxImage" src="" style="max-width: 95%; max-height: 80%; object-fit: contain; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: scale(1); transition: transform 0.2s ease, opacity 0.15s ease; opacity: 1;" />
+                    
+                    <!-- Delete from Fullscreen View -->
                     <button type="button" id="lightboxDeleteBtn" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 2100; font-size: 14px;">
                         🗑️ Delete This Photo
                     </button>
                 </div>
 
-                <!-- NEW: Custom Modal for Delete Confirmation (Prevents Accidental Deletes, Iframe Safe) -->
+                <!-- Custom Modal for Delete Confirmation (Prevents Accidental Deletes, Iframe Safe) -->
                 <div id="deleteConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center;">
                     <div style="background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid #e5e7eb;">
                         <div style="font-size: 40px; margin-bottom: 12px;">⚠️</div>
@@ -144,12 +151,6 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                     </div>
                 </div>
 
-                <!-- Exit Navigation Options -->
-                <div style="margin-top: 25px;">
-                    <button type="button" id="photoDashboardBackBtn" class="cabinet-btn cabinet-btn-gray" style="width: 100%;">
-                        ⬅️ Finish & Back to Dashboard
-                    </button>
-                </div>
             </div>
         </div>
     `;
@@ -321,19 +322,28 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
         };
     }
 
-    // --- FULLSCREEN LIGHTBOX & PREVIEW ENGINE ---
+    // --- FULLSCREEN LIGHTBOX, PREVIEW & SWIPE NAVIGATION ENGINE ---
     const photoGridContainer = document.getElementById('photoGridContainer');
     const lightboxModal = document.getElementById('imageLightboxModal');
     const lightboxImg = document.getElementById('lightboxImage');
     const closeLightboxBtn = document.getElementById('closeLightboxBtn');
     const lightboxDeleteBtn = document.getElementById('lightboxDeleteBtn');
 
+    // Dynamically retrieve current image elements on screen for swiping order
+    const getGalleryImages = () => {
+        const imgElements = Array.from(document.querySelectorAll('#liveGridStream .photo-card img'));
+        return imgElements.map(img => ({
+            id: img.getAttribute('data-id'),
+            src: img.getAttribute('src')
+        }));
+    };
+
     if (photoGridContainer && lightboxModal && lightboxImg) {
         photoGridContainer.addEventListener('click', (e) => {
             const clickedImg = e.target;
             if (clickedImg.tagName === 'IMG' && clickedImg.closest('.photo-card')) {
                 lightboxImg.src = clickedImg.src;
-                lightboxImg.dataset.id = clickedImg.dataset.id; // Store active photo ID for deletion
+                lightboxImg.dataset.id = clickedImg.dataset.id; // Store active photo ID
                 lightboxModal.style.display = 'flex';
             }
         });
@@ -358,6 +368,61 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
             };
         }
 
+        // Touch Variables for Mobile Swipe Gestures
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        const navigateGallery = (direction) => {
+            const gallery = getGalleryImages();
+            if (gallery.length <= 1) return;
+
+            const currentId = lightboxImg.dataset.id;
+            const currentIndex = gallery.findIndex(item => String(item.id) === String(currentId));
+            if (currentIndex === -1) return;
+
+            let targetIndex = currentIndex;
+            if (direction === 'next') {
+                targetIndex = currentIndex + 1;
+                if (targetIndex >= gallery.length) targetIndex = 0; // loop to start
+            } else if (direction === 'prev') {
+                targetIndex = currentIndex - 1;
+                if (targetIndex < 0) targetIndex = gallery.length - 1; // loop to end
+            }
+
+            const nextPhoto = gallery[targetIndex];
+            if (nextPhoto) {
+                // Apply a smooth transition effect
+                lightboxImg.style.opacity = '0';
+                setTimeout(() => {
+                    lightboxImg.src = nextPhoto.src;
+                    lightboxImg.dataset.id = nextPhoto.id;
+                    lightboxImg.style.opacity = '1';
+                }, 120);
+            }
+        };
+
+        // Touch gesture capture hooks
+        lightboxModal.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].clientX;
+        }, { passive: true });
+
+        lightboxModal.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].clientX;
+            const swipeThreshold = 45; // pixels
+            const diffX = touchEndX - touchStartX;
+
+            if (Math.abs(diffX) > swipeThreshold) {
+                if (diffX > 0) {
+                    // Swipe right -> Show Previous image
+                    navigateGallery('prev');
+                } else {
+                    // Swipe left -> Show Next image
+                    navigateGallery('next');
+                }
+            }
+        }, { passive: true });
+
+        // Click off background to close
         lightboxModal.onclick = (e) => {
             if (e.target === lightboxModal || e.target === lightboxImg) {
                 lightboxModal.style.display = 'none';
