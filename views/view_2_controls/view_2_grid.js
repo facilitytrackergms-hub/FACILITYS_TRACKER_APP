@@ -128,7 +128,7 @@ export async function renderFacilityControls(data) {
                             </a>
                         </div>
                         <div class="info-row" style="margin-top:10px;">
-                            <span class="info-label">📞 Phone Contact</span>
+                            <span class="info-label"> Phone Contact</span>
                             ${phoneLink}
                         </div>
                     </div>
