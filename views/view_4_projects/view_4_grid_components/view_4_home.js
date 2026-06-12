@@ -6,7 +6,7 @@ File Path    : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 04:20 PM
+LAST UPDATED : 2026-06-12 @ 08:00 PM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -76,7 +76,7 @@ export async function renderProjectsHome(data, nav) {
                 ${renderHomeModals(projects, vendors)}
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 04:20 PM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 08:00 PM
                 </div>
             </div>
         </div>
@@ -87,7 +87,13 @@ export async function renderProjectsHome(data, nav) {
         facility,
         projects,
         vendors,
-        refreshHome: () => nav.renderPendingProjects({ facility }),
+        refreshHome: () => {
+            if (nav && typeof nav.renderPendingProjects === 'function') {
+                nav.renderPendingProjects({ facility });
+            } else {
+                window.location.reload();
+            }
+        },
         openVendor: vendorId => nav.renderVendorDashboard({ facility, vendorId }),
         openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
     });
@@ -103,13 +109,24 @@ export async function renderProjectsHome(data, nav) {
     }
 
     // 3. Bind CREATE NEW PROJECT button safely
+    // UI Logic Fix: Changed the button click handler to bypass immediate page reloading and delegate to view_4_modal.js listener instead
     let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
     if (addProjectBtn) {
-        addProjectBtn.onclick = () => {
-            if (nav && typeof nav.renderPendingProjects === 'function') {
-                nav.renderPendingProjects({ facility });
+        addProjectBtn.onclick = (e) => {
+            if (e) e.preventDefault();
+            const projectModal = document.getElementById('cabinetProjectModal');
+            if (projectModal) {
+                // Clear any leftover field values before showing
+                const titleInput = document.getElementById('cabinetProjectTitleInput');
+                const notesInput = document.getElementById('cabinetProjectNotesInput');
+                const noticeDiv = document.getElementById('cabinetProjectModalNotice');
+                if (titleInput) titleInput.value = '';
+                if (notesInput) notesInput.value = '';
+                if (noticeDiv) noticeDiv.style.display = 'none';
+                
+                projectModal.style.display = 'block';
             } else {
-                alert('Create Project: navigation method not available.');
+                console.warn('[view_4_home.js] cabinetProjectModal layout structural element not found in DOM context.');
             }
         };
     }
