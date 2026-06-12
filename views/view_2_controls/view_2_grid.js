@@ -5,7 +5,7 @@ FILE NAME    : view_2_grid.js
 SUPABASE TBL : facilities
 VIEW NAME    : Modify Facility Information
 POP-UP TITLE : Modify Facility Information
-LAST UPDATED : 2026-06-12 @ 01:40 PM
+LAST UPDATED : 2026-06-12 @ 02:15 PM
 ================================================================*/
 const __FILENAME = 'view_2_grid.js';
 
@@ -36,25 +36,55 @@ export async function renderFacilityControls(data) {
         `;
     }
 
-    const styles = `...`; // your existing CSS unchanged
+    const styles = `
+        <style>
+            .controls-container { padding: 20px; font-family: Arial; background:#f3f4f6; min-height:100vh; text-align:center; box-sizing: border-box; }
+            .controls-card { background: white; border-radius: 18px; padding: 25px; max-width: 500px; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.06); position: relative; }
+            .controls-title { color:#00264d; font-size:24px; margin:0 0 5px 0; line-height:1.1; text-transform:uppercase; font-weight: 900; padding-right: 40px; }
+            
+            .manage-trigger-btn { position: absolute; top: 20px; right: 20px; background: #e2e8f0; border: none; font-size: 16px; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #334155; }
+            .manage-trigger-btn:hover { background: #cbd5e1; }
+
+            .info-panel { background:#f8fafc; border-radius:12px; padding:12px 15px; margin: 15px auto; width:90%; border:1px solid #e2e8f0; text-align:left; box-sizing: border-box; }
+            .info-row { font-size:13px; color:#475569; margin-bottom:6px; line-height:1.4; }
+            .info-row:last-child { margin-bottom: 0; }
+            .info-label { font-weight:bold; color:#00264d; text-transform:uppercase; font-size:11px; display:block; margin-bottom:2px; }
+            
+            .divider-line { width:100%; max-width:320px; height:5px; background:#00264d; margin:20px auto; border-radius:2px; }
+
+            .menu-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 360px; margin: 0 auto; }
+            .action-btn { position:relative; width:100%; padding:14px 8px; background:#00264d; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:12px; text-align:center; box-sizing: border-box; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+            .badge-counter { position:absolute; top:-6px; right:-6px; background:#dc2626; color:white; font-size:11px; padding:3px 8px; border-radius: 9999px; font-weight:bold; border:2px solid white; display:none; }
+            .back-btn { margin-top:5px; background:#6b7280; grid-column: span 2; }
+
+            .mgmt-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 10000; box-sizing: border-box; }
+            .mgmt-content { background: white; max-width: 440px; margin: 5vh auto; border-radius: 16px; padding: 20px; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+            .mgmt-field { margin-bottom: 12px; }
+            .mgmt-field label { display: block; font-size: 11px; font-weight: bold; color: #00264d; text-transform: uppercase; margin-bottom: 4px; }
+            .mgmt-field input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+            .mgmt-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+            .mgmt-btn-save { padding: 12px; background: #28a745; color: white; font-weight: bold; text-transform: uppercase; border:none; border-radius: 8px; cursor: pointer; text-align: center; }
+            .mgmt-btn-delete { padding: 10px; background: #dc2625; color: white; font-weight: bold; text-transform: uppercase; border:none; border-radius: 8px; cursor: pointer; text-align: center; font-size:11px; margin-top: 10px; }
+            .mgmt-btn-cancel { padding: 10px; background: #6b7280; color: white; font-weight: bold; text-transform: uppercase; border:none; border-radius: 8px; cursor: pointer; text-align: center; }
+            .footer-tag { margin-top:40px; font-size:10px; color:#94a3b8; border-top:1px solid #e5e7eb; padding-top:10px; }
+        </style>
+    `;
 
     app.innerHTML = `
         ${styles}
         <div class="controls-container">
             <div class="controls-card">
                 <button id="openMgmtBtn" class="manage-trigger-btn">⚙️ Edit</button>
-                
                 <div>
                     <h1 class="controls-title">${facility?.name || 'FACILITY'}</h1>
-                    
                     ${imageHtml}
-
-                   <div class="info-row">
-    <span class="info-label">📍 Address</span>
-    <a href="#" id="facilityAddressLink" style="color:#00264d; font-weight:500; text-decoration:underline;">
-        ${addressDisplay}
-    </a>
-</div>
+                    <div class="info-panel">
+                        <div class="info-row">
+                            <span class="info-label">📍 Address</span>
+                            <a href="#" id="facilityAddressLink" style="color:#00264d; font-weight:500; text-decoration:underline;">
+                                ${addressDisplay}
+                            </a>
+                        </div>
                         <div class="info-row" style="margin-top:10px;">
                             <span class="info-label">📞 Phone Contact</span>
                             ${phoneLink}
@@ -65,31 +95,52 @@ export async function renderFacilityControls(data) {
                 <div class="divider-line"></div>
 
                 <div class="menu-layout">
-                    <button id="toIndividualIssues" class="action-btn">
-                        🚨 1. Issues
-                        <span id="issuesTrackBadge" class="badge-counter">0</span>
-                    </button>
-
+                    <button id="toIndividualIssues" class="action-btn">🚨 1. Issues <span id="issuesTrackBadge" class="badge-counter">0</span></button>
                     <button id="toContacts" class="action-btn">👥 2. Contact</button>
                     <button id="toProjects" class="action-btn">📋 3. Projects</button>
                     <button id="toGallery" class="action-btn">🖼️ 4. Images</button>
-                    
                     <button id="backDash" class="action-btn back-btn">⬅️ 5. Back to Dashboard</button>
                 </div>
             </div>
 
-            <div id="mgmtOverlay" class="mgmt-overlay"> ... </div>
+            <div id="mgmtOverlay" class="mgmt-overlay">
+                <div class="mgmt-content">
+                    <h3 style="margin-top:0; color:#00264d; font-size:18px;">Modify Facility Information</h3>
+                    <div class="mgmt-field">
+                        <label>Facility Name</label>
+                        <input type="text" id="editMgmtName" value="${facility?.name || ''}">
+                    </div>
+                    <div class="mgmt-field">
+                        <label>Street Address</label>
+                        <input type="text" id="editMgmtAddress" value="${facility?.address || ''}">
+                    </div>
+                    <div class="mgmt-field">
+                        <label>Phone Number</label>
+                        <input type="text" id="editMgmtPhone" value="${facility?.phone || ''}">
+                    </div>
+                    <div class="mgmt-field" style="margin-top:15px; background: #f8fafc; padding: 10px; border-radius:8px; border: 1px dashed #cbd5e1;">
+                        <label>Change Profile Banner Image</label>
+                        <input type="file" id="editMgmtFile" accept="image/*" style="border:none; padding:4px 0;">
+                    </div>
+
+                    <div class="mgmt-actions">
+                        <button id="saveMgmtBtn" class="mgmt-btn-save">Apply Configuration Changes</button>
+                        <button id="closeMgmtBtn" class="mgmt-btn-cancel">Discard / Cancel</button>
+                        <button id="deleteMgmtBtn" class="mgmt-btn-delete">🗑️ Delete Facility Entirely</button>
+                    </div>
+                </div>
+            </div>
 
             <div class="footer-tag">
-                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-12 @ 01:40 PM
+                File: views/view_2_controls/view_2_grid.js | Updated: 2026-06-12 @ 02:15 PM
             </div>
         </div>
     `;
 
     setupControlsEvents(facility);
 
-    // Attach address click safely
-    const attachAddressNav = () => {
+    // Attach click handlers safely
+    requestAnimationFrame(() => {
         const addressLink = document.getElementById('facilityAddressLink');
         if (addressLink) {
             addressLink.onclick = () => {
@@ -98,10 +149,18 @@ export async function renderFacilityControls(data) {
         } else {
             console.warn('[view_2_grid.js] facilityAddressLink not found in DOM');
         }
-    };
-    requestAnimationFrame(attachAddressNav);
 
-    // Existing handlers
+        const backDashBtn = document.getElementById('backDash');
+        if (backDashBtn) {
+            backDashBtn.onclick = () => {
+                if (window.navigateTo) window.navigateTo('view_1_facility');
+            };
+        } else {
+            console.warn('[view_2_grid.js] backDash button not found in DOM');
+        }
+    });
+
+    // Form management buttons
     const mgmtOverlay = document.getElementById('mgmtOverlay');
     const openMgmtBtn = document.getElementById('openMgmtBtn');
     const closeMgmtBtn = document.getElementById('closeMgmtBtn');
@@ -112,17 +171,58 @@ export async function renderFacilityControls(data) {
     openMgmtBtn.onclick = () => { mgmtOverlay.style.display = 'block'; };
     closeMgmtBtn.onclick = () => { mgmtOverlay.style.display = 'none'; };
 
-    saveMgmtBtn.onclick = async () => { ... };  // your existing save logic
-    deleteMgmtBtn.onclick = async () => { ... }; // your existing delete logic
+    saveMgmtBtn.onclick = async () => {
+        const updatedName = document.getElementById('editMgmtName').value.trim();
+        const updatedAddress = document.getElementById('editMgmtAddress').value.trim();
+        const updatedPhone = document.getElementById('editMgmtPhone').value.trim();
+
+        if (!updatedName || !updatedAddress) {
+            alert("[ERR-ALERT:view_2_grid:validation_failed] Name and Address parameters cannot be empty.");
+            return;
+        }
+
+        saveMgmtBtn.textContent = "⏳ Synchronizing Updates...";
+        saveMgmtBtn.disabled = true;
+
+        if (editMgmtFile.files && editMgmtFile.files[0]) {
+            await uploadFacilityImage(facility.id, editMgmtFile.files[0]);
+        }
+
+        const success = await updateFacilityDetails(facility.id, updatedName, updatedAddress, updatedPhone);
+        if (success) {
+            mgmtOverlay.style.display = 'none';
+            renderFacilityControls({ id: facility.id });
+        } else {
+            alert("[ERR-ALERT:view_2_grid:db_write_failed] Database write error encountered updating your record details.");
+            saveMgmtBtn.textContent = "Apply Configuration Changes";
+            saveMgmtBtn.disabled = false;
+        }
+    };
+
+    deleteMgmtBtn.onclick = async () => {
+        if (confirm(`CRITICAL WARNING:\nAre you absolutely sure you want to permanently erase "${facility.name}"? This operation cannot be undone.`)) {
+            deleteMgmtBtn.textContent = "⏳ Cascading Dropped Records...";
+            deleteMgmtBtn.disabled = true;
+            
+            const success = await deleteFacilityRecord(facility.id);
+            if (success) {
+                mgmtOverlay.style.display = 'none';
+                if (window.navigateTo) window.navigateTo('view_1_facility');
+            } else {
+                alert("[ERR-ALERT:view_2_grid:db_delete_failed] Database deletion exception encountered.");
+                deleteMgmtBtn.textContent = "🗑️ Delete Facility Entirely";
+                deleteMgmtBtn.disabled = false;
+            }
+        }
+    };
 
     // Navigation submenu
     document.getElementById('toIndividualIssues').onclick = () => { if(window.navigateTo) window.navigateTo('view_5_issues', { facility }); };
     document.getElementById('toContacts').onclick = () => { if(window.navigateTo) window.navigateTo('view_3_contacts', { facility }); };
     document.getElementById('toProjects').onclick = () => { if(window.navigateTo) window.navigateTo('view_4_projects', { facility }); };
     document.getElementById('toGallery').onclick = () => { if(window.navigateTo) window.navigateTo('view_6_images', { facility }); };
-    document.getElementById('backDash').onclick = () => { if(window.navigateTo) window.navigateTo('view_1_facility'); };
 
-    // Badge sync
+    // Live Badge Counter
     try {
         const activeIssues = await fetchFacilityIssues(facility.id);
         const activeCount = activeIssues ? activeIssues.filter(i => i.status !== 'Resolved' && i.status !== 'Closed').length : 0;
@@ -135,5 +235,5 @@ export async function renderFacilityControls(data) {
 }
 /*================================================================
 END FILE: view_2_grid.js
-UPDATED: 2026-06-12 @ 01:40 PM
+UPDATED: 2026-06-12 @ 02:15 PM
 ================================================================*/
