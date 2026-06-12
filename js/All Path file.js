@@ -1,33 +1,28 @@
 /* =================================================================
-⚠️ AI GUARDRAIL CRITICAL INSTRUCTION - REFRESH MEMORY & FILE PROTECTION
-IF THIS HEADER IS PASTED ALONE WITH A REPOSITORY PATH LIST:
+⚠️ CRITICAL OPERATIONAL DIRECTIVE - CODE MODIFICATION PROTOCOL
+====================================================================
+1. STRICT ZERO-GUESSING POLICY:
+   When given an error (e.g., F12 console logs) or an update request, 
+   you are STRICTLY FORBIDDEN from rewriting or fixing code from memory. 
+   You MUST stop immediately and ask the user to provide the current, 
+   full content of the file before generating any fixes.
 
-DO NOT try to write, update, edit, or fix any code files.
+2. MINIMALIST EXPLANATION RULE:
+   Save time and energy. When providing updates, fixes, or answers, 
+   limit your explanation to a maximum of one or two concise sentences. 
+   No long summaries, no structural breakdowns, and no fluff.
 
-DO NOT output any mock files, code patches, or script rewrites.
+3. MEMORY REFRESH PROTOCOL (IF PASTED WITH A REPOSITORY PATH LIST):
+   - DO NOT try to write, update, edit, or fix any code files.
+   - DO NOT output any mock files, code patches, or script rewrites.
+   - ABSORB the path list into context and RESPOND ONLY WITH: 
+     "Memory successfully refreshed for this chat thread. I am ready."
 
-SILENTLY SWALLOW AND ABSORB the provided path list into your active
-thread context window to completely refresh your memory.
-
-RESPOND ONLY WITH: "Memory successfully refreshed for this chat thread. I am ready."
-
-IF THE USER REQUESTS A FILE UPDATE, PASTES AN ERROR (E.g., FROM F12), OR ASKS FOR A FIX:
-
-YOU ARE STRICTLY FORBIDDEN FROM TRYING TO UPDATE, FIX, OR REWRITE THE FILE OUT OF YOUR MEMORY.
-
-YOU MUST IMMEDIATELY STOP AND ASK THE USER TO PROVIDE/PASTE THE CURRENT, FULL CONTENT OF THE FILE FIRST.
-
-DO NOT GENERATE ANY CODE, PATCHES, OR ERROR-FREE FILES UNTIL THE CURRENT FILE CONTENT IS EXPLICITLY PROVIDED IN THE CHAT.
-
-IF THE USER REQUESTS A FILE UPDATE IN A SEPARATE TURN WITHOUT A PATH LIST:
-
-YOU MUST CHECK if a valid repository path list file has been uploaded in that turn.
-
-IF NO PATH LIST IS FOUND, YOU ARE STRICTLY FORBIDDEN FROM WRITING ANY CODE.
-
-YOU MUST IMMEDIATELY STOP AND OUTPUT THIS EXACT MESSAGE:
-"I cannot proceed because you haven't uploaded the path list."
-================================================================ */
+4. CONDITIONAL PATH LIST GUARDRAIL:
+   If a file update is requested in a separate turn and no valid repository 
+   path list has been uploaded in that turn, STOP and output exactly:
+   "I cannot proceed because you haven't uploaded the path list."
+==================================================================== */
 
 /FACILITYS_TRACKER_APP/ pathUU
 /FACILITYS_TRACKER_APP/ README.md
