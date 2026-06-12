@@ -1,142 +1,141 @@
 /*================================================================
 FILE METADATA
-
-FILE NAME : view_4_home.js
+================================================================
+FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
-VIEW NAME : Facility Projects Dashboard
+VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 18:10 PM
+LAST UPDATED : 2026-06-12 @ 18:20 PM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
 import {
-fetchFacilityProjects,
-fetchVendors
+    fetchFacilityProjects,
+    fetchVendors
 } from '../view_4_data.js';
 
 import {
-setupCabinetHomeEvents
+    setupCabinetHomeEvents
 } from '../view_4_modal.js';
 
 import {
-escapeHtml,
-renderProjectButtons,
-renderHomeModals
+    escapeHtml,
+    renderProjectButtons,
+    renderHomeModals
 } from './view_4_render_helpers.js';
 
 import {
-renderStyles
+    renderStyles
 } from './view_4_styles.js';
 
 export async function renderProjectsHome(data, nav) {
-const facility = data?.facility ? data.facility : data;
+    const facility = data?.facility ? data.facility : data;
 
-if (!facility || !facility.id) {
-    console.error('[view_4_home.js] Facility context missing inside Facility Projects Dashboard.');
-    const appMissing = document.getElementById('app');
-    if (appMissing) {
-        appMissing.innerHTML = '<p style="color:red; text-align:center; padding:20px;">[view_4_home.js] Missing facility context.</p>';
+    if (!facility || !facility.id) {
+        console.error('[view_4_home.js] Facility context missing inside Facility Projects Dashboard.');
+        const appMissing = document.getElementById('app');
+        if (appMissing) {
+            appMissing.innerHTML = '<p style="color:red; text-align:center; padding:20px;">[view_4_home.js] Missing facility context.</p>';
+        }
+        return;
     }
-    return;
-}
 
-const app = document.getElementById('app');
-const facilityName = escapeHtml(facility.name || facility.Name || 'Facility');
+    const app = document.getElementById('app');
+    const facilityName = escapeHtml(facility.name || facility.Name || 'Facility');
 
-const [projects, vendors] = await Promise.all([
-    fetchFacilityProjects(facility.id),
-    fetchVendors()
-]);
+    const [projects, vendors] = await Promise.all([
+        fetchFacilityProjects(facility.id),
+        fetchVendors()
+    ]);
 
-app.innerHTML = `
-    ${renderStyles()}
-    <div class="vendor-cabinet-shell">
-        <div class="vendor-cabinet-card">
-            <h1 class="vendor-cabinet-title">${facilityName} Projects Dashboard</h1>
-            <p class="vendor-cabinet-sub">Facility Projects</p>
+    app.innerHTML = `
+        ${renderStyles()}
+        <div class="vendor-cabinet-shell">
+            <div class="vendor-cabinet-card">
+                <h1 class="vendor-cabinet-title">${facilityName} Projects Dashboard</h1>
+                <p class="vendor-cabinet-sub">Facility Projects</p>
 
-            <div class="cabinet-action-grid single-action-grid">
-                <button id="cabinetAddProjectBtn" class="cabinet-btn cabinet-btn-green">➕ Create New Project</button>
-                <button id="cabinetBackBtn" class="cabinet-btn cabinet-btn-gray">⬅️ Back</button>
-            </div>
+                <div class="cabinet-action-grid single-action-grid">
+                    <button id="cabinetAddProjectBtn" class="cabinet-btn cabinet-btn-green">➕ Create New Project</button>
+                    <button id="cabinetBackBtn" class="cabinet-btn cabinet-btn-gray">⬅️ Back</button>
+                </div>
 
-            <div style="display:none;">
-                <button id="cabinetAddVendorBtn" type="button">Hidden Add Vendor</button>
-                <button id="cabinetStartVendorJobBtn" type="button">Hidden Start Vendor Job</button>
-            </div>
+                <div style="display:none;">
+                    <button id="cabinetAddVendorBtn" type="button">Hidden Add Vendor</button>
+                    <button id="cabinetStartVendorJobBtn" type="button">Hidden Start Vendor Job</button>
+                </div>
 
-            <div class="cabinet-section">
-                <h2 class="cabinet-section-title">Facility Projects</h2>
-                <div id="facilityProjectButtonGrid" class="project-button-grid">
-                    ${renderProjectButtons(projects)}
+                <div class="cabinet-section">
+                    <h2 class="cabinet-section-title">Facility Projects</h2>
+                    <div id="facilityProjectButtonGrid" class="project-button-grid">
+                        ${renderProjectButtons(projects)}
+                    </div>
+                </div>
+
+                ${renderHomeModals(projects, vendors)}
+
+                <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 18:20 PM
                 </div>
             </div>
-
-            ${renderHomeModals(projects, vendors)}
-
-            <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 18:10 PM
-            </div>
         </div>
-    </div>
-`;
+    `;
 
-// 1. Initialize modal triggers and core events
-setupCabinetHomeEvents({
-    facility,
-    projects,
-    vendors,
-    refreshHome: () => nav?.renderPendingProjects?.({ facility }),
-    openVendor: vendorId => nav?.renderVendorDashboard?.({ facility, vendorId }),
-    openVendorJob: vendorJobId => nav?.renderVendorJobDashboard?.({ facility, vendorJobId }),
-    renderProjectDashboard: (projectData) => nav?.renderProjectDashboard?.(projectData)
-});
+    // 1. Initialize modal triggers and core events
+    setupCabinetHomeEvents({
+        facility,
+        projects,
+        vendors,
+        refreshHome: () => nav?.renderPendingProjects?.({ facility }),
+        openVendor: vendorId => nav?.renderVendorDashboard?.({ facility, vendorId }),
+        openVendorJob: vendorJobId => nav?.renderVendorJobDashboard?.({ facility, vendorJobId }),
+        renderProjectDashboard: projectData => nav?.renderProjectDashboard?.(projectData)
+    });
 
-// 2. Context-Safe BACK BUTTON EVENT LISTENER 
-let backBtn = document.getElementById('cabinetBackBtn');
-if (backBtn) {
-    backBtn.onclick = () => {
-        if (window.navigateTo) {
-            window.navigateTo('view_2_controls', { facility: facility }); // Go to View 2 Controls with current facility
-        }
-    };
+    // 2. Context-Safe BACK BUTTON EVENT LISTENER 
+    const backBtn = document.getElementById('cabinetBackBtn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            if (window.navigateTo) {
+                window.navigateTo('view_2_controls', { facility: facility });
+            }
+        };
+    }
+
+    // 3. Bind CREATE NEW PROJECT button safely
+    const addProjectBtn = document.getElementById('cabinetAddProjectBtn');
+    if (addProjectBtn) {
+        addProjectBtn.onclick = () => {
+            if (nav && typeof nav.renderPendingProjects === 'function') {
+                nav.renderPendingProjects({ facility });
+            } else {
+                alert('Create Project: navigation method not available.');
+            }
+        };
+    }
+
+    // 4. Bind existing project tile list items
+    document.querySelectorAll('[data-open-project]').forEach(button => {
+        button.onclick = () => {
+            const projectId = button.dataset.openProject;
+            const selectedProject = projects.find(project => String(project.id) === String(projectId));
+
+            if (!selectedProject) {
+                alert('[view_4_home.js] Project Button Error: Project not found in the current facility project list.');
+                return;
+            }
+
+            if (nav && typeof nav.renderProjectDashboard === 'function') {
+                nav.renderProjectDashboard({ facility, project: selectedProject });
+            } else if (window.view4Engine && typeof window.view4Engine.renderProjectDashboard === 'function') {
+                window.view4Engine.renderProjectDashboard({ facility, project: selectedProject });
+            } else {
+                console.error('[view_4_home.js] nav.renderProjectDashboard not available.');
+            }
+        };
+    });
 }
 
-// 3. Bind CREATE NEW PROJECT button safely
-let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
-if (addProjectBtn) {
-    addProjectBtn.onclick = () => {
-        if (nav && typeof nav.renderPendingProjects === 'function') {
-            nav.renderPendingProjects({ facility });
-        } else {
-            alert('Create Project: navigation method not available.');
-        }
-    };
-}
-
-// 4. Bind existing project tile list items
-document.querySelectorAll('[data-open-project]').forEach(button => {
-    button.onclick = () => {
-        const projectId = button.dataset.openProject;
-        const selectedProject = projects.find(project => String(project.id) === String(projectId));
-
-        if (!selectedProject) {
-            alert('[view_4_home.js] Project Button Error: Project was not found in the current facility project list.');
-            return;
-        }
-
-        if (nav && typeof nav.renderProjectDashboard === 'function') {
-            nav.renderProjectDashboard({ facility, project: selectedProject });
-        } else if (window.view4Engine && typeof window.view4Engine.renderProjectDashboard === 'function') {
-            window.view4Engine.renderProjectDashboard({ facility, project: selectedProject });
-        } else {
-            console.error('[view_4_home.js] nav.renderProjectDashboard not available.');
-        }
-    };
-});
-
-}
-
-/================================================================
+/*================================================================
 END FILE: view_4_home.js
-================================================================/
+================================================================*/
