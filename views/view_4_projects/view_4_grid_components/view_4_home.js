@@ -5,7 +5,7 @@ FILE NAME    : view_4_home.js
 SUPABASE TBL : facility_projects, vendors
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project
-LAST UPDATED : 2026-06-12 @ 03:45 AM
+LAST UPDATED : 2026-06-12 @ 03:55 AM
 ================================================================*/
 const __FILENAME = 'view_4_home.js';
 
@@ -78,17 +78,17 @@ export async function renderProjectsHome(data, nav) {
                 <div id="cabinetProjectModal" class="cabinet-modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
                     <div class="vendor-cabinet-card" style="width: 100%; max-width: 500px; position: relative; padding: 25px; box-sizing: border-box;">
                         <h2 class="cabinet-section-title" style="margin-top: 0;">Create New Project</h2>
-                        <form id="addProjectForm" style="display: flex; flex-direction: column; gap: 15px;">
+                        <form id="directProjectSubmissionForm" style="display: flex; flex-direction: column; gap: 15px;">
                             <input type="hidden" name="facility_id" value="${facility.id}">
                             
                             <div>
                                 <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #00264d;">Project Title</label>
-                                <input type="text" id="newProjectTitle" name="project_title" required placeholder="e.g. Kitchen AC Repair" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box;">
+                                <input type="text" id="customProjectTitleField" name="project_title_text" required placeholder="e.g. Kitchen AC Repair" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box;">
                             </div>
 
                             <div>
                                 <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #00264d;">Notes / Description</label>
-                                <textarea id="newProjectNotes" name="notes" placeholder="Describe the issue or project goals..." style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; height: 100px; resize: vertical;"></textarea>
+                                <textarea id="customProjectNotesField" name="notes" placeholder="Describe the issue or project goals..." style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; height: 100px; resize: vertical;"></textarea>
                             </div>
 
                             <div class="cabinet-action-grid" style="margin-top: 10px;">
@@ -100,29 +100,23 @@ export async function renderProjectsHome(data, nav) {
                 </div>
 
                 <div id="uiTag_view_4_home" class="ui-metadata-tag-view4">
-                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 03:45 AM
+                    Source: view_4_home.js | Facility Projects Dashboard | Updated: 2026-06-12 03:55 AM
                 </div>
             </div>
         </div>
     `;
 
-    // 1. Initialize modal triggers and core events (Attaches submission to form #addProjectForm)
+    // 1. Initialize background layout hooks
     setupCabinetHomeEvents({
         facility,
         projects,
         vendors,
-        refreshHome: () => {
-            if (nav && typeof nav.renderProjectsHome === 'function') {
-                nav.renderProjectsHome({ facility }, nav);
-            } else if (window.location.reload) {
-                window.location.reload();
-            }
-        },
+        refreshHome: () => {},
         openVendor: vendorId => nav.renderVendorDashboard({ facility, vendorId }),
         openVendorJob: vendorJobId => nav.renderVendorJobDashboard({ facility, vendorJobId })
     });
 
-    // 2. Context-Safe BACK BUTTON EVENT LISTENER 
+    // 2. Back Action Handler
     let backBtn = document.getElementById('cabinetBackBtn');
     if (backBtn) {
         backBtn.onclick = () => {
@@ -132,14 +126,13 @@ export async function renderProjectsHome(data, nav) {
         };
     }
 
-    // 3. Bind CREATE NEW PROJECT Actions to fire background controller framework
+    // 3. Modal Box Toggles
     const projectModal = document.getElementById('cabinetProjectModal');
     const cabinetAddProjectBtn = document.getElementById('cabinetAddProjectBtn');
     const closeProjectModalBtn = document.getElementById('closeProjectModalBtn');
 
     if (cabinetAddProjectBtn && projectModal) {
         cabinetAddProjectBtn.onclick = () => {
-            // Open the view modal container frame
             projectModal.style.display = 'flex';
         };
     }
@@ -150,7 +143,61 @@ export async function renderProjectsHome(data, nav) {
         };
     }
 
-    // 4. Bind existing project tile list items
+    // 4. Intercept Submit and Write Directly to Supabase using Explicit Column Definitions
+    const directForm = document.getElementById('directProjectSubmissionForm');
+    if (directForm) {
+        directForm.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const titleValue = document.getElementById('customProjectTitleField').value.trim();
+            const notesValue = document.getElementById('customProjectNotesField').value.trim();
+
+            if (!titleValue) return;
+
+            try {
+                let databaseClient = window.supabase;
+                
+                if (!databaseClient && window.createClient) {
+                    databaseClient = window.createClient();
+                }
+
+                if (databaseClient) {
+                    const { error } = await databaseClient
+                        .from('facility_projects')
+                        .insert([
+                            {
+                                facility_id: parseInt(facility.id, 10),
+                                project_name_text: titleValue,
+                                project_title_text: titleValue,
+                                notes: notesValue || null,
+                                active_status: true
+                            }
+                        ]);
+
+                    if (error) throw error;
+                } else {
+                    console.error('Supabase application environment reference context was not resolved.');
+                }
+
+                // Hide frame container and clear text buffer values
+                projectModal.style.display = 'none';
+                directForm.reset();
+
+                // Force component stream interface refresh to re-pull records live from Supabase
+                if (nav && typeof nav.renderPendingProjects === 'function') {
+                    nav.renderPendingProjects({ facility });
+                } else {
+                    renderProjectsHome({ facility }, nav);
+                }
+
+            } catch (err) {
+                console.error('Database insertion runtime transaction failure error details:', err);
+                alert('Database Error: Unable to complete project save operations. Verify schema constraints.');
+            }
+        };
+    }
+
+    // 5. Existing Project Grid Interactivity Navigation Handlers
     document.querySelectorAll('[data-open-project]').forEach(button => {
         button.onclick = () => {
             const projectId = button.dataset.openProject;
