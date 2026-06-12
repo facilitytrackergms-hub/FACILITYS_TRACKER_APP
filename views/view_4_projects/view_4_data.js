@@ -1,177 +1,148 @@
 /*================================================================
 FILE METADATA
 ================================================================
-FILE NAME    : view_4_data.js
-File Path    : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
-SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
-VIEW NAME    : Facility Projects Dashboard
-POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-12 @ 2:15 PM
+FILE NAME    : view_1_grid.js
+SUPABASE TBL : facilities
+VIEW NAME    : Facilities Dashboard
+POP-UP TITLE : Add New Facility
+LAST UPDATED : 2026-06-12 @ 01:35 PM
+================================================================
+AI CODING RULES & CONSTRAINTS (Read before making any changes)
+================================================================
+1. STRICT ADHERENCE: Always follow these rules without exception.
+
+2. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
+   in this header unless explicitly asked by the user.
+
+3. SCOPE OF WORK: Only modify the specific functions, lines, or 
+   features requested in the prompt.
+
+4. PRESERVATION: Do NOT refactor, rename, or optimize any other 
+   part of the code. Leave all working logic exactly as it is.
+
+5. LOGGING CHANGES: If a variable name or structure must change to 
+   make a fix work, explicitly state *why* in the text response 
+   before showing the code.
+
+6. CODE COMPLETENESS: Provide the full updated function or file so 
+   nothing gets accidentally lost in translation.
+
+7. VIEW IDENTIFIERS: Ensure the view/pop-up has a visible UI tag 
+   identifying its source file, last update date, and time. If missing, 
+   add it to the UI layout. Update this tag on every modification.
+
+8. NO BLIND CODE: Never create a new file or assume the contents of 
+   an existing file unless the current code is fully pasted into 
+   the prompt. If missing, stop and ask for it.
+
+9. UNIQUE ALERTS: Never use generic default message boxes for custom 
+   notifications. Always add a distinct, visible ID or tag to the 
+   message box UI referencing its specific component/file.
+
+10. CODE BLOCK DELIVERY: Always deliver the entire updated file, 
+    including this header and all rules, wrapped completely inside 
+    a single markdown code block to allow for easy copying.
+
+11. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
+    in this header (File Name, Table, View, Title, Date, Time) are 
+    fully updated and preserved at the top of the file.
+    
+12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
+    in this header (File Name, Table, View, Title, Date, Time) are 
+    fully updated and preserved at the top of the file.
 ================================================================*/
-const __FILENAME = 'view_4_data.js';
+const __FILENAME = 'view_1_grid.js';
+// FIXED: Converted paths to absolute roots matching master repo standards to eliminate loading blocks
+import { fetchFacilities } from '/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_data.js';
+import { setupFacilitiesEvents } from '/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_modal.js';
+import { renderImageManagerSection } from '/FACILITYS_TRACKER_APP/js/imageManager.js';
 
-import { supabase } from '../../js/supabaseClient.js';
+export async function renderFacilities() {
+    const app = document.getElementById('app');
+    
+    const styles = `
+        <style>
+            .dash-container { padding: 20px; text-align: center; font-family: Arial; background: #e3f2fd; min-height: 100vh; box-sizing: border-box; }
+            .dash-card { background: rgba(255,255,255,0.88); border-radius: 18px; padding: 18px 12px 24px; box-shadow: 0 10px 24px rgba(0,0,0,0.12); border: 1px solid rgba(255,255,255,0.8); max-width: 380px; margin: 0 auto; }
+            
+            /* Changed to a clean 3-column grid layout for compact initials stacking */
+            .button-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px; max-width: 400px; margin: 0 auto; }
+            
+            /* Center-aligned padding adjustments optimized for short names/initials */
+            .facility-btn { width: 100%; height: 60px; border-radius: 10px; background-color: #003366; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 1.1em; text-align: center; padding: 5px; box-sizing: border-box; }
+            
+            .new-btn { background-color: #28a745; margin-bottom: 20px; width: 200px; text-align: center; }
+            .dash-title { font-size: 1.25em; font-weight: 900; color: #003366; margin-bottom: 10px; text-transform: uppercase; border-bottom: 4px solid #003366; padding-bottom: 15px; display: inline-block; width: 90%; white-space: nowrap; }
+            .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10; overflow-y: auto; padding: 10px; }
+            .modal-content { position: relative; top: 5%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 400px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); box-sizing: border-box; }
+            input { display: block; width: 100%; margin: 10px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+            .warning-modal { display: none; position: fixed; inset: 0; background: rgba(255,0,0,0.2); z-index: 20; }
+            .warning-content { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); background: white; padding: 25px; border-radius: 8px; border: 2px solid #dc3545; text-align: center; max-width: 300px; }
+            .warning-content h4 { color: #dc3545; margin-top: 0; }
+            .warning-btn { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; margin-top: 15px; }
+            #post-save-images { display: none; margin-top: 20px; padding-top: 15px; border-top: 2px solid #eee; }
+        </style>
+    `;
 
-const STORAGE_BUCKET = 'facility-assets';
+    app.innerHTML = `
+        ${styles}
+        <div class="dash-container">
+            <div class="dash-card">
+                <h1 class="dash-title">FACILITIES DASHBOARD</h1>
+                <br>
+                <button id="openModal" class="facility-btn new-btn">Create New Facility</button>
+                <div id="list" class="button-container">Loading...</div>
+            </div>
 
-/* ==========================================
-   FACILITY PROJECTS
-   ========================================== */
-export async function fetchFacilityProjects(facilityRef) {
-    console.log('[view_4_data.js] fetchFacilityProjects called with', facilityRef);
-    if (!facilityRef) return [];
+            <div id="modal" class="modal-overlay">
+                <div class="modal-content">
+                    <h3 id="modalTitle">Add New Facility</h3>
+                    <div id="facility-fields">
+                        <input type="text" id="name" placeholder="Facility Name">
+                        <input type="text" id="address" placeholder="Address">
+                        <input type="text" id="phone" placeholder="Phone">
+                        <button id="prepareImageBtn" class="facility-btn" style="background:#f5c400; color:#111; width:100%; margin: 20px auto 0 auto; text-align: center;">
+                            Add/Delete Facility Image
+                        </button>
+                    </div>
+                    <div id="post-save-images">
+                        <p style="font-weight: bold; color: #28a745; margin-bottom: 10px;">Facility Saved. Add or Delete Image Below:</p>
+                        <div id="image-manager-mount"></div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+                        <button id="saveBtn" class="facility-btn new-btn" style="width:100%; margin: 0 auto; text-align: center;">Save Facility</button>
+                        <button id="closeModal" class="facility-btn" style="background:#666; width:100%; margin: 0 auto; text-align: center;">Close</button>
+                    </div>
+                </div>
+            </div>
 
-    const facilityId = await resolveFacilityId(facilityRef);
-    console.log('[view_4_data.js] Resolved facilityId:', facilityId);
+            <div id="warningModal" class="warning-modal">
+                <div class="warning-content" id="warning-content-view_1_grid">
+                    <h4>Missing Information</h4>
+                    <p id="warningText">All fields are required before adding the facility image.</p>
+                    <button id="closeWarning" class="warning-btn">OK</button>
+                </div>
+            </div>
 
-    if (!facilityId) {
-        console.warn('[view_4_data.js] fetchFacilityProjects blocked: missing valid numeric facility_id.', facilityRef);
-        return [];
+            <div style="margin-top: 50px; font-size: 0.8em; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
+                File: views/view_1_facility/view_1_grid.js | Updated: 2026-06-12 @ 01:35 PM
+            </div>
+        </div>
+    `;
+
+    setupFacilitiesEvents(renderFacilities);
+
+    const data = await fetchFacilities();
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+
+    if (data) {
+        data.forEach(f => {
+            const btn = document.createElement('button');
+            btn.className = 'facility-btn';
+            btn.textContent = f.name;
+            btn.onclick = () => window.navigateTo('view_2_controls', { facility: f });
+            list.appendChild(btn);
+        });
     }
-
-    const { data, error } = await supabase
-        .from('facility_projects')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('[view_4_data.js] Could not fetch facility_projects.', error);
-        return [];
-    }
-
-    console.log('[view_4_data.js] fetchFacilityProjects returned', data?.length || 0, 'records');
-    return data || [];
 }
-
-export async function insertFacilityProject(projectData) {
-    console.log('[view_4_data.js] insertFacilityProject called', projectData);
-    const cleanData = removeEmptyKeys(projectData);
-    const { data, error } = await supabase
-        .from('facility_projects')
-        .insert([cleanData])
-        .select();
-    if (error) { console.error('[view_4_data.js] Error inserting project:', error); throw error; }
-    return data?.[0] || null;
-}
-
-/* ==========================================
-   PROJECT ACTIONS
-   ========================================== */
-export async function fetchProjectActions(projectId) {
-    console.log('[view_4_data.js] fetchProjectActions called for project:', projectId);
-    const { data, error } = await supabase
-        .from('project_actions')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: true });
-    if (error) { console.error('[view_4_data.js] Error fetching project actions:', error); return []; }
-    return data || [];
-}
-
-export async function insertProjectAction(actionData) {
-    console.log('[view_4_data.js] insertProjectAction called', actionData);
-    const cleanData = removeEmptyKeys(actionData);
-    const { data, error } = await supabase
-        .from('project_actions')
-        .insert([cleanData])
-        .select();
-    if (error) { console.error('[view_4_data.js] Error inserting action:', error); throw error; }
-    return data?.[0] || null;
-}
-
-/* ==========================================
-   VENDORS & VENDOR FILES
-   ========================================== */
-export async function fetchVendors() {
-    const { data, error } = await supabase
-        .from('vendors')
-        .select('*')
-        .order('name', { ascending: true });
-    if (error) { console.error('[view_4_data.js] Error fetching vendors:', error); return []; }
-    return data || [];
-}
-
-export async function insertVendor(vendorData) {
-    const cleanData = removeEmptyKeys(vendorData);
-    const { data, error } = await supabase
-        .from('vendors')
-        .insert([cleanData])
-        .select();
-    if (error) { throw error; }
-    return data?.[0] || null;
-}
-
-/* ==========================================
-   PROJECT VENDOR JOBS (FIXES YOUR CRASH)
-   ========================================== */
-export async function fetchProjectVendorJobs(projectId) {
-    console.log('[view_4_data.js] fetchProjectVendorJobs called for project:', projectId);
-    const { data, error } = await supabase
-        .from('project_vendor_jobs')
-        .select('*')
-        .eq('project_id', projectId);
-    if (error) { console.error('[view_4_data.js] Error fetching vendor jobs:', error); return []; }
-    return data || [];
-}
-
-export async function insertProjectVendorJob(jobData) {
-    console.log('[view_4_data.js] insertProjectVendorJob called', jobData);
-    const cleanData = removeEmptyKeys(jobData);
-    const { data, error } = await supabase
-        .from('project_vendor_jobs')
-        .insert([cleanData])
-        .select();
-    if (error) { 
-        console.error('[view_4_data.js] Error inserting vendor job:', error); 
-        throw error; 
-    }
-    return data?.[0] || null;
-}
-
-/* ==========================================
-   JOB FILES & FOLLOWUPS
-   ========================================== */
-export async function insertProjectVendorJobFile(fileData) {
-    const cleanData = removeEmptyKeys(fileData);
-    const { data, error } = await supabase
-        .from('project_vendor_job_files')
-        .insert([cleanData])
-        .select();
-    if (error) throw error;
-    return data?.[0] || null;
-}
-
-export async function insertProjectVendorJobFollowup(followupData) {
-    const cleanData = removeEmptyKeys(followupData);
-    const { data, error } = await supabase
-        .from('project_vendor_job_followups')
-        .insert([cleanData])
-        .select();
-    if (error) throw error;
-    return data?.[0] || null;
-}
-
-/* ==========================================
-   HELPERS
-   ========================================== */
-async function resolveFacilityId(facilityRef) {
-    if (!facilityRef) return null;
-    if (typeof facilityRef === 'number') return facilityRef;
-    if (typeof facilityRef === 'string' && !isNaN(facilityRef)) return Number(facilityRef);
-    if (typeof facilityRef === 'object' && facilityRef.id) return Number(facilityRef.id);
-    return null;
-}
-
-function removeEmptyKeys(obj) {
-    const out = {};
-    for (const k in obj) {
-        if (obj[k] !== undefined && obj[k] !== null) {
-            out[k] = obj[k];
-        }
-    }
-    return out;
-}
-/*================================================================
-END FILE: view_4_data.js
-UPDATED: 2026-06-12 @ 2:15 PM
-================================================================*/
