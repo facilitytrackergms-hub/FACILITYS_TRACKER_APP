@@ -5,7 +5,7 @@ FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
-LAST UPDATED : 2026-06-12 @ 05:40 PM
+LAST UPDATED : 2026-06-12 @ 05:45 PM
 ================================================================*/
 const __FILENAME = 'view_4_photo_dashboard.js';
 
@@ -13,7 +13,8 @@ import { escapeHtml, escapeAttr, formatDate } from './view_4_render_helpers.js';
 import { renderStyles } from './view_4_styles.js';
 import { fetchContacts } from '../../view_3_contacts/view_3_data.js';
 
-const supabaseClient = window.supabase;
+// FIXED IMPORT: Direct reference to the authentic database client module instance
+import { supabase } from '../../../js/supabaseClient.js';
 
 export async function renderPhotoDashboard({ facility, project, photoType }, nav) {
     const app = document.getElementById('app');
@@ -26,8 +27,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
     // 1. Fetch existing pictures matching this project and photo type phase
     let photos = [];
     try {
-        if (supabaseClient) {
-            const { data, error } = await supabaseClient
+        if (supabase) {
+            const { data, error } = await supabase
                 .from('facility_images')
                 .select('*')
                 .eq('project_id', project.id)
@@ -142,22 +143,22 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
             captureBtn.innerText = "⏳ Uploading Pic...";
 
             try {
-                if (supabaseClient) {
+                if (supabase) {
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${project.id}_${currentType}_${Date.now()}.${fileExt}`;
                     const filePath = `project_images/${fileName}`;
 
-                    const { error: uploadError } = await supabaseClient.storage
+                    const { error: uploadError } = await supabase.storage
                         .from('facility-assets')
                         .upload(filePath, file);
 
                     if (uploadError) throw uploadError;
 
-                    const { data: urlData } = supabaseClient.storage
+                    const { data: urlData } = supabase.storage
                         .from('facility-assets')
                         .getPublicUrl(filePath);
 
-                    const { error: dbError } = await supabaseClient
+                    const { error: dbError } = await supabase
                         .from('facility_images')
                         .insert({
                             project_id: project.id,
@@ -190,8 +191,8 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
         btn.onclick = async () => {
             if (!confirm("Are you sure you want to delete this captured image?")) return;
             try {
-                if (supabaseClient) {
-                    await supabaseClient.from('facility_images').delete().eq('id', btn.dataset.id);
+                if (supabase) {
+                    await supabase.from('facility_images').delete().eq('id', btn.dataset.id);
                 }
                 await renderPhotoDashboard({ facility, project, photoType: currentType }, nav);
             } catch (err) {
@@ -233,7 +234,7 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                 return;
             }
             if (selectedContacts.length === 0) {
-                alert("Please select at least one facility directory target contact contact entry row.");
+                alert("Please select at least one facility directory target contact entry row.");
                 return;
             }
 
