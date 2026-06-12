@@ -5,7 +5,7 @@ FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
-LAST UPDATED : 2026-06-12 @ 07:15 PM
+LAST UPDATED : 2026-06-12 @ 07:30 PM
 ================================================================*/
 const __FILENAME = 'view_4_photo_dashboard.js';
 
@@ -13,6 +13,16 @@ import { escapeHtml, escapeAttr, formatDate } from './view_4_render_helpers.js';
 import { renderStyles } from './view_4_styles.js';
 import { fetchContacts } from '../../view_3_contacts/view_3_data.js';
 import { supabase } from '../../../js/supabaseClient.js';
+
+// Reusable SVG Red Trash Can Icon
+const redTrashIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+        <polyline points="3 6 5 6 21 6"></polyline>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        <line x1="10" y1="11" x2="10" y2="17"></line>
+        <line x1="14" y1="11" x2="14" y2="17"></line>
+    </svg>
+`;
 
 export async function renderPhotoDashboard({ facility, project, photoType }, nav) {
     const app = document.getElementById('app');
@@ -90,7 +100,10 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                                         <img src="${escapeAttr(p.image_url)}" data-id="${p.id}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
                                         <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                             <span style="font-size: 10px; color: #4b5563;">${formatDate(p.created_at)}</span>
-                                            <button type="button" class="delete-photo-btn" data-id="${escapeAttr(p.id)}" style="background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
+                                            <!-- FIXED: Styled with inline SVG for a consistent vibrant red look -->
+                                            <button type="button" class="delete-photo-btn" data-id="${escapeAttr(p.id)}" style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; height: 24px; width: 24px;">
+                                                ${redTrashIcon}
+                                            </button>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -109,9 +122,13 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
 
                     <img id="lightboxImage" src="" style="max-width: 95%; max-height: 80%; object-fit: contain; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: scale(1); transition: transform 0.2s ease, opacity 0.15s ease; opacity: 1;" />
                     
-                    <!-- Delete from Fullscreen View -->
+                    <!-- Delete from Fullscreen View (Fixed to incorporate beautiful SVG structure) -->
                     <button type="button" id="lightboxDeleteBtn" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 2100; font-size: 14px;">
-                        🗑️ Delete This Photo
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block;">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Delete This Photo
                     </button>
                 </div>
 
@@ -286,7 +303,9 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                                 <img src="${escapeAttr(urlData.publicUrl)}" data-id="${newPhotoId}" style="width:100%; height:120px; object-fit:cover; display:block; cursor: zoom-in;" alt="Capture">
                                 <div style="padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
                                     <span style="font-size: 10px; color: #4b5563;">Just now</span>
-                                    <button type="button" class="delete-photo-btn" data-id="${escapeAttr(newPhotoId)}" style="background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; padding: 0;">🗑️</button>
+                                    <button type="button" class="delete-photo-btn" data-id="${escapeAttr(newPhotoId)}" style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; height: 24px; width: 24px;">
+                                        ${redTrashIcon}
+                                    </button>
                                 </div>
                             </div>
                         `;
