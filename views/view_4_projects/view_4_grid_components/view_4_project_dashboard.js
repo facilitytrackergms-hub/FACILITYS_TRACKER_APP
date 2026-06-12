@@ -5,7 +5,7 @@ FILE NAME    : view_4_project_dashboard.js
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-12 @ 06:00 AM
+LAST UPDATED : 2026-06-12 @ 06:25 AM
 ================================================================*/
 const __FILENAME = 'view_4_project_dashboard.js';
 
@@ -55,19 +55,21 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 <div class="cabinet-section">
                     <h2 class="cabinet-section-title">Project Action Dashboard</h2>
 
+                    <div class="photo-buttons-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; width: 100%;">
+                        <button id="projectBeforePicBtn" class="cabinet-btn cabinet-btn-blue" style="margin: 0; padding: 12px 5px; font-size: 13px;">
+                            1. 📸 BEFORE
+                        </button>
+
+                        <button id="projectDuringPicBtn" class="cabinet-btn cabinet-btn-blue" style="margin: 0; padding: 12px 5px; font-size: 13px;">
+                            2. 📸 DURING
+                        </button>
+
+                        <button id="projectAfterPicBtn" class="cabinet-btn cabinet-btn-blue" style="margin: 0; padding: 12px 5px; font-size: 13px;">
+                            3. 📸 AFTER
+                        </button>
+                    </div>
+
                     <div class="cabinet-action-grid">
-                        <button id="projectBeforePicBtn" class="cabinet-btn cabinet-btn-blue">
-                            1. 📸 BEFORE PIC
-                        </button>
-
-                        <button id="projectDuringPicBtn" class="cabinet-btn cabinet-btn-blue">
-                            2. 📸 DURING PIC
-                        </button>
-
-                        <button id="projectAfterPicBtn" class="cabinet-btn cabinet-btn-blue">
-                            3. 📸 AFTER PIC
-                        </button>
-
                         <button id="projectVendorQuotesFilesBtn" class="cabinet-btn cabinet-btn-green">
                             4. 📄 Vendor Quotes / Files
                         </button>
@@ -108,7 +110,7 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 06:00 AM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 06:25 AM
                 </div>
             </div>
         </div>
