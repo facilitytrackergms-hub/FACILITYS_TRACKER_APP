@@ -6,7 +6,7 @@ File pash : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_modal.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-10 @ 04:05 AM
+LAST UPDATED : 2026-06-12 @ 07:33 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -43,8 +43,8 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
    add it to the UI layout. Update this tag on every modification.
 
 9. NO BLIND CODE: Never create a new file or assume the contents 
-   of an existing file unless the current code is fully pasted 
-   into the prompt. If missing, stop and ask for it.
+     of an existing file unless the current code is fully pasted 
+     into the prompt. If missing, stop and ask for it.
 
 10. UNIQUE ALERTS: Never use generic default message boxes for 
      custom notifications. Always add a distinct, visible ID or tag 
@@ -88,7 +88,105 @@ const hideModal = (id) => { const el = byId(id); if (el) el.style.display = 'non
 
 export function setupCabinetHomeEvents(context = {}) {
     console.log('[view_4_modal.js] setupCabinetHomeEvents initialized.', context);
-    // Wire up landing view events if DOM elements exist
+    const { facility, refreshHome } = context;
+
+    const modalsContainer = byId('homeModalsContainer');
+    if (modalsContainer) {
+        const facilityName = facility?.name || facility?.Name || 'Facility';
+        modalsContainer.innerHTML = `
+            <div id="cabinetProjectModal" class="cabinet-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
+                <div class="cabinet-modal-body" style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%; max-width:500px; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.2);">
+                    <h3 style="margin-top:0; color:#003366;">Create New Project</h3>
+                    <p style="margin:-10px 0 15px 0; font-size:14px; color:#555;">Property Context: <strong>${facilityName}</strong> · Project Dashboard</p>
+                    
+                    <div id="cabinetProjectModalNotice" style="display:none; color:red; margin-bottom:10px; font-weight:bold;"></div>
+                    
+                    <label style="display:block; margin-bottom:5px; font-weight:bold;">Project Title / Name</label>
+                    <input type="text" id="cabinetProjectTitleInput" class="cabinet-input" style="width:100%; padding:8px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;" placeholder="e.g., FLIP ROOM 201">
+                    
+                    <label style="display:block; margin-bottom:5px; font-weight:bold;">Notes</label>
+                    <textarea id="cabinetProjectNotesInput" class="cabinet-textarea" style="width:100%; padding:8px; height:80px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px; resize:vertical;" placeholder="Enter initial project scope details or notes..."></textarea>
+                    
+                    <div style="text-align:right; gap:10px; display:flex; justify-content:flex-end;">
+                        <button id="closeCabinetProjectModalBtn" class="cabinet-btn cabinet-btn-gray" style="padding:8px 16px; border-radius:4px; border:none; cursor:pointer;">Cancel</button>
+                        <button id="saveCabinetProjectBtn" class="cabinet-btn cabinet-btn-green" style="padding:8px 16px; border-radius:4px; border:none; cursor:pointer; background-color:#28a745; color:white;">Create Project</button>
+                    </div>
+                    
+                    <div id="uiTag_view_4_modal_home" class="ui-metadata-tag-view4" style="margin-top:15px; font-size:10px; color:#aaa; text-align:center;">
+                        Source: view_4_modal.js | Created: 2026-06-12 07:33 PM
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    const closeProjectModalBtn = byId('closeCabinetProjectModalBtn');
+    const saveProjectBtn = byId('saveCabinetProjectBtn');
+    const projectModal = byId('cabinetProjectModal');
+    const projectNotice = byId('cabinetProjectModalNotice');
+
+    function setProjectNotice(message, show) {
+        if (!projectNotice) return;
+        projectNotice.textContent = message || '';
+        projectNotice.style.display = show ? 'block' : 'none';
+    }
+
+    if (closeProjectModalBtn) {
+        closeProjectModalBtn.onclick = () => {
+            hideModal('cabinetProjectModal');
+            setProjectNotice('', false);
+        };
+    }
+
+    if (projectModal) {
+        projectModal.onclick = (event) => {
+            if (event.target === projectModal) {
+                hideModal('cabinetProjectModal');
+                setProjectNotice('', false);
+            }
+        };
+    }
+
+    if (saveProjectBtn) {
+        saveProjectBtn.onclick = async () => {
+            const projectTitle = value('cabinetProjectTitleInput').trim();
+            const projectNotes = value('cabinetProjectNotesInput').trim();
+
+            if (!facility || !facility.id) {
+                setProjectNotice('[view_4_modal.js] Project Creation Error: Context missing facility profile reference context parameters.', true);
+                return;
+            }
+
+            if (!projectTitle) {
+                setProjectNotice('[view_4_modal.js] Project Creation Notice: Please enter a valid name or identifier description title.', true);
+                return;
+            }
+
+            const result = await insertFacilityProject({
+                facility_id: facility.id,
+                project_title: projectTitle,
+                notes: projectNotes,
+                status: 'Pending',
+                active_status: true
+            });
+
+            if (result && result.error) {
+                setProjectNotice(`[view_4_modal.js] Database Error: Could not execute insertion statement pipeline block hooks. ${result.error.message}`, true);
+                return;
+            }
+
+            clearValue('cabinetProjectTitleInput');
+            clearValue('cabinetProjectNotesInput');
+            hideModal('cabinetProjectModal');
+            setProjectNotice('', false);
+
+            if (refreshHome) {
+                await refreshHome();
+            } else {
+                window.location.reload();
+            }
+        };
+    }
 }
 
 export function setupVendorDashboardEvents(context = {}) {
@@ -218,5 +316,5 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
 
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-10 @ 04:05 AM
+UPDATED: 2026-06-12 @ 07:33 PM
 ================================================================*/
