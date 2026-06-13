@@ -27,7 +27,7 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
 
     const openReportDevelopment = async (reportType, reportLabel, photoType, developmentMode = 'start') => {
         try {
-            const module = await import('./view_4_report_development.js');
+            const module = await import('../view_4_report_development/view_4_report_development.js');
             const renderReportDevelopment =
                 module.renderReportDevelopment ||
                 module.renderReportDevelopmentView ||
