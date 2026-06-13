@@ -3,10 +3,10 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_4_modal.js
 File pash : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_modal.js
-SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
+SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups, report_images
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action / Report Generator View
-LAST UPDATED : 2026-06-12 @ 08:50 PM
+LAST UPDATED : 2026-06-12 @ 10:55 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -327,7 +327,7 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
 // =================================================================
 // NEW: REPORT GENERATOR BUILDER INTERFACE FOR BUTTON 8
 // =================================================================
-export function renderProjectReportBuilderView({ facility, project }, nav) {
+export async function renderProjectReportBuilderView({ facility, project }, nav) {
     const app = document.getElementById('app');
     if (!app) return;
 
@@ -336,6 +336,32 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
     const facilityPhone = facility?.phone || facility?.Phone || 'No Phone Data Provided';
     const projectTitle = getProjectTitle(project);
     const currentDateString = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Live Supabase query to render any previously saved report attached pictures
+    let attachedImagesHtml = `<p style="font-size:12px; color:#666; margin-top:5px;">No pictures attached to this report yet.</p>`;
+    const supabaseClient = window.supabase;
+    if (supabaseClient && project?.id) {
+        try {
+            const { data: attachedFiles, error } = await supabaseClient
+                .from('report_images')
+                .select('image_id, image_url')
+                .eq('project_id', project.id);
+            
+            if (!error && attachedFiles && attachedFiles.length > 0) {
+                attachedImagesHtml = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 10px;">
+                        ${attachedFiles.map(img => `
+                            <div style="position: relative; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; aspect-ratio: 1;">
+                                <img src="${img.image_url || ''}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'><rect width=\'100%\' height=\'100%\' fill=\'%23eee\'/><text x=\'50%\' y=\'50%\' font-size=\'10\' text-anchor=\'middle\' fill=\'%23666\'>Photo ID ${img.image_id}</text></svg>'"/>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        } catch (err) {
+            console.error('[view_4_modal.js] Failed to load report images from Supabase context relation:', err);
+        }
+    }
 
     app.innerHTML = `
         <div class="vendor-cabinet-shell" style="padding: 20px;">
@@ -373,6 +399,11 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
                     <textarea id="rptDiscussionInput" class="cabinet-textarea" style="width: 100%; padding: 10px; height: 110px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical;" placeholder="e.g., The door is broken, structural hinges worn down. We are going to have to source and buy a new replacement door setup..."></textarea>
                 </div>
 
+                <h3 style="color: #003366; font-size: 16px; margin: 25px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Attached Report Pictures</h3>
+                <div id="ui_report_attached_gallery_view" style="margin-bottom: 20px; padding: 10px; border: 1px dashed #ccc; border-radius: 6px; background: #fafafa;">
+                    ${attachedImagesHtml}
+                </div>
+
                 <h3 style="color: #003366; font-size: 16px; margin: 25px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Attach & Review Dashboard Components</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
                     <button id="rptGoSuppliesBtn" class="cabinet-btn cabinet-btn-green" style="font-size: 12px; padding: 10px 5px; margin: 0;">🧰 Link Parts & Supplies Needed (Btn 6)</button>
@@ -391,7 +422,7 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
                 </div>
 
                 <div id="uiTag_view_4_report_builder" class="ui-metadata-tag-view4" style="margin-top: 20px; font-size: 10px; color: #bbb; text-align: center;">
-                    Source: view_4_modal.js | Report Context Module Pipeline | Updated: 2026-06-12 08:50 PM
+                    Source: view_4_modal.js | Report Context Module Pipeline | Updated: 2026-06-12 10:55 PM
                 </div>
             </div>
         </div>
@@ -426,7 +457,7 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
         };
     }
 
-    // Interactive Deep-Link Router Hookings
+    // Interactive Deep-Link Router Hookings passing workflow pipeline flags dynamically to the photo views
     const bindRoute = (id, targetAction) => {
         const btn = byId(id);
         if (btn) {
@@ -441,9 +472,9 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
     };
 
     bindRoute('rptGoSuppliesBtn', () => nav.renderSuppliesDashboard ? nav.renderSuppliesDashboard({ facility, project }) : alert('Supplies Dashboard unmounted'));
-    bindRoute('rptGoBeforeBtn', () => nav.renderPhotoDashboard ? nav.renderPhotoDashboard({ facility, project, photoType: 'Before', dashboardTitle: 'BEFORE Photo Dashboard' }) : alert('Photo Dashboard unmounted'));
-    bindRoute('rptGoDuringBtn', () => nav.renderPhotoDashboard ? nav.renderPhotoDashboard({ facility, project, photoType: 'During', dashboardTitle: 'DURING Photo Dashboard' }) : alert('Photo Dashboard unmounted'));
-    bindRoute('rptGoAfterBtn', () => nav.renderPhotoDashboard ? nav.renderPhotoDashboard({ facility, project, photoType: 'After', dashboardTitle: 'AFTER Photo Dashboard' }) : alert('Photo Dashboard unmounted'));
+    bindRoute('rptGoBeforeBtn', () => nav.renderPhotoDashboard ? nav.renderPhotoDashboard({ facility, project, photoType: 'Before', dashboardTitle: 'BEFORE Photo Dashboard', isFromReport: true }) : alert('Photo Dashboard unmounted'));
+    bindRoute('rptGoDuringBtn', () => nav.renderPhotoDashboard ? nav.renderPhotoDashboard({ facility, project, photoType: 'During', dashboardTitle: 'DURING Photo Dashboard', isFromReport: true }) : alert('Photo Dashboard unmounted'));
+    bindRoute('rptGoAfterBtn', () => nav.renderPhotoDashboard ? nav.renderPhotoDashboard({ facility, project, photoType: 'After', dashboardTitle: 'AFTER Photo Dashboard', isFromReport: true }) : alert('Photo Dashboard unmounted'));
     bindRoute('rptGoNotesBtn', () => nav.renderSpecialNotes ? nav.renderSpecialNotes({ facility, project }) : alert('Special Notes View unmounted'));
     bindRoute('rptGoStatusBtn', () => nav.renderProjectStatus ? nav.renderProjectStatus({ facility, project }) : alert('Status View unmounted'));
     bindRoute('rptGoQuotesBtn', () => nav.renderVendorDashboard ? nav.renderVendorDashboard({ facility, project }) : alert('Vendor Dashboard unmounted'));
@@ -451,5 +482,5 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
 
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-12 @ 08:50 PM
+UPDATED: 2026-06-12 @ 10:55 PM
 ================================================================*/
