@@ -5,8 +5,38 @@ FILE NAME    : view_4_project_dashboard.js
 SUPABASE TBL : facility_projects, project_actions, report_images
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-12 @ 10:55 PM
+LAST UPDATED : 2026-06-12 @ 11:55 PM
+================================================================
+AI CODING RULES & CONSTRAINTS (Read before making any changes)
+================================================================
+1. STRICT ADHERENCE: Always follow these rules without exception.
+
+2. MISSING METADATA HANDLING: If any fields in the FILE METADATA 
+   section above are generic placeholders or missing, the AI must 
+   immediately read the provided source code below to determine the 
+   correct tables/views/titles. CRITICAL FOR FILE NAME: Look strictly 
+   at the user's prompt text or comments for the exact sequential 
+   filename (e.g., view_2_data.js). NEVER invent, guess, or substitute 
+   a descriptive semantic name (like facility_data_service.js) based 
+   on the code context. If the exact filename cannot be verified, 
+   leave the placeholder intact or ask the user.
+
+3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
+   in this section. Never alter any system comments or structural 
+   markers.
+
+4. MINIMALIST EXPLANATION RULE: Limit explanations to a maximum of one 
+   or two concise sentences. No fluff.
+
+5. STRICT MODIFICATION RULE: Do not attempt to improve, refactor, or 
+   optimize any code unless explicitly requested. Execute ONLY the 
+   specific updates or bug fixes requested, and leave all other parts 
+   of the file completely intact. All untouched business logic, UI, 
+   event handlers, variables, functions, and style contexts must be 
+   preserved exactly as they are. Always output the entire file with all 
+   historical contexts preserved.
 ================================================================*/
+
 const __FILENAME = 'view_4_project_dashboard.js';
 
 import {
@@ -15,7 +45,8 @@ import {
 } from '../view_4_data.js';
 
 import {
-    setupProjectDashboardEvents
+    setupProjectDashboardEvents,
+    renderProjectReportBuilderView
 } from '../view_4_modal.js';
 
 import {
@@ -131,7 +162,7 @@ export async function renderSingleProjectDashboard({ facility, project, isFromRe
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 10:55 PM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 @ 11:55 PM
                 </div>
             </div>
         </div>
@@ -197,9 +228,7 @@ export async function renderSingleProjectDashboard({ facility, project, isFromRe
             }
 
             // Route back straight to report builder module cleanly
-            if (window.renderProjectReportBuilderView) {
-                window.renderProjectReportBuilderView({ facility, project }, nav);
-            }
+            renderProjectReportBuilderView({ facility, project }, nav);
         };
     }
 
@@ -222,11 +251,7 @@ export async function renderSingleProjectDashboard({ facility, project, isFromRe
             if (nav && nav.renderCreateReport) {
                 nav.renderCreateReport({ facility, project });
             } else {
-                if (window.renderProjectReportBuilderView) {
-                    window.renderProjectReportBuilderView({ facility, project }, nav);
-                } else {
-                    alert('Create Report custom navigation hook or renderer context is currently unmounted.');
-                }
+                renderProjectReportBuilderView({ facility, project }, nav);
             }
         };
     }
@@ -244,3 +269,7 @@ export async function renderSingleProjectDashboard({ facility, project, isFromRe
         nav
     });
 }
+
+/*================================================================
+END FILE: view_4_project_dashboard.js
+================================================================*/
