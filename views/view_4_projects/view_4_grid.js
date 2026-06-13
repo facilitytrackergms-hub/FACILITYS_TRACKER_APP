@@ -23,7 +23,8 @@ export async function renderPendingProjects(data, nav) {
         renderProjectDashboard,
         renderVendorDashboard,
         renderVendorJobDashboard,
-        renderProjectReportBuilderView
+        renderProjectReportBuilderView,
+        renderReportBuilder
     });
 }
 
@@ -33,7 +34,8 @@ export async function renderProjectDashboard(data, nav) {
         renderProjectDashboard,
         renderVendorDashboard,
         renderVendorJobDashboard,
-        renderProjectReportBuilderView
+        renderProjectReportBuilderView,
+        renderReportBuilder
     });
 }
 
@@ -42,7 +44,8 @@ export async function renderVendorDashboard(data, nav) {
         renderPendingProjects,
         renderProjectDashboard,
         renderVendorJobDashboard,
-        renderProjectReportBuilderView
+        renderProjectReportBuilderView,
+        renderReportBuilder
     });
 }
 
@@ -50,7 +53,8 @@ export async function renderVendorJobDashboard(data, nav) {
     return renderSingleVendorJobDashboard(data, nav || {
         renderVendorDashboard,
         renderProjectDashboard,
-        renderProjectReportBuilderView
+        renderProjectReportBuilderView,
+        renderReportBuilder
     });
 }
 
@@ -60,7 +64,8 @@ export async function renderReportBuilder(data, nav) {
         renderProjectDashboard,
         renderVendorDashboard,
         renderVendorJobDashboard,
-        renderProjectReportBuilderView
+        renderProjectReportBuilderView,
+        renderReportBuilder
     });
 }
 
