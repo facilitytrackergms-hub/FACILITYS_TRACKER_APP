@@ -13,11 +13,11 @@ const __FILENAME = 'view_4_home.js';
 import {
     fetchFacilityProjects,
     fetchVendors
-} from '../view_4_data.js';
+} from '../view_4_core/view_4_data.js';
 
 import {
     setupCabinetHomeEvents
-} from '../view_4_modal.js';
+} from '../view_4_core/view_4_modal.js';
 
 import {
     escapeHtml,
