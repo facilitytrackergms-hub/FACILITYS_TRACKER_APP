@@ -165,16 +165,21 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
         document.getElementById('createReportBtn') ||
         document.getElementById('projectReportBtn');
 
-    if (openReportBtn) {
-        openReportBtn.onclick = () => {
-            if (nav && nav.renderProjectReportBuilderView) {
-                nav.renderProjectReportBuilderView({ facility, project }, nav);
-                return;
-            }
+  if (openReportBtn) {
+    openReportBtn.onclick = () => {
+        if (nav && nav.renderReportBuilder) {
+            nav.renderReportBuilder({ facility, project }, nav);
+            return;
+        }
 
-            renderProjectReportBuilderView({ facility, project }, nav);
-        };
-    }
+        if (nav && nav.renderProjectReportBuilderView) {
+            nav.renderProjectReportBuilderView({ facility, project }, nav);
+            return;
+        }
+
+        alert('Report Builder route is missing.');
+    };
+}
 
     const closeActionModalBtn = document.getElementById('closeNewActionModalBtn');
     if (closeActionModalBtn) {
