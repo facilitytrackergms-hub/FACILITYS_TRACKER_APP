@@ -14,7 +14,7 @@ import { renderProjectsHome } from './view_4_grid_components/view_4_home.js';
 import { renderSingleProjectDashboard } from './view_4_grid_components/view_4_project_dashboard.js';
 import { renderSingleVendorDashboard } from './view_4_grid_components/view_4_vendor_dashboard.js';
 import { renderSingleVendorJobDashboard } from './view_4_grid_components/view_4_vendor_job_dashboard.js';
-import { renderProjectReportBuilderView } from './view_4_grid_components/view_4_report_builder.js';
+import { renderProjectReportBuilderView } from './view_4_action_dashboards/view_4_report_builder.js';
 import { renderVendorQuotesFilesDashboard } from './view_4_grid_components/view_4_render_helpers.js';
 
 export async function renderPendingProjects(data, nav) {
