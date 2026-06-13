@@ -701,7 +701,7 @@ async function openReportTypeDashboard(context, nav) {
     }
 
     try {
-        const module = await import('./view_4_report_type_dashboard.js');
+        const module = await import('../view_4_action_dashboards/view_4_report_type_dashboard.js');
         const renderer = module.renderReportTypeDashboard || module.renderReportType || module.default;
 
         if (typeof renderer === 'function') {
