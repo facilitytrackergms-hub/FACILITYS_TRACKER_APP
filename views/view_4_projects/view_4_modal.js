@@ -62,7 +62,7 @@ import {
     renderStyles
 } from './view_4_grid_components/view_4_styles.js';
 
-const supabaseClient = window.supabase;
+const supabaseClient = window.supabaseClient || window.supabase;
 
 export function setupCabinetHomeEvents({ facility, projects, vendors, refreshHome, openVendor, nav }) {
     console.log(`[${__FILENAME}] setupCabinetHomeEvents initialized.`, { facility, projects, vendors, refreshHome, openVendor, nav });
