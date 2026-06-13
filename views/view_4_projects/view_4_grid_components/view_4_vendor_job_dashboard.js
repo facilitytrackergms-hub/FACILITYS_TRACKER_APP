@@ -47,7 +47,7 @@ import {
     fetchVendorJobFollowups,
     getProjectTitle,
     getVendorName
-} from '../view_4_data.js';
+} from '../view_4_core/view_4_data.js';
 
 // Fixed: Changed invalid import reference path to load from components subfolder location
 import {
