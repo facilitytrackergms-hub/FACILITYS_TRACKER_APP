@@ -2,11 +2,11 @@
 FILE METADATA
 ================================================================
 FILE NAME    : view_4_modal.js
-File pash : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_modal.js
+File path    : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_modal.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups, report_images
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action / Report Generator View
-LAST UPDATED : 2026-06-12 @ 11:15 PM
+LAST UPDATED : 2026-06-12 @ 11:30 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -51,7 +51,6 @@ import {
     fetchJobFollowups
 } from './view_4_data.js';
 
-// Fixed: Corrected directory paths to access component subfolder location
 import {
     escapeHtml,
     renderProjectRow,
@@ -63,7 +62,6 @@ import {
     renderStyles
 } from './view_4_grid_components/view_4_styles.js';
 
-// Fixed: Bind to the correct initialized global client instance window.supabase
 const supabaseClient = window.supabase;
 
 export function setupCabinetHomeEvents({ facility, projects, vendors, refreshHome, openVendor, nav }) {
@@ -331,7 +329,31 @@ export async function renderProjectReportBuilderView({ facility, project }, nav)
     bindRoute('rptGoQuotesBtn', () => nav.renderVendorDashboard ? nav.renderVendorDashboard({ facility, project }) : alert('Vendor Dashboard unmounted'));
 }
 
+// Fixed: Added missing event listener wiring hook to satisfy layout triggers from view_4_vendor_dashboard.js
+export function setupVendorDashboardEvents({ facility, project, vendors, refreshVendor, nav }) {
+    console.log(`[${__FILENAME}] setupVendorDashboardEvents initialized.`, { facility, project, vendors, refreshVendor, nav });
+
+    const backBtn = document.getElementById('backToProjectBtn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            if (nav && nav.renderProjectDashboard) nav.renderProjectDashboard({ facility, project });
+        };
+    }
+
+    const container = document.getElementById('vendorButtonListContainer');
+    if (container) {
+        container.onclick = (e) => {
+            const btn = e.target.closest('.vendor-btn');
+            if (!btn) return;
+            const vendorId = btn.dataset.vendorId;
+            if (nav && nav.renderVendorJobDashboard) {
+                nav.renderVendorJobDashboard({ facility, vendorJobId: vendorId });
+            }
+        };
+    }
+}
+
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-12 @ 11:15 PM
+UPDATED: 2026-06-12 @ 11:30 PM
 ================================================================*/
