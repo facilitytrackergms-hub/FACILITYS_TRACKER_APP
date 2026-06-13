@@ -6,13 +6,12 @@ PATH         : /FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_componen
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Project Execution Report Builder
 POP-UP TITLE : None (Full-Screen View View Component)
-LAST UPDATED : 2026-06-13 @ 12:25 AM
+LAST UPDATED : 2026-06-13 @ 12:40 AM
 ================================================================*/
 const __FILENAME = 'view_4_report_builder.js';
 
 import { getProjectTitle } from '../view_4_data.js';
 import { escapeHtml, escapeAttr } from './view_4_render_helpers.js';
-
 
 const getReportAttachmentKey = (projectId) => `view4_report_attachments_${projectId || 'unknown_project'}`;
 
@@ -32,11 +31,38 @@ const removeReportAttachment = (projectId, photoId, imageUrl) => {
     return filtered;
 };
 
-/**
- * Renders the full Report Builder View for Button Number 8
- * @param {Object} context - Object containing the current active facility and project data model context.
- * @param {Object} nav - Navigation router object containing application dashboard redirect hook functions.
- */
+const buildAttachedPicturesHtml = (attachedPictures) => {
+    if (!attachedPictures || attachedPictures.length === 0) {
+        return `
+            <div style="text-align: center; color: #6b7280; padding: 18px 12px; border: 2px dashed #e5e7eb; border-radius: 6px; font-size: 13px;">
+                No pictures attached yet. Open Before, During, or After Pictures and tap 📎 Attach Picture to Report.
+            </div>
+        `;
+    }
+
+    return `
+        <div id="attachedReportPicturesGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            ${attachedPictures.map((pic, index) => {
+                const safeId = escapeAttr(pic.id || '');
+                const safeUrl = escapeAttr(pic.image_url || '');
+                const safeType = escapeHtml(pic.photo_type || 'Project Photo');
+
+                return `
+                    <div class="attached-report-picture-card" data-id="${safeId}" data-url="${safeUrl}" style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; background: #fff;">
+                        <img src="${safeUrl}" alt="Attached Report Picture ${index + 1}" style="width: 100%; height: 110px; object-fit: cover; display: block;">
+                        <div style="padding: 6px 8px;">
+                            <div style="font-size: 10px; color: #4b5563; margin-bottom: 6px;">${safeType}</div>
+                            <button type="button" class="remove-report-picture-btn" data-id="${safeId}" data-url="${safeUrl}" style="width: 100%; border: none; border-radius: 5px; padding: 6px 5px; font-size: 10px; font-weight: 700; color: white; background: #ef4444; cursor: pointer;">
+                                🗑 REMOVE FROM REPORT
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+};
+
 export function renderProjectReportBuilderView({ facility, project }, nav) {
     const app = document.getElementById('app');
     if (!app) return;
@@ -45,20 +71,20 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
     const facilityAddress = escapeHtml(facility?.address || facility?.Address || 'No Address Data Provided');
     const facilityPhone = escapeHtml(facility?.phone || facility?.Phone || 'No Phone Data Provided');
     const projectTitle = escapeHtml(getProjectTitle(project || {}));
-    
+    const projectId = project?.id || 'unknown_project';
+    let attachedPictures = readReportAttachments(projectId);
+    const attachedPicturesHtml = buildAttachedPicturesHtml(attachedPictures);
+
     const currentDateString = new Date().toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
     });
 
-    const projectId = project?.id || 'unknown_project';
-    let attachedPictures = readReportAttachments(projectId);
-
     app.innerHTML = `
         <div class="vendor-cabinet-shell" style="padding: 20px;">
             <div class="vendor-cabinet-card" style="background: #ffffff; border-radius: 8px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 700px; margin: 0 auto;">
-                
+
                 <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 25px;">
                     <button id="rptTextBtn" class="cabinet-btn cabinet-btn-blue" style="flex: 1; padding: 12px; font-weight: bold; font-size: 14px; text-transform: uppercase; margin: 0;">
                         💬 Text Report
@@ -69,7 +95,7 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
                 </div>
 
                 <h2 style="color: #003366; border-bottom: 2px solid #003366; padding-bottom: 8px; margin-top: 0; font-size: 22px;">Project Report Builder</h2>
-                
+
                 <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 15px; margin-bottom: 20px; font-size: 14px; line-height: 1.6;">
                     <h4 style="margin: 0 0 8px 0; color: #495057; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Property & Context Information</h4>
                     <div><strong>Facility Name:</strong> ${facilityName}</div>
@@ -93,25 +119,7 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
 
                 <h3 style="color: #003366; font-size: 16px; margin: 25px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Attached Pictures for This Report</h3>
                 <div id="attachedReportPicturesBox" style="margin-bottom: 25px;">
-                    ${attachedPictures.length === 0 ? `
-                        <div style="text-align: center; color: #6b7280; padding: 18px 12px; border: 2px dashed #e5e7eb; border-radius: 6px; font-size: 13px;">
-                            No pictures attached yet. Open Before, During, or After Pictures and tap 📎 Attach Picture to Report.
-                        </div>
-                    ` : `
-                        <div id="attachedReportPicturesGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                            ${attachedPictures.map((pic, index) => `
-                                <div class="attached-report-picture-card" data-id="${escapeAttr(pic.id)}" data-url="${escapeAttr(pic.image_url)}" style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; background: #fff;">
-                                    <img src="${escapeAttr(pic.image_url)}" alt="Attached Report Picture ${index + 1}" style="width: 100%; height: 110px; object-fit: cover; display: block;">
-                                    <div style="padding: 6px 8px;">
-                                        <div style="font-size: 10px; color: #4b5563; margin-bottom: 6px;">${escapeHtml(pic.photo_type || 'Project Photo')}</div>
-                                        <button type="button" class="remove-report-picture-btn" data-id="${escapeAttr(pic.id)}" data-url="${escapeAttr(pic.image_url)}" style="width: 100%; border: none; border-radius: 5px; padding: 6px 5px; font-size: 10px; font-weight: 700; color: white; background: #ef4444; cursor: pointer;">
-                                            🗑 REMOVE FROM REPORT
-                                        </button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `}
+                    ${attachedPicturesHtml}
                 </div>
 
                 <h3 style="color: #003366; font-size: 16px; margin: 25px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Linked Project Dashboards</h3>
@@ -132,7 +140,7 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
                 </div>
 
                 <div id="uiTag_view_4_report_builder" class="ui-metadata-tag-view4" style="margin-top: 20px; font-size: 10px; color: #bbb; text-align: center;">
-                    Source: view_4_report_builder.js | Report Context Module | Updated: 2026-06-13 12:25 AM
+                    Source: view_4_report_builder.js | Report Context Module | Updated: 2026-06-13 12:40 AM
                 </div>
             </div>
         </div>
@@ -173,15 +181,10 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
             const remainingCards = document.querySelectorAll('.attached-report-picture-card');
 
             if (box && remainingCards.length === 0) {
-                box.innerHTML = `
-                    <div style="text-align: center; color: #6b7280; padding: 18px 12px; border: 2px dashed #e5e7eb; border-radius: 6px; font-size: 13px;">
-                        No pictures attached yet. Open Before, During, or After Pictures and tap 📎 Attach Picture to Report.
-                    </div>
-                `;
+                box.innerHTML = buildAttachedPicturesHtml([]);
             }
         };
-    };
-
+    });
 
     document.getElementById('rptBackToDashboardBtn').onclick = () => {
         if (nav && nav.renderProjectDashboard) {
@@ -231,5 +234,5 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
 
 /*================================================================
 END FILE: view_4_report_builder.js
-UPDATED: 2026-06-13 @ 12:25 AM
+UPDATED: 2026-06-13 @ 12:40 AM
 ================================================================*/
