@@ -12,7 +12,7 @@ const __FILENAME = 'view_4_photo_dashboard.js';
 import { escapeHtml, escapeAttr, formatDate } from './view_4_render_helpers.js';
 import { renderStyles } from './view_4_styles.js';
 import { fetchContacts } from '../../view_3_contacts/view_3_data.js';
-import { supabase } from '../../../js/supabaseClient.js';
+import { supabase } from '../../js/supabaseClient.js';
 
 // Reusable SVG Red Trash Can Icon
 const redTrashIcon = `
