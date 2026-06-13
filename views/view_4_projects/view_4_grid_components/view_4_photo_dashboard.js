@@ -3,6 +3,7 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
+
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
 LAST UPDATED : 2026-06-12 @ 07:45 PM
