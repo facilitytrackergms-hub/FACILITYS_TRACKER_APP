@@ -43,8 +43,8 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
    add it to the UI layout. Update this tag on every modification.
 
 9. NO BLIND CODE: Never create a new file or assume the contents 
-   of an existing file unless the current code is fully pasted 
-   into the prompt. If missing, stop and ask for it.
+     of an existing file unless the current code is fully pasted 
+     into the prompt. If missing, stop and ask for it.
 
 10. UNIQUE ALERTS: Never use generic default message boxes for 
      custom notifications. Always add a distinct, visible ID or tag 
@@ -62,364 +62,144 @@ const __FILENAME = 'view_4_data.js';
 
 import { supabase } from '../../js/supabaseClient.js';
 
-const STORAGE_BUCKET = 'facility-assets';
-
-export async function fetchFacilityProjects(facilityRef) {
-    if (!facilityRef) return [];
-
-    const facilityId = await resolveFacilityId(facilityRef);
-
-    if (!facilityId) {
-        console.warn('[view_4_data.js] fetchFacilityProjects blocked: missing valid numeric facility_id.', facilityRef);
-        return [];
-    }
+export async function fetchFacilityProjects(facilityId) {
+    if (!facilityId) return [];
+    const id = await resolveFacilityId(facilityId);
+    if (!id) return [];
 
     const { data, error } = await supabase
         .from('facility_projects')
         .select('*')
-        .eq('facility_id', facilityId)
+        .eq('facility_id', id)
+        .eq('active_status', true)
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error('[view_4_data.js] Could not fetch facility_projects.', error);
+        console.error('[view_4_data.js] Error fetching facility projects:', error);
         return [];
     }
-
     return data || [];
-}
-
-export async function insertFacilityProject(payload) {
-    const facilityId = await resolveFacilityId(payload.facility || payload.facility_id);
-
-    if (!facilityId) {
-        const error = {
-            message: '[view_4_data.js] Missing valid numeric facility_id. Project was not saved because it would not attach to a facility.'
-        };
-        console.error(error.message, payload);
-        return { data: null, error };
-    }
-
-    const clean = removeEmptyKeys({
-        facility_id: facilityId,
-        project_name_text: payload.project_name_text || payload.project_name || payload.title,
-        project_title_text: payload.project_title_text || payload.project_title || payload.title,
-        created_by_text: payload.created_by_text || payload.created_by,
-        notes: payload.notes || payload.description,
-        active_status: payload.active_status === undefined ? true : payload.active_status,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-    });
-
-    const { data, error } = await supabase
-        .from('facility_projects')
-        .insert([clean])
-        .select();
-
-    if (error) {
-        console.error('[view_4_data.js] Error inserting facility project:', error);
-        return { data: null, error };
-    }
-
-    return { data, error: null };
 }
 
 export async function fetchProjectActions(projectId) {
     if (!projectId) return [];
-
     const { data, error } = await supabase
         .from('project_actions')
         .select('*')
         .eq('project_id', projectId)
+        .eq('active_status', true)
         .order('created_at', { ascending: false });
 
     if (error) {
         console.error('[view_4_data.js] Error fetching project actions:', error);
         return [];
     }
-
     return data || [];
 }
 
-export async function insertProjectAction(payload) {
-    if (!payload?.project_id) {
-        const error = {
-            message: '[view_4_data.js] Missing project_id. Project action was not saved.'
-        };
-        console.error(error.message, payload);
-        return { data: null, error };
-    }
+export async function insertFacilityProject(rowData) {
+    const cleanData = removeEmptyKeys(rowData);
+    const { data, error } = await supabase
+        .from('facility_projects')
+        .insert([cleanData])
+        .select();
+    return { data, error };
+}
 
-    const clean = removeEmptyKeys({
-        project_id: payload.project_id,
-        action_type: payload.action_type || 'note',
-        action_title_text: payload.action_title_text || payload.title || payload.action_title,
-        notes: payload.notes || payload.description,
-        created_by_text: payload.created_by_text || payload.created_by,
-        active_status: payload.active_status === undefined ? true : payload.active_status,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-    });
-
+export async function insertProjectAction(rowData) {
+    const cleanData = removeEmptyKeys(rowData);
     const { data, error } = await supabase
         .from('project_actions')
-        .insert([clean])
+        .insert([cleanData])
         .select();
-
-    if (error) {
-        console.error('[view_4_data.js] Error inserting project action:', error);
-        return { data: null, error };
-    }
-
-    return { data, error: null };
+    return { data, error };
 }
 
 export async function fetchVendors() {
     const { data, error } = await supabase
         .from('vendors')
         .select('*')
+        .eq('active_status', true)
         .order('company_name', { ascending: true });
-
     if (error) {
         console.error('[view_4_data.js] Error fetching vendors:', error);
         return [];
     }
-
     return data || [];
 }
 
-export async function insertVendor(payload) {
-    const clean = removeEmptyKeys({
-        company_name: payload.company_name,
-        contact_name: payload.contact_name,
-        phone: payload.phone,
-        email: payload.email,
-        website_url: payload.website_url,
-        address: payload.address,
-        main_image_url: payload.main_image_url,
-        main_image_path: payload.main_image_path,
-        notes: payload.notes,
-        status: payload.status || 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-    });
-
+export async function insertVendor(rowData) {
+    const cleanData = removeEmptyKeys(rowData);
     const { data, error } = await supabase
         .from('vendors')
-        .insert([clean])
+        .insert([cleanData])
         .select();
-
-    if (error) {
-        console.error('[view_4_data.js] Error inserting vendor:', error);
-        return { data: null, error };
-    }
-
-    return { data, error: null };
+    return { data, error };
 }
 
-export async function fetchVendorFiles(vendorId) {
-    if (!vendorId) return [];
-
+export async function fetchVendorFiles(projectId) {
+    if (!projectId) return [];
     const { data, error } = await supabase
         .from('vendor_files')
         .select('*')
-        .eq('vendor_id', vendorId)
+        .eq('project_id', projectId)
+        .eq('active_status', true)
         .order('created_at', { ascending: false });
-
     if (error) {
         console.error('[view_4_data.js] Error fetching vendor files:', error);
         return [];
     }
-
     return data || [];
 }
 
-export async function insertVendorFile(payload) {
-    const clean = removeEmptyKeys({
-        vendor_id: payload.vendor_id,
-        file_type: payload.file_type || 'image',
-        file_label: payload.file_label,
-        file_name: payload.file_name,
-        file_url: payload.file_url,
-        storage_path: payload.storage_path,
-        notes: payload.notes,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-    });
-
+export async function insertVendorFile(rowData) {
+    const cleanData = removeEmptyKeys(rowData);
     const { data, error } = await supabase
         .from('vendor_files')
-        .insert([clean])
+        .insert([cleanData])
         .select();
-
-    if (error) {
-        console.error('[view_4_data.js] Error inserting vendor file:', error);
-        return { data: null, error };
-    }
-
-    return { data, error: null };
+    return { data, error };
 }
 
-export async function insertProjectVendorJob(payload) {
-    if (!payload?.project_id || !payload?.vendor_id) {
-        const error = { message: '[view_4_data.js] Missing project_id or vendor_id for project_vendor_jobs.' };
-        console.error(error.message, payload);
-        return { data: null, error };
+export async function uploadCabinetFile(bucket, filePath, fileObj) {
+    try {
+        const { data, error } = await supabase.storage
+            .from(bucket)
+            .upload(filePath, fileObj, { upsert: true });
+        if (error) return { error };
+        
+        const { data: publicData } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(filePath);
+            
+        return { publicUrl: publicData?.publicUrl || null };
+    } catch (err) {
+        return { error: err };
     }
-
-    const clean = removeEmptyKeys({
-        project_id: payload.project_id,
-        vendor_id: payload.vendor_id,
-        job_title: payload.job_title || payload.title,
-        status: payload.status || 'pending',
-        notes: payload.notes,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-    });
-
-    const { data, error } = await supabase
-        .from('project_vendor_jobs')
-        .insert([clean])
-        .select();
-
-    if (error) {
-        console.error('[view_4_data.js] Error inserting project vendor job:', error);
-        return { data: null, error };
-    }
-    return { data, error: null };
 }
 
-export async function insertVendorJobFile(payload) {
-    if (!payload?.job_id) {
-        const error = { message: '[view_4_data.js] Missing job_id for project_vendor_job_files.' };
-        console.error(error.message, payload);
-        return { data: null, error };
-    }
-
-    const clean = removeEmptyKeys({
-        job_id: payload.job_id,
-        file_type: payload.file_type || 'document',
-        file_label: payload.file_label,
-        file_name: payload.file_name,
-        file_url: payload.file_url,
-        storage_path: payload.storage_path,
-        notes: payload.notes,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-    });
-
-    const { data, error } = await supabase
-        .from('project_vendor_job_files')
-        .insert([clean])
-        .select();
-
-    if (error) {
-        console.error('[view_4_data.js] Error inserting vendor job file:', error);
-        return { data: null, error };
-    }
-    return { data, error: null };
-}
-
-export async function insertVendorJobFollowup(payload) {
-    if (!payload?.job_id) {
-        const error = { message: '[view_4_data.js] Missing job_id for project_vendor_job_followups.' };
-        console.error(error.message, payload);
-        return { data: null, error };
-    }
-
-    const clean = removeEmptyKeys({
-        job_id: payload.job_id,
-        followup_notes: payload.followup_notes || payload.notes,
-        created_by_text: payload.created_by_text || payload.created_by,
-        followup_date: payload.followup_date || new Date().toISOString().split('T')[0],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-    });
-
-    const { data, error } = await supabase
-        .from('project_vendor_job_followups')
-        .insert([clean])
-        .select();
-
-    if (error) {
-        console.error('[view_4_data.js] Error inserting vendor job followup:', error);
-        return { data: null, error };
-    }
-    return { data, error: null };
-}
-
-export async function uploadCabinetFile(filePath, fileBody) {
-    if (!filePath || !fileBody) {
-        const error = { message: '[view_4_data.js] Cannot upload file: missing filePath or fileBody.' };
-        console.error(error.message);
-        return { data: null, error };
-    }
-
-    const { data, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(filePath, fileBody, {
-            cacheControl: '3600',
-            upsert: true
-        });
-
-    if (error) {
-        console.error('[view_4_data.js] Storage error uploading file:', error);
-        return { data: null, error };
-    }
-
-    const { data: publicUrlData } = supabase.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(filePath);
-
-    return { 
-        data: { 
-            path: data.path, 
-            publicUrl: publicUrlData?.publicUrl || null 
-        }, 
-        error: null 
-    };
-}
-
-export async function fetchVendorJobsForVendorInFacility(vendorId, facilityRef) {
-    if (!vendorId || !facilityRef) return [];
-
-    const facilityId = await resolveFacilityId(facilityRef);
-    if (!facilityId) {
-        console.warn('[view_4_data.js] fetchVendorJobsForVendorInFacility blocked: missing facilityId.');
-        return [];
-    }
-
-    const { data, error } = await supabase
-        .from('project_vendor_jobs')
-        .select(`
-            *,
-            facility_projects!inner(facility_id)
-        `)
-        .eq('vendor_id', vendorId)
-        .eq('facility_projects.facility_id', facilityId)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('[view_4_data.js] Error fetching vendor jobs for vendor in facility:', error);
-        return [];
-    }
-
-    return data || [];
-}
-
-export async function fetchVendorJobById(jobId) {
-    if (!jobId) return null;
-
+export async function fetchProjectVendorJobs(projectId) {
+    if (!projectId) return [];
     const { data, error } = await supabase
         .from('project_vendor_jobs')
         .select('*')
-        .eq('id', jobId)
-        .maybeSingle();
-
+        .eq('project_id', projectId)
+        .eq('active_status', true)
+        .order('created_at', { ascending: false });
     if (error) {
-        console.error('[view_4_data.js] Error fetching vendor job by ID:', error);
-        return null;
+        console.error('[view_4_data.js] Error fetching vendor jobs:', error);
+        return [];
     }
-    return data;
+    return data || [];
+}
+
+export async function insertProjectVendorJob(rowData) {
+    const cleanData = removeEmptyKeys(rowData);
+    const { data, error } = await supabase
+        .from('project_vendor_jobs')
+        .insert([cleanData])
+        .select();
+    return { data, error };
 }
 
 export async function fetchVendorJobFiles(jobId) {
@@ -428,12 +208,31 @@ export async function fetchVendorJobFiles(jobId) {
         .from('project_vendor_job_files')
         .select('*')
         .eq('job_id', jobId)
+        .eq('active_status', true)
         .order('created_at', { ascending: false });
     if (error) {
         console.error('[view_4_data.js] Error fetching vendor job files:', error);
         return [];
     }
     return data || [];
+}
+
+export async function insertVendorJobFile(rowData) {
+    const cleanData = removeEmptyKeys(rowData);
+    const { data, error } = await supabase
+        .from('project_vendor_job_files')
+        .insert([cleanData])
+        .select();
+    return { data, error };
+}
+
+export async function insertVendorJobFollowup(rowData) {
+    const cleanData = removeEmptyKeys(rowData);
+    const { data, error } = await supabase
+        .from('project_vendor_job_followups')
+        .insert([cleanData])
+        .select();
+    return { data, error };
 }
 
 export async function fetchVendorJobFollowups(jobId) {
@@ -480,5 +279,4 @@ function removeEmptyKeys(obj) {
 
 /*================================================================
 END FILE: view_4_data.js
-UPDATED: 2026-06-12 @ 12:06 PM
 ================================================================*/
