@@ -5,7 +5,7 @@ FILE NAME    : view_4_report_builder.js
 PATH         : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_action_dashboards/view_4_report_builder.js
 VIEW NAME    : Project Report Builder
 POP-UP TITLE : Report Builder
-LAST UPDATED : 2026-06-13 @ 12:20 PM
+LAST UPDATED : 2026-06-13 @ 01:55 PM
 ================================================================*/
 const __FILENAME = 'view_4_report_builder.js';
 
@@ -24,6 +24,37 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
         facility?.name ||
         facility?.Name ||
         'Facility';
+
+    const openReportDevelopment = async (reportType, reportLabel, photoType, developmentMode = 'start') => {
+        try {
+            const module = await import('./view_4_report_development.js');
+            const renderReportDevelopment =
+                module.renderReportDevelopment ||
+                module.renderReportDevelopmentView ||
+                module.default;
+
+            if (typeof renderReportDevelopment !== 'function') {
+                throw new Error('renderReportDevelopment export not found.');
+            }
+
+            renderReportDevelopment({
+                facility,
+                project,
+                reportType,
+                report_type: reportType,
+                reportTypeLabel: reportLabel,
+                photoType,
+                photo_type: photoType,
+                developmentMode,
+                mode: developmentMode,
+                reportStatus: 'Draft'
+            }, nav);
+
+        } catch (error) {
+            console.error(`[${__FILENAME}] Could not open report development view.`, error);
+            alert(`[${__FILENAME}] Could not open report development view.`);
+        }
+    };
 
     const openReportTypeDashboard = (reportType, reportLabel, photoType) => {
         app.innerHTML = `
@@ -68,30 +99,21 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
                 ${renderButtonStyles()}
 
                 <div style="margin-top:28px;font-size:12px;color:#999;text-align:center;">
-                    Source: view_4_report_builder.js | ${reportLabel} Dashboard | Updated: 2026-06-13 @ 12:20 PM
+                    Source: view_4_report_builder.js | ${reportLabel} Dashboard | Updated: 2026-06-13 @ 01:55 PM
                 </div>
             </div>
         `;
 
         document.getElementById('btnStartBuildReport').onclick = () => {
-            if (nav?.renderPhotoDashboard) {
-                nav.renderPhotoDashboard({
-                    facility,
-                    project,
-                    reportType,
-                    photoType,
-                    dashboardTitle: `${photoType.toUpperCase()} Pictures`,
-                    isFromReport: true
-                });
-            }
+            openReportDevelopment(reportType, reportLabel, photoType, 'start');
         };
 
         document.getElementById('btnEditReportSections').onclick = () => {
-            alert(`[view_4_report_builder.js] Edit Report Sections will be added next.`);
+            openReportDevelopment(reportType, reportLabel, photoType, 'edit');
         };
 
         document.getElementById('btnPreviewSubmitReport').onclick = () => {
-            alert(`[view_4_report_builder.js] Preview / Submit Report will be added later.`);
+            openReportDevelopment(reportType, reportLabel, photoType, 'preview');
         };
 
         document.getElementById('btnBackToReportTypes').onclick = () => {
@@ -147,22 +169,22 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
             ${renderButtonStyles()}
 
             <div style="margin-top:28px;font-size:12px;color:#999;text-align:center;">
-                Source: view_4_report_builder.js | Updated: 2026-06-13 @ 12:20 PM
+                Source: view_4_report_builder.js | Updated: 2026-06-13 @ 01:55 PM
             </div>
 
         </div>
     `;
 
     document.getElementById('btnStartReport').onclick = () => {
-        openReportTypeDashboard('start', 'Project Start Report', 'Before');
+        openReportTypeDashboard('project_start', 'Project Start Report', 'before');
     };
 
     document.getElementById('btnFollowupReport').onclick = () => {
-        openReportTypeDashboard('followup', 'Follow-Up Report', 'During');
+        openReportTypeDashboard('follow_up', 'Follow-Up Report', 'during');
     };
 
     document.getElementById('btnCompletionReport').onclick = () => {
-        openReportTypeDashboard('completion', 'Project Completion Report', 'After');
+        openReportTypeDashboard('project_completion', 'Project Completion Report', 'after');
     };
 
     document.getElementById('btnBackProjectDashboard').onclick = () => {
