@@ -306,7 +306,24 @@ function removeEmptyKeys(obj) {
     }
     return out;
 }
+/**
+ * Fetches a single vendor job record by its explicit database ID.
+ * Cross-references linked relationship records for rendering dependencies.
+ */
+export async function fetchVendorJobById(vendorJobId) {
+    if (!vendorJobId) return null;
+    const { data, error } = await supabase
+        .from('project_vendor_jobs')
+        .select('*, vendors(*), facility_project:project_id(*)')
+        .eq('id', vendorJobId)
+        .maybeSingle();
 
+    if (error) {
+        console.error('[view_4_data.js] Error fetching vendor job by id:', error);
+        return null;
+    }
+    return data;
+}
 /*================================================================
 END FILE: view_4_data.js
 ================================================================*/
