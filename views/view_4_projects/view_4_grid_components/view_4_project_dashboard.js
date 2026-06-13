@@ -5,7 +5,7 @@ FILE NAME    : view_4_project_dashboard.js
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-12 @ 08:45 AM
+LAST UPDATED : 2026-06-12 @ 08:50 PM
 ================================================================*/
 const __FILENAME = 'view_4_project_dashboard.js';
 
@@ -115,7 +115,7 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 08:45 AM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 08:50 PM
                 </div>
             </div>
         </div>
@@ -159,7 +159,20 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
     if (statusBtn) statusBtn.onclick = () => nav.renderProjectStatus ? nav.renderProjectStatus({ facility, project }) : alert('Project Status clicked');
 
     const reportBtn = document.getElementById('projectCreateReportBtn');
-    if (reportBtn) reportBtn.onclick = () => nav.renderCreateReport ? nav.renderCreateReport({ facility, project }) : alert('Create Report clicked');
+    if (reportBtn) {
+        reportBtn.onclick = () => {
+            if (nav && nav.renderCreateReport) {
+                nav.renderCreateReport({ facility, project });
+            } else {
+                // Fallback direct execution if route isn't pre-mounted on shared nav context
+                if (window.renderProjectReportBuilderView) {
+                    window.renderProjectReportBuilderView({ facility, project }, nav);
+                } else {
+                    alert('Create Report custom navigation hook or renderer context is currently unmounted.');
+                }
+            }
+        };
+    }
 
     const specialNotesBtn = document.getElementById('projectSpecialNotesBtn');
     if (specialNotesBtn) specialNotesBtn.onclick = () => nav.renderSpecialNotes ? nav.renderSpecialNotes({ facility, project }) : alert('Project Special Notes clicked');
@@ -170,6 +183,7 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
     setupProjectDashboardEvents({
         facility,
         project,
-        refreshProject: () => renderSingleProjectDashboard({ facility, project }, nav)
+        refreshProject: () => renderSingleProjectDashboard({ facility, project }, nav),
+        nav
     });
 }
