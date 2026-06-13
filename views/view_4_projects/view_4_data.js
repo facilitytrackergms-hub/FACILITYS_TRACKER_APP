@@ -6,7 +6,7 @@ File Pach : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-12 @ 10:00 PM
+LAST UPDATED : 2026-06-12 @ 11:12 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -324,6 +324,15 @@ export async function fetchVendorJobById(vendorJobId) {
     }
     return data;
 }
+
+/* Syntactic aliases mapped to support view_4_modal.js consumer requirements */
+export const saveNewProject = insertFacilityProject;
+export const saveProjectAction = insertProjectAction;
+export const saveVendorJob = insertProjectVendorJob;
+export const fetchVendorJobs = fetchProjectVendorJobs;
+export const saveJobFollowup = insertVendorJobFollowup;
+export const fetchJobFollowups = fetchVendorJobFollowups;
+
 /*================================================================
 END FILE: view_4_data.js
 ================================================================*/
