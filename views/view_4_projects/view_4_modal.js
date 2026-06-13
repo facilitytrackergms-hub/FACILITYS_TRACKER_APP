@@ -62,6 +62,10 @@ import {
     renderStyles
 } from './view_4_grid_components/view_4_styles.js';
 
+import {
+    renderProjectReportBuilderView as renderRealProjectReportBuilderView
+} from './view_4_grid_components/view_4_report_builder.js';
+
 const supabaseClient = window.supabaseClient || window.supabase;
 
 export function setupCabinetHomeEvents({ facility, projects, vendors, refreshHome, openVendor, nav }) {
@@ -165,12 +169,11 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
         document.getElementById('createReportBtn') ||
         document.getElementById('projectReportBtn');
 
-  if (openReportBtn) {
+if (openReportBtn) {
     openReportBtn.onclick = () => {
-        if (nav && nav.renderReportBuilder) {
-            nav.renderReportBuilder({ facility, project }, nav);
-            return;
-        }
+        renderRealProjectReportBuilderView({ facility, project }, nav);
+    };
+}
 
         if (nav && nav.renderProjectReportBuilderView) {
             nav.renderProjectReportBuilderView({ facility, project }, nav);
