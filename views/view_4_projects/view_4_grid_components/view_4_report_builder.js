@@ -6,7 +6,7 @@ PATH         : /FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_componen
 SUPABASE TBL : facility_projects, project_actions
 VIEW NAME    : Project Execution Report Builder
 POP-UP TITLE : None (Full-Screen View View Component)
-LAST UPDATED : 2026-06-12 @ 08:20 PM
+LAST UPDATED : 2026-06-12 @ 11:55 PM
 ================================================================*/
 const __FILENAME = 'view_4_report_builder.js';
 
@@ -22,13 +22,11 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
     const app = document.getElementById('app');
     if (!app) return;
 
-    // Pull property information fields dynamically from the context framework
     const facilityName = escapeHtml(facility?.name || facility?.Name || 'Facility Name');
     const facilityAddress = escapeHtml(facility?.address || facility?.Address || 'No Address Data Provided');
     const facilityPhone = escapeHtml(facility?.phone || facility?.Phone || 'No Phone Data Provided');
     const projectTitle = escapeHtml(getProjectTitle(project || {}));
     
-    // Automatically capture the current date string
     const currentDateString = new Date().toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'long', 
@@ -89,13 +87,12 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
                 </div>
 
                 <div id="uiTag_view_4_report_builder" class="ui-metadata-tag-view4" style="margin-top: 20px; font-size: 10px; color: #bbb; text-align: center;">
-                    Source: view_4_report_builder.js | Report Context Module | Updated: 2026-06-12 08:20 PM
+                    Source: view_4_report_builder.js | Report Context Module | Updated: 2026-06-12 11:55 PM
                 </div>
             </div>
         </div>
     `;
 
-    // --- Core Action Transmission Dispatchers ---
     document.getElementById('rptTextBtn').onclick = () => {
         const type = document.getElementById('rptTypeSelector').value;
         const discussion = document.getElementById('rptDiscussionInput').value;
@@ -108,16 +105,14 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
         alert(`[Email Dispatch Outbound]\nType: ${type}\nProperty: ${facilityName}\n\nDiscussion:\n${discussion || '(No content)'}`);
     };
 
-    // --- Back Navigation Link ---
     document.getElementById('rptBackToDashboardBtn').onclick = () => {
-        if (window.renderSingleProjectDashboard) {
-            window.renderSingleProjectDashboard({ facility, project }, nav);
+        if (nav && nav.renderProjectDashboard) {
+            nav.renderProjectDashboard({ facility, project });
         } else {
-            alert('Navigation routing failed: window.renderSingleProjectDashboard is not active.');
+            alert('Navigation routing failed: renderProjectDashboard is not active.');
         }
     };
 
-    // --- Cross Navigation Functional Deep Routing Links ---
     const routeSafely = (navMethod, debugLabel) => {
         if (nav && nav[navMethod]) {
             nav[navMethod]({ facility, project });
@@ -155,3 +150,8 @@ export function renderProjectReportBuilderView({ facility, project }, nav) {
     document.getElementById('rptGoSuppliesBtn').onclick = () => routeSafely('renderSuppliesDashboard', '6. Supplies Needed');
     document.getElementById('rptGoQuotesBtn').onclick = () => routeSafely('renderVendorDashboard', '7. Vendor Quotes/Files');
 }
+
+/*================================================================
+END FILE: view_4_report_builder.js
+UPDATED: 2026-06-12 @ 11:55 PM
+================================================================*/
