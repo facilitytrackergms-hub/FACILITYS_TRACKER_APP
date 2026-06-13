@@ -5,7 +5,7 @@ FILE NAME    : view_4_report_development.js
 SUPABASE TBL : reports, report_notes, report_attachments
 VIEW NAME    : Report Development View
 POP-UP TITLE : Develop Project Report
-LAST UPDATED : 2026-06-13 @ 01:52 PM
+LAST UPDATED : 2026-06-13 @ 02:05 PM
 ================================================================*/
 const __FILENAME = 'view_4_report_development.js';
 
@@ -16,7 +16,8 @@ import {
     fetchReportNotes,
     insertReportNote,
     fetchReportAttachments,
-    insertReportAttachment
+    insertReportAttachment,
+    uploadCabinetFile
 } from '../view_4_data.js';
 
 function escapeHtml(value) {
@@ -355,14 +356,29 @@ function renderPhotosSection(context) {
             <label class="v4-report-dev-label">Photo Title</label>
             <input id="v4ReportDevPhotoTitle" class="v4-report-dev-input" type="text" value="${escapeHtml(context.photoWorkflow.title)}">
 
+            <input id="v4ReportDevCameraInput" class="v4-report-dev-hidden-file" type="file" accept="image/*" capture="environment">
+            <input id="v4ReportDevUploadInput" class="v4-report-dev-hidden-file" type="file" accept="image/*">
+
+            <button id="v4ReportDevOpenCamera" class="v4-report-dev-main-btn">
+                Open Camera
+            </button>
+
+            <button id="v4ReportDevUploadPhoto" class="v4-report-dev-main-btn">
+                Upload Photo
+            </button>
+
+            <div id="v4ReportDevSelectedPhotoBox" class="v4-report-dev-selected-photo-box">
+                No photo selected.
+            </div>
+
             <label class="v4-report-dev-label">Photo URL</label>
-            <input id="v4ReportDevPhotoUrl" class="v4-report-dev-input" type="text" placeholder="Paste photo URL here">
+            <input id="v4ReportDevPhotoUrl" class="v4-report-dev-input" type="text" placeholder="Photo URL will appear here after upload">
 
             <label class="v4-report-dev-label">Description</label>
             <textarea id="v4ReportDevPhotoDescription" class="v4-report-dev-textarea" placeholder="Photo description"></textarea>
 
             <button id="v4ReportDevSavePhotoAttachment" class="v4-report-dev-main-btn">
-                Save ${escapeHtml(context.photoWorkflow.title)}
+                Save Photo To Report
             </button>
 
             <div id="v4ReportDevAttachmentList" class="v4-report-dev-list-box">Loading...</div>
@@ -552,7 +568,8 @@ function renderStyles() {
             .v4-report-dev-meta,
             .v4-report-dev-note,
             .v4-report-dev-preview-box,
-            .v4-report-dev-list-box {
+            .v4-report-dev-list-box,
+            .v4-report-dev-selected-photo-box {
                 text-align: left;
                 background: #f7fafc;
                 border-radius: 10px;
@@ -643,6 +660,20 @@ function renderStyles() {
                 margin-bottom: 4px;
             }
 
+            .v4-report-dev-hidden-file {
+                display: none;
+            }
+
+            .v4-report-dev-photo-preview {
+                width: 100%;
+                max-height: 280px;
+                object-fit: contain;
+                border-radius: 10px;
+                margin-top: 8px;
+                border: 1px solid #e5e7eb;
+                background: #ffffff;
+            }
+
             .v4-report-dev-version {
                 text-align: center;
                 margin-top: 14px;
@@ -705,6 +736,7 @@ function renderAttachmentList(attachments) {
             <div class="v4-report-dev-list-title">${escapeHtml(item.title || item.attachment_type || 'Attachment')}</div>
             <div>${escapeHtml(item.description || '')}</div>
             ${item.file_url ? `<div><a href="${escapeHtml(item.file_url)}" target="_blank">Open File</a></div>` : ''}
+            ${item.file_url && item.attachment_type === 'photo' ? `<img class="v4-report-dev-photo-preview" src="${escapeHtml(item.file_url)}" alt="${escapeHtml(item.title || 'Report Photo')}">` : ''}
         </div>
     `).join('');
 }
@@ -753,11 +785,67 @@ async function saveNote(context, subject, body, sortOrder = 1) {
     await loadNotes(makeChildContext(context, { report }));
 }
 
+async function uploadReportPhoto(context, fileObj) {
+    if (!fileObj) {
+        showMessage('No photo selected.', true);
+        return null;
+    }
+
+    const report = await ensureReport(context);
+
+    if (!report?.id) {
+        showMessage('Report could not be created.', true);
+        return null;
+    }
+
+    const safeFileName = String(fileObj.name || 'report_photo.jpg')
+        .replaceAll(' ', '_')
+        .replace(/[^a-zA-Z0-9._-]/g, '');
+
+    const filePath = `report_attachments/${report.id}/${context.photoWorkflow.photoType}_${Date.now()}_${safeFileName}`;
+
+    const result = await uploadCabinetFile('facility-assets', filePath, fileObj);
+
+    if (result?.error || !result?.publicUrl) {
+        console.error(`[${__FILENAME}] Photo upload failed.`, result?.error);
+        showMessage('Photo upload failed.', true);
+        return null;
+    }
+
+    const photoUrlInput = document.getElementById('v4ReportDevPhotoUrl');
+    if (photoUrlInput) photoUrlInput.value = result.publicUrl;
+
+    showMessage('Photo uploaded. Now save it to the report.');
+    return result.publicUrl;
+}
+
+function showSelectedPhoto(fileObj) {
+    const box = document.getElementById('v4ReportDevSelectedPhotoBox');
+    if (!box || !fileObj) return;
+
+    const localUrl = URL.createObjectURL(fileObj);
+
+    box.innerHTML = `
+        <div><strong>Selected Photo:</strong> ${escapeHtml(fileObj.name || 'Camera Photo')}</div>
+        <img class="v4-report-dev-photo-preview" src="${localUrl}" alt="Selected Photo">
+    `;
+}
+
+async function handlePhotoFileSelected(context, fileObj) {
+    showSelectedPhoto(fileObj);
+    await uploadReportPhoto(context, fileObj);
+}
+
 async function saveAttachment(context, attachmentType, title, fileUrl, description, photoType = null) {
     const report = await ensureReport(context);
 
     if (!report?.id) {
         showMessage('Report could not be created.', true);
+        return;
+    }
+
+    if (attachmentType === 'photo' && !fileUrl) {
+        showMessage('Upload a photo first.', true);
         return;
     }
 
@@ -782,7 +870,7 @@ async function saveAttachment(context, attachmentType, title, fileUrl, descripti
         return;
     }
 
-    showMessage('Saved.');
+    showMessage('Saved to report.');
     await loadAttachments(makeChildContext(context, { report }));
 }
 
@@ -865,6 +953,30 @@ function setupReportDevelopmentEvents(context, nav) {
     bind('v4ReportDevBackPreviewMenu', () => rerenderDevelopment(context, nav, 'preview'));
     bind('v4ReportDevBackPreviewMenu2', () => rerenderDevelopment(context, nav, 'preview'));
     bind('v4ReportDevBackPreviewMenu3', () => rerenderDevelopment(context, nav, 'preview'));
+
+    bind('v4ReportDevOpenCamera', () => {
+        document.getElementById('v4ReportDevCameraInput')?.click();
+    });
+
+    bind('v4ReportDevUploadPhoto', () => {
+        document.getElementById('v4ReportDevUploadInput')?.click();
+    });
+
+    const cameraInput = document.getElementById('v4ReportDevCameraInput');
+    if (cameraInput) {
+        cameraInput.onchange = async () => {
+            const fileObj = cameraInput.files?.[0];
+            await handlePhotoFileSelected(context, fileObj);
+        };
+    }
+
+    const uploadInput = document.getElementById('v4ReportDevUploadInput');
+    if (uploadInput) {
+        uploadInput.onchange = async () => {
+            const fileObj = uploadInput.files?.[0];
+            await handlePhotoFileSelected(context, fileObj);
+        };
+    }
 
     bind('v4ReportDevSavePhotoAttachment', async () => {
         await saveAttachment(
@@ -971,7 +1083,7 @@ export async function renderReportDevelopment(data = {}, nav = {}) {
             ${renderHeader(context)}
             ${renderBodyByMode(context)}
             <div class="v4-report-dev-version">
-                ${__FILENAME} | 2026-06-13 @ 01:52 PM
+                ${__FILENAME} | 2026-06-13 @ 02:05 PM
             </div>
         </div>
     `;
