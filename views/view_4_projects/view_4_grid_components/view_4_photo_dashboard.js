@@ -3,10 +3,9 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_4_photo_dashboard.js
 SUPABASE TBL : facility_images, contacts
-
 VIEW NAME    : Reusable Project Photo Dashboard with Sharing Engine
 POP-UP TITLE : Continuous Photo Capture System & Contact Share
-LAST UPDATED : 2026-06-12 @ 07:45 PM
+LAST UPDATED : 2026-06-13 @ 12:25 AM
 ================================================================*/
 const __FILENAME = 'view_4_photo_dashboard.js';
 
@@ -24,6 +23,46 @@ const redTrashIcon = `
         <line x1="14" y1="11" x2="14" y2="17"></line>
     </svg>
 `;
+
+const getReportAttachmentKey = (projectId) => `view4_report_attachments_${projectId || 'unknown_project'}`;
+
+const readReportAttachments = (projectId) => {
+    try {
+        return JSON.parse(localStorage.getItem(getReportAttachmentKey(projectId)) || '[]');
+    } catch (err) {
+        console.error(`[${__FILENAME}] Failed reading report attachments:`, err);
+        return [];
+    }
+};
+
+const writeReportAttachments = (projectId, attachments) => {
+    localStorage.setItem(getReportAttachmentKey(projectId), JSON.stringify(attachments));
+};
+
+const isPhotoAttachedToReport = (projectId, photoId, imageUrl) => {
+    const attachments = readReportAttachments(projectId);
+    return attachments.some(item => String(item.id) === String(photoId) || String(item.image_url) === String(imageUrl));
+};
+
+const attachPhotoToReport = ({ project, facility, photoId, imageUrl, photoType }) => {
+    const projectId = project?.id || 'unknown_project';
+    const attachments = readReportAttachments(projectId);
+    const alreadyAttached = attachments.some(item => String(item.id) === String(photoId) || String(item.image_url) === String(imageUrl));
+
+    if (!alreadyAttached) {
+        attachments.push({
+            id: photoId,
+            image_url: imageUrl,
+            photo_type: photoType || 'Project',
+            project_id: projectId,
+            facility_id: facility?.id || null,
+            attached_at: new Date().toISOString()
+        });
+        writeReportAttachments(projectId, attachments);
+    }
+
+    return true;
+};
 
 export async function renderPhotoDashboard({ facility, project, photoType }, nav) {
     const app = document.getElementById('app');
@@ -113,6 +152,11 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                                             <span style="font-size: 10px; color: #4b5563;">${formatDate(p.created_at)}</span>
                                             <button type="button" class="delete-photo-btn" data-id="${escapeAttr(p.id)}" style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; height: 24px; width: 24px;">
                                                 ${redTrashIcon}
+                                            </button>
+                                        </div>
+                                        <div style="padding: 0 8px 8px 8px;">
+                                            <button type="button" class="attach-report-photo-btn" data-id="${escapeAttr(p.id)}" data-url="${escapeAttr(p.image_url)}" data-type="${escapeAttr(currentType)}" style="width: 100%; border: none; border-radius: 5px; padding: 7px 5px; font-size: 10px; font-weight: 700; color: white; background: ${isPhotoAttachedToReport(project.id, p.id, p.image_url) ? '#16a34a' : '#003366'}; cursor: pointer;">
+                                                ${isPhotoAttachedToReport(project.id, p.id, p.image_url) ? '✅ ATTACHED TO REPORT' : '📎 ATTACH PICTURE TO REPORT'}
                                             </button>
                                         </div>
                                     </div>
@@ -272,6 +316,11 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
                         <span style="font-size: 10px; color: #4b5563;">Just now</span>
                         <button type="button" class="delete-photo-btn" data-id="${escapeAttr(dbPhotoId)}" style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; height: 24px; width: 24px;">
                             ${redTrashIcon}
+                        </button>
+                    </div>
+                    <div style="padding: 0 8px 8px 8px;">
+                        <button type="button" class="attach-report-photo-btn" data-id="${escapeAttr(dbPhotoId)}" data-url="${escapeAttr(imageUrl)}" data-type="${escapeAttr(currentType)}" style="width: 100%; border: none; border-radius: 5px; padding: 7px 5px; font-size: 10px; font-weight: 700; color: white; background: #003366; cursor: pointer;">
+                            📎 ATTACH PICTURE TO REPORT
                         </button>
                     </div>
                 </div>
@@ -454,6 +503,24 @@ export async function renderPhotoDashboard({ facility, project, photoType }, nav
 
     if (photoGridContainer && lightboxModal && lightboxImg) {
         photoGridContainer.addEventListener('click', (e) => {
+            const attachBtn = e.target.closest('.attach-report-photo-btn');
+            if (attachBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                attachPhotoToReport({
+                    project,
+                    facility,
+                    photoId: attachBtn.dataset.id,
+                    imageUrl: attachBtn.dataset.url,
+                    photoType: attachBtn.dataset.type || currentType
+                });
+
+                attachBtn.innerText = '✅ ATTACHED TO REPORT';
+                attachBtn.style.background = '#16a34a';
+                return;
+            }
+
             const clickedImg = e.target;
             if (clickedImg.tagName === 'IMG' && clickedImg.closest('.photo-card')) {
                 lightboxImg.src = clickedImg.src;
