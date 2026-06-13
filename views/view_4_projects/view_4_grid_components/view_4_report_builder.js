@@ -10,7 +10,7 @@ LAST UPDATED : 2026-06-13 @ 12:40 AM
 ================================================================*/
 const __FILENAME = 'view_4_report_builder.js';
 
-import { getProjectTitle } from '../view_4_data.js';
+import { getProjectTitle } from '../view_4_core/view_4_data.js';
 import { escapeHtml, escapeAttr } from './view_4_render_helpers.js';
 
 const getReportAttachmentKey = (projectId) => `view4_report_attachments_${projectId || 'unknown_project'}`;
