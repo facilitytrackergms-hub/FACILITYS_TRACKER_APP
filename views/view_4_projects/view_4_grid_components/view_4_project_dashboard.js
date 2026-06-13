@@ -42,12 +42,12 @@ const __FILENAME = 'view_4_project_dashboard.js';
 import {
     fetchProjectActions,
     getProjectTitle
-} from '../view_4_data.js';
+} from '../view_4_core/view_4_data.js';
 
 import {
     setupProjectDashboardEvents,
     renderProjectReportBuilderView
-} from '../view_4_modal.js';
+} from '../view_4_core/view_4_modal.js';
 
 import {
     escapeHtml,
