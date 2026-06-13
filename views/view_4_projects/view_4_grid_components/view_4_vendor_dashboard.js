@@ -46,11 +46,11 @@ import {
     fetchVendorFiles,
     fetchVendorJobsForVendorInFacility,
     getVendorName
-} from '../view_4_data.js';
+} from '../view_4_core/view_4_data.js';
 
 import {
     setupVendorDashboardEvents
-} from '../view_4_modal.js';
+} from '../view_4_core/view_4_modal.js';
 
 // =================== UPDATED IMPORT ===================
 import {
