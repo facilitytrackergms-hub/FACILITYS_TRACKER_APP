@@ -3,10 +3,10 @@ FILE METADATA
 ================================================================
 FILE NAME    : view_4_data.js
 File Pach : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
-SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
+SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups, reports, report_notes, report_attachments
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-12 @ 11:12 PM
+LAST UPDATED : 2026-06-13 @ 01:35 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -279,6 +279,199 @@ export async function fetchVendorJobsForVendorInFacility(vendorId, facilityId) {
     return data || [];
 }
 
+export async function fetchReportsByProject(projectId) {
+    if (!projectId) return [];
+
+    const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('active_status', true)
+        .order('last_edited_at', { ascending: false });
+
+    if (error) {
+        console.error('[view_4_data.js] Error fetching reports by project:', error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function fetchReportById(reportId) {
+    if (!reportId) return null;
+
+    const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .eq('id', reportId)
+        .maybeSingle();
+
+    if (error) {
+        console.error('[view_4_data.js] Error fetching report by id:', error);
+        return null;
+    }
+    return data;
+}
+
+export async function createReport(rowData) {
+    const cleanData = removeEmptyKeys({
+        ...rowData,
+        report_status: rowData?.report_status || 'Draft',
+        report_version: rowData?.report_version || 1,
+        active_status: rowData?.active_status !== undefined ? rowData.active_status : true,
+        last_edited_at: new Date().toISOString()
+    });
+
+    const { data, error } = await supabase
+        .from('reports')
+        .insert([cleanData])
+        .select()
+        .maybeSingle();
+
+    return { data, error };
+}
+
+export async function updateReport(reportId, rowData) {
+    if (!reportId) return { data: null, error: 'Missing reportId' };
+
+    const cleanData = removeEmptyKeys({
+        ...rowData,
+        last_edited_at: new Date().toISOString()
+    });
+
+    const { data, error } = await supabase
+        .from('reports')
+        .update(cleanData)
+        .eq('id', reportId)
+        .select()
+        .maybeSingle();
+
+    return { data, error };
+}
+
+export async function fetchReportNotes(reportId) {
+    if (!reportId) return [];
+
+    const { data, error } = await supabase
+        .from('report_notes')
+        .select('*')
+        .eq('report_id', reportId)
+        .eq('active_status', true)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('[view_4_data.js] Error fetching report notes:', error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function insertReportNote(rowData) {
+    const cleanData = removeEmptyKeys({
+        ...rowData,
+        active_status: rowData?.active_status !== undefined ? rowData.active_status : true
+    });
+
+    const { data, error } = await supabase
+        .from('report_notes')
+        .insert([cleanData])
+        .select()
+        .maybeSingle();
+
+    return { data, error };
+}
+
+export async function updateReportNote(noteId, rowData) {
+    if (!noteId) return { data: null, error: 'Missing noteId' };
+
+    const cleanData = removeEmptyKeys({
+        ...rowData,
+        updated_at: new Date().toISOString()
+    });
+
+    const { data, error } = await supabase
+        .from('report_notes')
+        .update(cleanData)
+        .eq('id', noteId)
+        .select()
+        .maybeSingle();
+
+    return { data, error };
+}
+
+export async function fetchReportAttachments(reportId) {
+    if (!reportId) return [];
+
+    const { data, error } = await supabase
+        .from('report_attachments')
+        .select('*')
+        .eq('report_id', reportId)
+        .eq('active_status', true)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('[view_4_data.js] Error fetching report attachments:', error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function insertReportAttachment(rowData) {
+    const cleanData = removeEmptyKeys({
+        ...rowData,
+        active_status: rowData?.active_status !== undefined ? rowData.active_status : true
+    });
+
+    const { data, error } = await supabase
+        .from('report_attachments')
+        .insert([cleanData])
+        .select()
+        .maybeSingle();
+
+    return { data, error };
+}
+
+export async function updateReportAttachment(attachmentId, rowData) {
+    if (!attachmentId) return { data: null, error: 'Missing attachmentId' };
+
+    const cleanData = removeEmptyKeys(rowData);
+
+    const { data, error } = await supabase
+        .from('report_attachments')
+        .update(cleanData)
+        .eq('id', attachmentId)
+        .select()
+        .maybeSingle();
+
+    return { data, error };
+}
+
+export async function deleteReportAttachment(attachmentId) {
+    if (!attachmentId) return { data: null, error: 'Missing attachmentId' };
+
+    const { data, error } = await supabase
+        .from('report_attachments')
+        .delete()
+        .eq('id', attachmentId)
+        .select();
+
+    return { data, error };
+}
+
+export async function removeReportAttachment(attachmentId) {
+    if (!attachmentId) return { data: null, error: 'Missing attachmentId' };
+
+    const { data, error } = await supabase
+        .from('report_attachments')
+        .update({ active_status: false })
+        .eq('id', attachmentId)
+        .select()
+        .maybeSingle();
+
+    return { data, error };
+}
+
 export function getProjectTitle(project) {
     if (!project) return 'Untitled Project';
     return project.project_title_text || project.project_name_text || project.title || project.project_name || 'Untitled Project';
@@ -306,6 +499,7 @@ function removeEmptyKeys(obj) {
     }
     return out;
 }
+
 /**
  * Fetches a single vendor job record by its explicit database ID.
  * Cross-references linked relationship records for rendering dependencies.
@@ -332,6 +526,10 @@ export const saveVendorJob = insertProjectVendorJob;
 export const fetchVendorJobs = fetchProjectVendorJobs;
 export const saveJobFollowup = insertVendorJobFollowup;
 export const fetchJobFollowups = fetchVendorJobFollowups;
+
+export const saveReport = createReport;
+export const saveReportNote = insertReportNote;
+export const saveReportAttachment = insertReportAttachment;
 
 /*================================================================
 END FILE: view_4_data.js
