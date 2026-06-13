@@ -119,7 +119,7 @@ export async function fetchVendors() {
     const { data, error } = await supabase
         .from('vendors')
         .select('*')
-        .eq('active_status', true)
+        .eq('status', 'active')
         .order('company_name', { ascending: true });
     if (error) {
         console.error('[view_4_data.js] Error fetching vendors:', error);
