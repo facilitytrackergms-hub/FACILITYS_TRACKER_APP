@@ -50,7 +50,7 @@ window.navigateTo = async (view, context = {}) => {
             await renderFacilityContacts(context);
         }
         else if (view === 'view_4_projects') {
-            const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid.js${cb}`);
+            const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_core/view_4_grid.js${cb}`);
             await renderPendingProjects(context, navRuntime);
         }
         else if (view === 'view_4_project_dashboard') {
