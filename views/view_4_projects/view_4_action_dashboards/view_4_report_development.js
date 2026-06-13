@@ -5,9 +5,19 @@ FILE NAME    : view_4_report_development.js
 SUPABASE TBL : reports, report_notes, report_attachments
 VIEW NAME    : Report Development View
 POP-UP TITLE : Develop Project Report
-LAST UPDATED : 2026-06-13 @ 01:38 PM
+LAST UPDATED : 2026-06-13 @ 01:52 PM
 ================================================================*/
 const __FILENAME = 'view_4_report_development.js';
+
+import {
+    fetchReportsByProject,
+    createReport,
+    updateReport,
+    fetchReportNotes,
+    insertReportNote,
+    fetchReportAttachments,
+    insertReportAttachment
+} from '../view_4_data.js';
 
 function escapeHtml(value) {
     if (value === null || value === undefined) return '';
@@ -58,13 +68,15 @@ function normalizeReportType(value) {
 function normalizeDevelopmentMode(value) {
     const raw = String(value || '').trim().toLowerCase();
 
-    if (raw === 'edit' || raw === 'edit_sections' || raw === 'edit report sections') {
-        return 'edit';
-    }
-
-    if (raw === 'preview' || raw === 'submit' || raw === 'preview_submit' || raw === 'preview / submit report') {
-        return 'preview';
-    }
+    if (raw === 'edit' || raw === 'edit_sections' || raw === 'edit report sections') return 'edit';
+    if (raw === 'preview' || raw === 'submit' || raw === 'preview_submit' || raw === 'preview / submit report') return 'preview';
+    if (raw === 'photos' || raw === 'before_photos' || raw === 'during_photos' || raw === 'after_photos') return 'photos';
+    if (raw === 'notes' || raw === 'project_special_notes' || raw === 'special_notes') return 'notes';
+    if (raw === 'supplies' || raw === 'supplies_parts_needed') return 'supplies';
+    if (raw === 'vendor' || raw === 'vendor_quotes_files') return 'vendor';
+    if (raw === 'preview_report') return 'preview_report';
+    if (raw === 'submit_report') return 'submit_report';
+    if (raw === 'text_email_report') return 'text_email_report';
 
     return 'start';
 }
@@ -146,6 +158,24 @@ function getProjectName(context) {
     );
 }
 
+function getProjectId(context) {
+    return (
+        context.project?.id ||
+        context.project_id ||
+        context.projectId ||
+        null
+    );
+}
+
+function getFacilityId(context) {
+    return (
+        context.facility?.id ||
+        context.facility_id ||
+        context.facilityId ||
+        null
+    );
+}
+
 function getFacilityName(context) {
     return (
         context.facility?.name ||
@@ -164,13 +194,17 @@ function getReportStatus(context) {
     );
 }
 
+function getReportTitle(context) {
+    return `${getReportTypeLabel(context.reportType)} - ${getProjectName(context)}`;
+}
+
 function makeChildContext(context, extra = {}) {
     return {
         ...context,
         ...extra,
         project: context.project,
         facility: context.facility,
-        report: context.report,
+        report: extra.report || context.report,
         reportType: context.reportType,
         report_type: context.reportType,
         reportTypeLabel: context.reportTypeLabel,
@@ -178,6 +212,44 @@ function makeChildContext(context, extra = {}) {
         photoType: context.photoWorkflow.photoType,
         actionKey: extra.actionKey || context.photoWorkflow.actionKey
     };
+}
+
+async function ensureReport(context) {
+    if (context.report?.id) return context.report;
+
+    const projectId = getProjectId(context);
+    if (!projectId) return null;
+
+    const reports = await fetchReportsByProject(projectId);
+    const existingReport = (reports || []).find(r => r.report_type === context.reportType);
+
+    if (existingReport) return existingReport;
+
+    const { data, error } = await createReport({
+        project_id: projectId,
+        facility_id: getFacilityId(context),
+        report_type: context.reportType,
+        report_title: getReportTitle(context),
+        report_status: 'Draft',
+        report_version: 1,
+        active_status: true
+    });
+
+    if (error) {
+        console.error(`[${__FILENAME}] Error creating report.`, error);
+        return null;
+    }
+
+    return data;
+}
+
+function showMessage(message, isError = false) {
+    const box = document.getElementById('v4ReportDevMessage');
+    if (!box) return;
+
+    box.innerHTML = escapeHtml(message);
+    box.style.display = 'block';
+    box.style.background = isError ? '#fee2e2' : '#dcfce7';
 }
 
 function renderHeader(context) {
@@ -274,9 +346,171 @@ function renderPreviewSubmit(context) {
     `;
 }
 
+function renderPhotosSection(context) {
+    return `
+        <div class="v4-report-dev-panel">
+            <h3>${escapeHtml(context.photoWorkflow.title)}</h3>
+            <div id="v4ReportDevMessage" class="v4-report-dev-message"></div>
+
+            <label class="v4-report-dev-label">Photo Title</label>
+            <input id="v4ReportDevPhotoTitle" class="v4-report-dev-input" type="text" value="${escapeHtml(context.photoWorkflow.title)}">
+
+            <label class="v4-report-dev-label">Photo URL</label>
+            <input id="v4ReportDevPhotoUrl" class="v4-report-dev-input" type="text" placeholder="Paste photo URL here">
+
+            <label class="v4-report-dev-label">Description</label>
+            <textarea id="v4ReportDevPhotoDescription" class="v4-report-dev-textarea" placeholder="Photo description"></textarea>
+
+            <button id="v4ReportDevSavePhotoAttachment" class="v4-report-dev-main-btn">
+                Save ${escapeHtml(context.photoWorkflow.title)}
+            </button>
+
+            <div id="v4ReportDevAttachmentList" class="v4-report-dev-list-box">Loading...</div>
+
+            <button id="v4ReportDevBackEditFromPhotos" class="v4-report-dev-main-btn secondary">
+                Back To Edit Report Sections
+            </button>
+        </div>
+    `;
+}
+
+function renderNotesSection() {
+    return `
+        <div class="v4-report-dev-panel">
+            <h3>Special Notes</h3>
+            <div id="v4ReportDevMessage" class="v4-report-dev-message"></div>
+
+            <label class="v4-report-dev-label">Note Subject</label>
+            <input id="v4ReportDevNoteSubject" class="v4-report-dev-input" type="text" placeholder="Note subject">
+
+            <label class="v4-report-dev-label">Note</label>
+            <textarea id="v4ReportDevNoteBody" class="v4-report-dev-textarea" placeholder="Write report note"></textarea>
+
+            <button id="v4ReportDevSaveNote" class="v4-report-dev-main-btn">
+                Save Special Note
+            </button>
+
+            <div id="v4ReportDevNotesList" class="v4-report-dev-list-box">Loading...</div>
+
+            <button id="v4ReportDevBackEditFromNotes" class="v4-report-dev-main-btn secondary">
+                Back To Edit Report Sections
+            </button>
+        </div>
+    `;
+}
+
+function renderSuppliesSection() {
+    return `
+        <div class="v4-report-dev-panel">
+            <h3>Supplies / Parts Needed</h3>
+            <div id="v4ReportDevMessage" class="v4-report-dev-message"></div>
+
+            <label class="v4-report-dev-label">Supplies / Parts</label>
+            <textarea id="v4ReportDevSuppliesBody" class="v4-report-dev-textarea" placeholder="List supplies or parts needed"></textarea>
+
+            <button id="v4ReportDevSaveSupplies" class="v4-report-dev-main-btn">
+                Save Supplies / Parts Needed
+            </button>
+
+            <div id="v4ReportDevNotesList" class="v4-report-dev-list-box">Loading...</div>
+
+            <button id="v4ReportDevBackEditFromSupplies" class="v4-report-dev-main-btn secondary">
+                Back To Edit Report Sections
+            </button>
+        </div>
+    `;
+}
+
+function renderVendorSection() {
+    return `
+        <div class="v4-report-dev-panel">
+            <h3>Vendor Quotes / Files</h3>
+            <div id="v4ReportDevMessage" class="v4-report-dev-message"></div>
+
+            <label class="v4-report-dev-label">Vendor File Title</label>
+            <input id="v4ReportDevVendorTitle" class="v4-report-dev-input" type="text" placeholder="Vendor quote or file title">
+
+            <label class="v4-report-dev-label">File URL</label>
+            <input id="v4ReportDevVendorUrl" class="v4-report-dev-input" type="text" placeholder="Paste vendor file URL here">
+
+            <label class="v4-report-dev-label">Description</label>
+            <textarea id="v4ReportDevVendorDescription" class="v4-report-dev-textarea" placeholder="Vendor quote or file description"></textarea>
+
+            <button id="v4ReportDevSaveVendorAttachment" class="v4-report-dev-main-btn">
+                Save Vendor Quote / File
+            </button>
+
+            <div id="v4ReportDevAttachmentList" class="v4-report-dev-list-box">Loading...</div>
+
+            <button id="v4ReportDevBackEditFromVendor" class="v4-report-dev-main-btn secondary">
+                Back To Edit Report Sections
+            </button>
+        </div>
+    `;
+}
+
+function renderPreviewReportSection() {
+    return `
+        <div class="v4-report-dev-panel">
+            <h3>Preview Report</h3>
+            <div id="v4ReportDevPreviewContent" class="v4-report-dev-preview-box">Loading report preview...</div>
+            <button id="v4ReportDevBackPreviewMenu" class="v4-report-dev-main-btn secondary">
+                Back To Preview / Submit Report
+            </button>
+        </div>
+    `;
+}
+
+function renderSubmitReportSection() {
+    return `
+        <div class="v4-report-dev-panel">
+            <h3>Submit / Resubmit Report</h3>
+            <div id="v4ReportDevMessage" class="v4-report-dev-message"></div>
+
+            <label class="v4-report-dev-label">Submit To Name</label>
+            <input id="v4ReportDevSubmitTo" class="v4-report-dev-input" type="text" placeholder="Name">
+
+            <label class="v4-report-dev-label">Submit To Email</label>
+            <input id="v4ReportDevSubmitEmail" class="v4-report-dev-input" type="email" placeholder="Email">
+
+            <label class="v4-report-dev-label">Submit To Phone</label>
+            <input id="v4ReportDevSubmitPhone" class="v4-report-dev-input" type="tel" placeholder="Phone">
+
+            <button id="v4ReportDevSaveSubmit" class="v4-report-dev-main-btn">
+                Mark Report Submitted
+            </button>
+
+            <button id="v4ReportDevBackPreviewMenu2" class="v4-report-dev-main-btn secondary">
+                Back To Preview / Submit Report
+            </button>
+        </div>
+    `;
+}
+
+function renderTextEmailSection() {
+    return `
+        <div class="v4-report-dev-panel">
+            <h3>Text / Email Report</h3>
+            <div id="v4ReportDevMessage" class="v4-report-dev-message"></div>
+            <div id="v4ReportDevTextEmailContent" class="v4-report-dev-preview-box">Loading report message...</div>
+
+            <button id="v4ReportDevBackPreviewMenu3" class="v4-report-dev-main-btn secondary">
+                Back To Preview / Submit Report
+            </button>
+        </div>
+    `;
+}
+
 function renderBodyByMode(context) {
     if (context.developmentMode === 'edit') return renderEditSections(context);
     if (context.developmentMode === 'preview') return renderPreviewSubmit(context);
+    if (context.developmentMode === 'photos') return renderPhotosSection(context);
+    if (context.developmentMode === 'notes') return renderNotesSection(context);
+    if (context.developmentMode === 'supplies') return renderSuppliesSection(context);
+    if (context.developmentMode === 'vendor') return renderVendorSection(context);
+    if (context.developmentMode === 'preview_report') return renderPreviewReportSection(context);
+    if (context.developmentMode === 'submit_report') return renderSubmitReportSection(context);
+    if (context.developmentMode === 'text_email_report') return renderTextEmailSection(context);
     return renderStartContinue(context);
 }
 
@@ -291,12 +525,16 @@ function renderStyles() {
                 color: #17212b;
             }
 
-            .v4-report-dev-header {
+            .v4-report-dev-header,
+            .v4-report-dev-panel {
                 background: #ffffff;
                 border-radius: 14px;
                 padding: 14px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.10);
                 margin-bottom: 14px;
+            }
+
+            .v4-report-dev-header {
                 text-align: center;
             }
 
@@ -311,13 +549,17 @@ function renderStyles() {
                 margin-bottom: 10px;
             }
 
-            .v4-report-dev-meta {
+            .v4-report-dev-meta,
+            .v4-report-dev-note,
+            .v4-report-dev-preview-box,
+            .v4-report-dev-list-box {
                 text-align: left;
                 background: #f7fafc;
                 border-radius: 10px;
                 padding: 10px;
                 line-height: 1.5;
                 font-size: 15px;
+                margin-bottom: 12px;
             }
 
             .v4-report-dev-back-btn {
@@ -331,25 +573,10 @@ function renderStyles() {
                 color: #17212b;
             }
 
-            .v4-report-dev-panel {
-                background: #ffffff;
-                border-radius: 14px;
-                padding: 14px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-            }
-
             .v4-report-dev-panel h3 {
                 margin: 0 0 12px 0;
                 font-size: 20px;
                 text-align: center;
-            }
-
-            .v4-report-dev-note {
-                background: #f7fafc;
-                border-radius: 10px;
-                padding: 10px;
-                margin: 0 0 12px 0;
-                font-size: 15px;
             }
 
             .v4-report-dev-main-btn {
@@ -370,13 +597,50 @@ function renderStyles() {
                 background: #dfe7ef;
             }
 
-            .v4-report-dev-preview-box {
-                background: #f7fafc;
+            .v4-report-dev-label {
+                display: block;
+                font-size: 14px;
+                font-weight: 700;
+                margin: 10px 0 4px 0;
+            }
+
+            .v4-report-dev-input,
+            .v4-report-dev-textarea {
+                width: 100%;
+                box-sizing: border-box;
+                border: 1px solid #d1d5db;
                 border-radius: 10px;
                 padding: 12px;
-                margin-bottom: 12px;
-                line-height: 1.6;
-                font-size: 15px;
+                font-size: 16px;
+                font-family: Arial, sans-serif;
+                margin-bottom: 8px;
+            }
+
+            .v4-report-dev-textarea {
+                min-height: 110px;
+                resize: vertical;
+            }
+
+            .v4-report-dev-message {
+                display: none;
+                border-radius: 10px;
+                padding: 10px;
+                font-size: 14px;
+                font-weight: 700;
+                margin-bottom: 10px;
+            }
+
+            .v4-report-dev-list-item {
+                background: #ffffff;
+                border-radius: 9px;
+                padding: 9px;
+                margin-bottom: 8px;
+                border: 1px solid #e5e7eb;
+            }
+
+            .v4-report-dev-list-title {
+                font-weight: 700;
+                margin-bottom: 4px;
             }
 
             .v4-report-dev-version {
@@ -422,54 +686,149 @@ function rerenderDevelopment(context, nav, developmentMode) {
     renderReportDevelopment(makeChildContext(context, { developmentMode, mode: developmentMode }), nav);
 }
 
-function openProjectAction(context, nav, actionKey) {
-    const nextContext = makeChildContext(context, { actionKey, action_type: actionKey });
+function renderNotesList(notes) {
+    if (!notes || notes.length === 0) return 'No notes saved yet.';
 
-    const possibleNavFunctions = [
-        nav?.openProjectAction,
-        nav?.renderProjectAction,
-        nav?.openActionDashboard,
-        nav?.renderActionDashboard,
-        nav?.goToProjectAction
-    ];
-
-    for (const fn of possibleNavFunctions) {
-        if (typeof fn === 'function') {
-            fn(nextContext);
-            return;
-        }
-    }
-
-    window.dispatchEvent(new CustomEvent('view4:openProjectAction', {
-        detail: nextContext
-    }));
-
-    console.warn(`[${__FILENAME}] Project action requested: ${actionKey}`, nextContext);
+    return notes.map(note => `
+        <div class="v4-report-dev-list-item">
+            <div class="v4-report-dev-list-title">${escapeHtml(note.note_subject || 'Note')}</div>
+            <div>${escapeHtml(note.note_body || '')}</div>
+        </div>
+    `).join('');
 }
 
-function openReportAction(context, nav, reportAction) {
-    const nextContext = makeChildContext(context, { reportAction, actionKey: reportAction });
+function renderAttachmentList(attachments) {
+    if (!attachments || attachments.length === 0) return 'No attachments saved yet.';
 
-    const possibleNavFunctions = [
-        nav?.openReportAction,
-        nav?.renderReportAction,
-        nav?.openReportPreview,
-        nav?.openReportSubmit,
-        nav?.openReportTextEmail
-    ];
+    return attachments.map(item => `
+        <div class="v4-report-dev-list-item">
+            <div class="v4-report-dev-list-title">${escapeHtml(item.title || item.attachment_type || 'Attachment')}</div>
+            <div>${escapeHtml(item.description || '')}</div>
+            ${item.file_url ? `<div><a href="${escapeHtml(item.file_url)}" target="_blank">Open File</a></div>` : ''}
+        </div>
+    `).join('');
+}
 
-    for (const fn of possibleNavFunctions) {
-        if (typeof fn === 'function') {
-            fn(nextContext);
-            return;
-        }
+async function loadNotes(context) {
+    const report = await ensureReport(context);
+    const box = document.getElementById('v4ReportDevNotesList');
+    if (!box || !report?.id) return;
+
+    const notes = await fetchReportNotes(report.id);
+    box.innerHTML = renderNotesList(notes);
+}
+
+async function loadAttachments(context) {
+    const report = await ensureReport(context);
+    const box = document.getElementById('v4ReportDevAttachmentList');
+    if (!box || !report?.id) return;
+
+    const attachments = await fetchReportAttachments(report.id);
+    box.innerHTML = renderAttachmentList(attachments);
+}
+
+async function saveNote(context, subject, body, sortOrder = 1) {
+    const report = await ensureReport(context);
+
+    if (!report?.id) {
+        showMessage('Report could not be created.', true);
+        return;
     }
 
-    window.dispatchEvent(new CustomEvent('view4:openReportAction', {
-        detail: nextContext
-    }));
+    const { error } = await insertReportNote({
+        report_id: report.id,
+        note_subject: subject,
+        note_body: body,
+        sort_order: sortOrder,
+        active_status: true
+    });
 
-    console.warn(`[${__FILENAME}] Report action requested: ${reportAction}`, nextContext);
+    if (error) {
+        console.error(`[${__FILENAME}] Error saving note.`, error);
+        showMessage('Note save failed.', true);
+        return;
+    }
+
+    showMessage('Saved.');
+    await loadNotes(makeChildContext(context, { report }));
+}
+
+async function saveAttachment(context, attachmentType, title, fileUrl, description, photoType = null) {
+    const report = await ensureReport(context);
+
+    if (!report?.id) {
+        showMessage('Report could not be created.', true);
+        return;
+    }
+
+    const { error } = await insertReportAttachment({
+        report_id: report.id,
+        project_id: getProjectId(context),
+        facility_id: getFacilityId(context),
+        attachment_type: attachmentType,
+        source_table: 'manual_entry',
+        source_id: '',
+        title,
+        description,
+        file_url: fileUrl,
+        photo_type: photoType,
+        sort_order: 1,
+        active_status: true
+    });
+
+    if (error) {
+        console.error(`[${__FILENAME}] Error saving attachment.`, error);
+        showMessage('Attachment save failed.', true);
+        return;
+    }
+
+    showMessage('Saved.');
+    await loadAttachments(makeChildContext(context, { report }));
+}
+
+async function loadPreview(context) {
+    const report = await ensureReport(context);
+    const box = document.getElementById('v4ReportDevPreviewContent');
+    if (!box || !report?.id) return;
+
+    const notes = await fetchReportNotes(report.id);
+    const attachments = await fetchReportAttachments(report.id);
+
+    box.innerHTML = `
+        <div><strong>Report Title:</strong> ${escapeHtml(report.report_title || getReportTitle(context))}</div>
+        <div><strong>Report Type:</strong> ${escapeHtml(context.reportTypeLabel)}</div>
+        <div><strong>Project:</strong> ${escapeHtml(getProjectName(context))}</div>
+        <div><strong>Facility:</strong> ${escapeHtml(getFacilityName(context))}</div>
+        <div><strong>Status:</strong> ${escapeHtml(report.report_status || 'Draft')}</div>
+        <hr>
+        <div><strong>Notes:</strong></div>
+        ${renderNotesList(notes)}
+        <div><strong>Attachments:</strong></div>
+        ${renderAttachmentList(attachments)}
+    `;
+}
+
+async function loadTextEmail(context) {
+    const report = await ensureReport(context);
+    const box = document.getElementById('v4ReportDevTextEmailContent');
+    if (!box || !report?.id) return;
+
+    const notes = await fetchReportNotes(report.id);
+    const attachments = await fetchReportAttachments(report.id);
+
+    box.innerHTML = `
+        <div><strong>Subject:</strong> ${escapeHtml(report.report_title || getReportTitle(context))}</div>
+        <br>
+        <div><strong>Message:</strong></div>
+        <div>
+            ${escapeHtml(context.reportTypeLabel)}<br>
+            Project: ${escapeHtml(getProjectName(context))}<br>
+            Facility: ${escapeHtml(getFacilityName(context))}<br>
+            Status: ${escapeHtml(report.report_status || 'Draft')}<br><br>
+            Notes: ${escapeHtml(String(notes.length))}<br>
+            Attachments: ${escapeHtml(String(attachments.length))}
+        </div>
+    `;
 }
 
 function setupReportDevelopmentEvents(context, nav) {
@@ -488,18 +847,110 @@ function setupReportDevelopmentEvents(context, nav) {
     bind('v4ReportDevGoPreview', () => rerenderDevelopment(context, nav, 'preview'));
     bind('v4ReportDevGoPreview2', () => rerenderDevelopment(context, nav, 'preview'));
 
-    bind('v4ReportDevOpenPhotos', () => openProjectAction(context, nav, context.photoWorkflow.actionKey));
-    bind('v4ReportDevEditPhotos', () => openProjectAction(context, nav, context.photoWorkflow.actionKey));
-    bind('v4ReportDevEditNotes', () => openProjectAction(context, nav, 'project_special_notes'));
-    bind('v4ReportDevEditSupplies', () => openProjectAction(context, nav, 'supplies_parts_needed'));
-    bind('v4ReportDevEditVendor', () => openProjectAction(context, nav, 'vendor_quotes_files'));
+    bind('v4ReportDevOpenPhotos', () => rerenderDevelopment(context, nav, 'photos'));
+    bind('v4ReportDevEditPhotos', () => rerenderDevelopment(context, nav, 'photos'));
+    bind('v4ReportDevEditNotes', () => rerenderDevelopment(context, nav, 'notes'));
+    bind('v4ReportDevEditSupplies', () => rerenderDevelopment(context, nav, 'supplies'));
+    bind('v4ReportDevEditVendor', () => rerenderDevelopment(context, nav, 'vendor'));
 
-    bind('v4ReportDevPreviewReport', () => openReportAction(context, nav, 'preview_report'));
-    bind('v4ReportDevSubmitReport', () => openReportAction(context, nav, 'submit_report'));
-    bind('v4ReportDevTextEmail', () => openReportAction(context, nav, 'text_email_report'));
+    bind('v4ReportDevPreviewReport', () => rerenderDevelopment(context, nav, 'preview_report'));
+    bind('v4ReportDevSubmitReport', () => rerenderDevelopment(context, nav, 'submit_report'));
+    bind('v4ReportDevTextEmail', () => rerenderDevelopment(context, nav, 'text_email_report'));
+
+    bind('v4ReportDevBackEditFromPhotos', () => rerenderDevelopment(context, nav, 'edit'));
+    bind('v4ReportDevBackEditFromNotes', () => rerenderDevelopment(context, nav, 'edit'));
+    bind('v4ReportDevBackEditFromSupplies', () => rerenderDevelopment(context, nav, 'edit'));
+    bind('v4ReportDevBackEditFromVendor', () => rerenderDevelopment(context, nav, 'edit'));
+
+    bind('v4ReportDevBackPreviewMenu', () => rerenderDevelopment(context, nav, 'preview'));
+    bind('v4ReportDevBackPreviewMenu2', () => rerenderDevelopment(context, nav, 'preview'));
+    bind('v4ReportDevBackPreviewMenu3', () => rerenderDevelopment(context, nav, 'preview'));
+
+    bind('v4ReportDevSavePhotoAttachment', async () => {
+        await saveAttachment(
+            context,
+            'photo',
+            document.getElementById('v4ReportDevPhotoTitle')?.value || context.photoWorkflow.title,
+            document.getElementById('v4ReportDevPhotoUrl')?.value || '',
+            document.getElementById('v4ReportDevPhotoDescription')?.value || '',
+            context.photoWorkflow.photoType
+        );
+    });
+
+    bind('v4ReportDevSaveNote', async () => {
+        await saveNote(
+            context,
+            document.getElementById('v4ReportDevNoteSubject')?.value || 'Special Note',
+            document.getElementById('v4ReportDevNoteBody')?.value || '',
+            1
+        );
+    });
+
+    bind('v4ReportDevSaveSupplies', async () => {
+        await saveNote(
+            context,
+            'Supplies / Parts Needed',
+            document.getElementById('v4ReportDevSuppliesBody')?.value || '',
+            2
+        );
+    });
+
+    bind('v4ReportDevSaveVendorAttachment', async () => {
+        await saveAttachment(
+            context,
+            'vendor_quote_file',
+            document.getElementById('v4ReportDevVendorTitle')?.value || 'Vendor Quote / File',
+            document.getElementById('v4ReportDevVendorUrl')?.value || '',
+            document.getElementById('v4ReportDevVendorDescription')?.value || '',
+            null
+        );
+    });
+
+    bind('v4ReportDevSaveSubmit', async () => {
+        const report = await ensureReport(context);
+
+        if (!report?.id) {
+            showMessage('Report could not be submitted.', true);
+            return;
+        }
+
+        const { error } = await updateReport(report.id, {
+            report_status: 'Submitted',
+            submitted_to_text: document.getElementById('v4ReportDevSubmitTo')?.value || '',
+            submitted_to_email: document.getElementById('v4ReportDevSubmitEmail')?.value || '',
+            submitted_to_phone: document.getElementById('v4ReportDevSubmitPhone')?.value || '',
+            submitted_at: new Date().toISOString()
+        });
+
+        if (error) {
+            console.error(`[${__FILENAME}] Error submitting report.`, error);
+            showMessage('Submit failed.', true);
+            return;
+        }
+
+        showMessage('Report submitted.');
+    });
 }
 
-export function renderReportDevelopment(data = {}, nav = {}) {
+async function setupModeData(context) {
+    if (context.developmentMode === 'photos' || context.developmentMode === 'vendor') {
+        await loadAttachments(context);
+    }
+
+    if (context.developmentMode === 'notes' || context.developmentMode === 'supplies') {
+        await loadNotes(context);
+    }
+
+    if (context.developmentMode === 'preview_report') {
+        await loadPreview(context);
+    }
+
+    if (context.developmentMode === 'text_email_report') {
+        await loadTextEmail(context);
+    }
+}
+
+export async function renderReportDevelopment(data = {}, nav = {}) {
     const app = document.getElementById('app');
 
     if (!app) {
@@ -507,7 +958,12 @@ export function renderReportDevelopment(data = {}, nav = {}) {
         return;
     }
 
-    const context = normalizeContext(data);
+    let context = normalizeContext(data);
+    const report = await ensureReport(context);
+
+    if (report) {
+        context = makeChildContext(context, { report });
+    }
 
     app.innerHTML = `
         ${renderStyles()}
@@ -515,12 +971,13 @@ export function renderReportDevelopment(data = {}, nav = {}) {
             ${renderHeader(context)}
             ${renderBodyByMode(context)}
             <div class="v4-report-dev-version">
-                ${__FILENAME} | 2026-06-13 @ 01:38 PM
+                ${__FILENAME} | 2026-06-13 @ 01:52 PM
             </div>
         </div>
     `;
 
     setupReportDevelopmentEvents(context, nav);
+    await setupModeData(context);
 }
 
 export function renderReportDevelopmentView(data = {}, nav = {}) {
@@ -528,3 +985,7 @@ export function renderReportDevelopmentView(data = {}, nav = {}) {
 }
 
 export default renderReportDevelopment;
+
+/*================================================================
+END FILE: view_4_report_development.js
+================================================================*/
