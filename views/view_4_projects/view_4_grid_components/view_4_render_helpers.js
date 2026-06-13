@@ -59,7 +59,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================*/
 const __FILENAME = 'view_4_render_helpers.js';
 
-import { getProjectTitle, getVendorName } from '../view_4_data.js';
+import { getProjectTitle, getVendorName } from '../view_4_core/view_4_data.js';
 
 // ===================== GENERAL HELPERS =====================
 export function escapeHtml(value) {
