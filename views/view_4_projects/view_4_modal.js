@@ -64,8 +64,7 @@ import {
 
 import {
     renderProjectReportBuilderView as renderRealProjectReportBuilderView
-} from './view_4_grid_components/view_4_report_builder.js';
-
+} from './view_4_action_dashboards/view_4_report_builder.js';
 const supabaseClient = window.supabaseClient || window.supabase;
 
 export function setupCabinetHomeEvents({ facility, projects, vendors, refreshHome, openVendor, nav }) {
