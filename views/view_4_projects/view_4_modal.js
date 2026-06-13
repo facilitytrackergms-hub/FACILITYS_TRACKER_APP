@@ -5,8 +5,8 @@ FILE NAME    : view_4_modal.js
 File pash : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_modal.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
-POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-12 @ 07:40 PM
+POP-UP TITLE : Create New Project / Add Project Action / Report Generator View
+LAST UPDATED : 2026-06-12 @ 08:50 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -202,7 +202,7 @@ export function setupVendorJobDashboardEvents(context = {}) {
 
 // =================================================================
 
-export function setupProjectDashboardEvents({ facility, project, refreshProject, vendors }) {
+export function setupProjectDashboardEvents({ facility, project, refreshProject, vendors, nav }) {
     const addActionBtn = byId('projectAddActionBtn');
     const vendorQuotesFilesBtn = byId('projectVendorQuotesFilesBtn');
     const closeActionBtn = byId('closeProjectActionModalBtn');
@@ -210,6 +210,15 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
     const actionModal = byId('projectActionModal');
     const actionNotice = byId('projectActionModalNotice');
     const app = document.getElementById('app');
+
+    // Mount the report builder onto window to guarantee router access regardless of navigation constraints
+    window.renderProjectReportBuilderView = function(ctx, router) {
+        renderProjectReportBuilderView(ctx, router || nav);
+    };
+
+    if (nav) {
+        nav.renderCreateReport = (ctx) => renderProjectReportBuilderView(ctx, nav);
+    }
 
     // Open Project Action Modal
     if (addActionBtn) {
@@ -245,7 +254,7 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
             if (backToProjectBtn) {
                 backToProjectBtn.onclick = () => {
                     if (window.renderSingleProjectDashboard) {
-                        window.renderSingleProjectDashboard({ facility, project });
+                        window.renderSingleProjectDashboard({ facility, project }, nav);
                     }
                 };
             }
@@ -315,7 +324,132 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
     }
 }
 
+// =================================================================
+// NEW: REPORT GENERATOR BUILDER INTERFACE FOR BUTTON 8
+// =================================================================
+export function renderProjectReportBuilderView({ facility, project }, nav) {
+    const app = document.getElementById('app');
+    if (!app) return;
+
+    const facilityName = facility?.name || facility?.Name || 'Facility Name Placeholder';
+    const facilityAddress = facility?.address || facility?.Address || 'No Address Data Provided';
+    const facilityPhone = facility?.phone || facility?.Phone || 'No Phone Data Provided';
+    const projectTitle = getProjectTitle(project);
+    const currentDateString = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    app.innerHTML = `
+        <div class="vendor-cabinet-shell" style="padding: 20px;">
+            <div class="vendor-cabinet-card" style="background: #ffffff; border-radius: 8px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 700px; margin: 0 auto;">
+                
+                <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 25px;">
+                    <button id="rptTextBtn" class="cabinet-btn cabinet-btn-blue" style="flex: 1; padding: 12px; font-weight: bold; font-size: 14px; text-transform: uppercase;">
+                        💬 Text Report
+                    </button>
+                    <button id="rptEmailBtn" class="cabinet-btn cabinet-btn-blue" style="flex: 1; padding: 12px; font-weight: bold; font-size: 14px; text-transform: uppercase;">
+                        ✉️ Email Report
+                    </button>
+                </div>
+
+                <h2 style="color: #003366; border-bottom: 2px solid #003366; padding-bottom: 8px; margin-top: 0;">Project Execution Report Builder</h2>
+                
+                <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 15px; margin-bottom: 20px; font-size: 14px; line-height: 1.6;">
+                    <h4 style="margin: 0 0 8px 0; color: #495057; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Property & Context Information</h4>
+                    <div><strong>Facility Profile:</strong> ${facilityName}</div>
+                    <div><strong>Address Location:</strong> ${facilityAddress}</div>
+                    <div><strong>Contact Line:</strong> ${facilityPhone}</div>
+                    <div><strong>Active Assignment:</strong> ${projectTitle}</div>
+                    <div><strong>Generation Date:</strong> ${currentDateString}</div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 6px; color: #333; font-size: 14px;">Report Classification Type</label>
+                    <select id="rptTypeSelector" class="cabinet-input" style="width: 100%; padding: 10px; margin-bottom: 18px; border: 1px solid #ccc; border-radius: 4px; background: white; font-size: 14px;">
+                        <option value="Project Start Report">Project Start Report (Initial Assessment & Scope Setup)</option>
+                        <option value="Update Report" selected>Update Report (Progress Status & Notes Log)</option>
+                        <option value="Project Finish Report">Project Finish Report (Final Signoff & Execution Completion)</option>
+                    </select>
+
+                    <label style="display: block; font-weight: bold; margin-bottom: 6px; color: #333; font-size: 14px;">Project Evaluation / Discussion Notes</label>
+                    <textarea id="rptDiscussionInput" class="cabinet-textarea" style="width: 100%; padding: 10px; height: 110px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical;" placeholder="e.g., The door is broken, structural hinges worn down. We are going to have to source and buy a new replacement door setup..."></textarea>
+                </div>
+
+                <h3 style="color: #003366; font-size: 16px; margin: 25px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Attach & Review Dashboard Components</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+                    <button id="rptGoSuppliesBtn" class="cabinet-btn cabinet-btn-green" style="font-size: 12px; padding: 10px 5px; margin: 0;">🧰 Link Parts & Supplies Needed (Btn 6)</button>
+                    <button id="rptGoBeforeBtn" class="cabinet-btn cabinet-btn-blue" style="font-size: 12px; padding: 10px 5px; margin: 0;">📸 Attach Before Photos (Btn 1)</button>
+                    <button id="rptGoDuringBtn" class="cabinet-btn cabinet-btn-blue" style="font-size: 12px; padding: 10px 5px; margin: 0;">📸 Attach During Photos (Btn 2)</button>
+                    <button id="rptGoAfterBtn" class="cabinet-btn cabinet-btn-blue" style="font-size: 12px; padding: 10px 5px; margin: 0;">📸 Attach After Photos (Btn 3)</button>
+                    <button id="rptGoNotesBtn" class="cabinet-btn cabinet-btn-blue" style="font-size: 12px; padding: 10px 5px; margin: 0;">⭐ Review Special Notes (Btn 5)</button>
+                    <button id="rptGoStatusBtn" class="cabinet-btn cabinet-btn-blue" style="font-size: 12px; padding: 10px 5px; margin: 0;">📌 Check Project Status (Btn 4)</button>
+                    <button id="rptGoQuotesBtn" class="cabinet-btn cabinet-btn-green" style="grid-column: span 2; font-size: 12px; padding: 10px 5px; margin: 0;">📄 Link Vendor Quotes & Files (Btn 7)</button>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <button id="rptBackToDashboardBtn" class="cabinet-btn cabinet-btn-gray" style="padding: 10px 20px; font-size: 14px;">
+                        ⬅️ Return to Dashboard
+                    </button>
+                </div>
+
+                <div id="uiTag_view_4_report_builder" class="ui-metadata-tag-view4" style="margin-top: 20px; font-size: 10px; color: #bbb; text-align: center;">
+                    Source: view_4_modal.js | Report Context Module Pipeline | Updated: 2026-06-12 08:50 PM
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Routing Link Logic Integrations
+    const returnBtn = byId('rptBackToDashboardBtn');
+    if (returnBtn) {
+        returnBtn.onclick = () => {
+            if (window.renderSingleProjectDashboard) {
+                window.renderSingleProjectDashboard({ facility, project }, nav);
+            }
+        };
+    }
+
+    // Action Transmission Handlers
+    const textBtn = byId('rptTextBtn');
+    if (textBtn) {
+        textBtn.onclick = () => {
+            const currentType = value('rptTypeSelector');
+            const notesTxt = value('rptDiscussionInput');
+            alert(`[Report Transmission Dispatch]\nType: ${currentType}\nTargeting Facility Contact: ${facilityPhone}\n\nNotes Content:\n${notesTxt || '(Empty Discussion)'}`);
+        };
+    }
+
+    const emailBtn = byId('rptEmailBtn');
+    if (emailBtn) {
+        emailBtn.onclick = () => {
+            const currentType = value('rptTypeSelector');
+            const notesTxt = value('rptDiscussionInput');
+            alert(`[Report Transmission Dispatch]\nType: ${currentType}\nGenerating email body distribution layout payload for ${facilityName}.\n\nNotes Content:\n${notesTxt || '(Empty Discussion)'}`);
+        };
+    }
+
+    // Interactive Deep-Link Router Hookings
+    const bindRoute = (id, targetAction) => {
+        const btn = byId(id);
+        if (btn) {
+            btn.onclick = () => {
+                if (!nav) {
+                    alert('Navigation context state definition model is currently unmounted.');
+                    return;
+                }
+                targetAction();
+            };
+        }
+    };
+
+    bindRoute('rptGoSuppliesBtn', () => nav.renderSuppliesDashboard ? nav.renderSuppliesDashboard({ facility, project }) : alert('Supplies Dashboard unmounted'));
+    bindRoute('rptGoBeforeBtn', () => nav.renderPhotoDashboard ? nav.renderPhotoDashboard({ facility, project, photoType: 'Before', dashboardTitle: 'BEFORE Photo Dashboard' }) : alert('Photo Dashboard unmounted'));
+    bindRoute('rptGoDuringBtn', () => nav.renderPhotoDashboard ? nav.renderPhotoDashboard({ facility, project, photoType: 'During', dashboardTitle: 'DURING Photo Dashboard' }) : alert('Photo Dashboard unmounted'));
+    bindRoute('rptGoAfterBtn', () => nav.renderPhotoDashboard ? nav.renderPhotoDashboard({ facility, project, photoType: 'After', dashboardTitle: 'AFTER Photo Dashboard' }) : alert('Photo Dashboard unmounted'));
+    bindRoute('rptGoNotesBtn', () => nav.renderSpecialNotes ? nav.renderSpecialNotes({ facility, project }) : alert('Special Notes View unmounted'));
+    bindRoute('rptGoStatusBtn', () => nav.renderProjectStatus ? nav.renderProjectStatus({ facility, project }) : alert('Status View unmounted'));
+    bindRoute('rptGoQuotesBtn', () => nav.renderVendorDashboard ? nav.renderVendorDashboard({ facility, project }) : alert('Vendor Dashboard unmounted'));
+}
+
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-12 @ 07:40 PM
+UPDATED: 2026-06-12 @ 08:50 PM
 ================================================================*/
