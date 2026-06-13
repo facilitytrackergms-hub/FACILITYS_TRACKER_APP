@@ -159,6 +159,23 @@ export function setupProjectDashboardEvents({ facility, project, refreshProject,
         };
     }
 
+    const openReportBtn =
+        document.getElementById('projectCreateReportBtn') ||
+        document.getElementById('createProjectReportBtn') ||
+        document.getElementById('createReportBtn') ||
+        document.getElementById('projectReportBtn');
+
+    if (openReportBtn) {
+        openReportBtn.onclick = () => {
+            if (nav && nav.renderProjectReportBuilderView) {
+                nav.renderProjectReportBuilderView({ facility, project }, nav);
+                return;
+            }
+
+            renderProjectReportBuilderView({ facility, project }, nav);
+        };
+    }
+
     const closeActionModalBtn = document.getElementById('closeNewActionModalBtn');
     if (closeActionModalBtn) {
         closeActionModalBtn.onclick = () => {
