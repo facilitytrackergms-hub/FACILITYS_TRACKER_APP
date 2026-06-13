@@ -6,7 +6,7 @@ File Pach : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_data.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action
-LAST UPDATED : 2026-06-12 @ 12:06 PM
+LAST UPDATED : 2026-06-12 @ 10:00 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -244,6 +244,36 @@ export async function fetchVendorJobFollowups(jobId) {
         .order('created_at', { ascending: false });
     if (error) {
         console.error('[view_4_data.js] Error fetching vendor job followups:', error);
+        return [];
+    }
+    return data || [];
+}
+
+/**
+ * Fetches vendor jobs specifically filtered by vendorId and cross-referenced with a facilityId.
+ */
+export async function fetchVendorJobsForVendorInFacility(vendorId, facilityId) {
+    if (!vendorId || !facilityId) return [];
+    const fId = await resolveFacilityId(facilityId);
+    if (!fId) return [];
+
+    // 1. Get all active projects for the specified facility
+    const projects = await fetchFacilityProjects(fId);
+    if (!projects || projects.length === 0) return [];
+
+    const projectIds = projects.map(p => p.id);
+
+    // 2. Query vendor jobs belonging to those projects and matching the vendorId
+    const { data, error } = await supabase
+        .from('project_vendor_jobs')
+        .select('*')
+        .eq('vendor_id', vendorId)
+        .eq('active_status', true)
+        .in('project_id', projectIds)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('[view_4_data.js] Error fetching vendor jobs for vendor in facility:', error);
         return [];
     }
     return data || [];
