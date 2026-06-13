@@ -2,10 +2,11 @@
 FILE METADATA
 ================================================================
 FILE NAME    : view_4_vendor_dashboard.js
-SUPABASE TBL : vendors, vendor_files, facility_projects, project_vendor_jobs
-VIEW NAME    : Vendor Dashboard
-POP-UP TITLE : Vendor Files / Start Vendor Job
-LAST UPDATED : 2026-06-12 @ 10:00 PM
+File path    : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_vendor_dashboard.js
+SUPABASE TBL : facility_projects, vendors, vendor_files, project_vendor_jobs
+VIEW NAME    : Single Vendor Dashboard View
+POP-UP TITLE : Vendor Operations Panel
+LAST UPDATED : 2026-06-12 @ 11:45 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -22,41 +23,21 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
    leave the placeholder intact or ask the user.
 
 3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
-   in this header unless explicitly asked by the user.
+   in this section. Never alter any system comments or structural 
+   markers.
 
-4. SCOPE OF WORK: Only modify the specific functions, lines, or 
-   features requested in the prompt.
+4. MINIMALIST EXPLANATION RULE: Limit explanations to a maximum of one 
+   or two concise sentences. No fluff.
 
-5. PRESERVATION: Do NOT refactor, rename, or optimize any other 
-   part of the code. Leave all working logic exactly as it is.
-
-6. LOGGING CHANGES: If a variable name or structure must change to 
-   make a fix work, explicitly state *why* in the text response before 
-   showing the code.
-
-7. CODE COMPLETENESS: Provide the full updated function or file so 
-   nothing gets accidentally lost in translation.
-
-8. VIEW IDENTIFIERS: Ensure the view/pop-up has a visible UI tag 
-   identifying its source file, last update date, and time. If missing, 
-   add it to the UI layout. Update this tag on every modification.
-
-9. NO BLIND CODE: Never create a new file or assume the contents 
-     of an existing file unless the current code is fully pasted 
-     into the prompt. If missing, stop and ask for it.
-
-10. UNIQUE ALERTS: Never use generic default message boxes for 
-     custom notifications. Always add a distinct, visible ID or tag 
-     to the message box UI referencing its specific component/file.
-
-11. CODE BLOCK DELIVERY: Always deliver the entire updated file, 
-     including this header and all rules, wrapped completely inside 
-     a single markdown code block to allow for easy copying.
-
-12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields 
-     (File Name, Table, View, Title, Date, Time) are fully updated 
-     and preserved at the top of the file.
+5. STRICT MODIFICATION RULE: Do not attempt to improve, refactor, or 
+   optimize any code unless explicitly requested. Execute ONLY the 
+   specific updates or bug fixes requested, and leave all other parts 
+   of the file completely intact. All untouched business logic, UI, 
+   event handlers, variables, functions, and style contexts must be 
+   preserved exactly as they are. Always output the entire file with all 
+   historical contexts preserved.
 ================================================================*/
+
 const __FILENAME = 'view_4_vendor_dashboard.js';
 
 import {
@@ -144,7 +125,7 @@ export async function renderSingleVendorDashboard({ facility, vendorId }, nav) {
                 ${renderVendorDashboardModals(projects, vendor)}
 
                 <div id="uiTag_view_4_vendor_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_vendor_dashboard.js | Vendor Dashboard | Updated: 2026-06-12 10:00 PM
+                    Source: view_4_vendor_dashboard.js | Vendor Dashboard | Updated: 2026-06-12 @ 11:45 PM
                 </div>
             </div>
         </div>
