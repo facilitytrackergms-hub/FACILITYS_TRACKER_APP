@@ -5,7 +5,7 @@ FILE NAME    : view_4_render_helpers.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : View 4 Shared Render Helpers
 POP-UP TITLE : Shared Render Helpers
-LAST UPDATED : 2026-06-10 @ 07:00 AM
+LAST UPDATED : 2026-06-12 @ 08:41 PM
 ================================================================*/
 const __FILENAME = 'view_4_render_helpers.js';
 
@@ -18,7 +18,7 @@ export function escapeHtml(value) {
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
-        .replaceAll(\"'\", '&#039;');
+        .replaceAll("'", '&#039;');
 }
 
 export function escapeAttr(value) {
@@ -29,7 +29,7 @@ export function normalizeWebsiteUrl(value) {
     const text = String(value || '').trim();
     if (!text) return '';
     if (text.startsWith('http://') || text.startsWith('https://')) return text;
-    return `https://${text}`];
+    return `https://${text}`;
 }
 
 export function formatDate(value) {
@@ -178,5 +178,4 @@ export function renderFileCards(files) {
 
 /*================================================================
 END FILE: view_4_render_helpers.js
-UPDATED: 2026-06-10 @ 07:00 AM
 ================================================================*/
