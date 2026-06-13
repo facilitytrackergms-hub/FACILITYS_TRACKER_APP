@@ -18,7 +18,7 @@ import {
     fetchReportAttachments,
     insertReportAttachment,
     uploadCabinetFile
-} from '../view_4_data.js';
+} from '../view_4_core/view_4_data.js';
 
 function escapeHtml(value) {
     if (value === null || value === undefined) return '';
