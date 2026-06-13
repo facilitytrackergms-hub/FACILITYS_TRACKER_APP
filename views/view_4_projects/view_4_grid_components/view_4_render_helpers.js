@@ -5,7 +5,7 @@ FILE NAME    : view_4_render_helpers.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : View 4 Shared Render Helpers
 POP-UP TITLE : Shared Render Helpers
-LAST UPDATED : 2026-06-12 @ 10:00 PM
+LAST UPDATED : 2026-06-12 @ 11:20 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -265,6 +265,23 @@ export function renderFileCards(files) {
             <a href="${escapeAttr(file.file_url)}" target="_blank">${escapeHtml(file.file_name)}</a>
         </div>
     `).join('');
+}
+
+export function renderProjectRow(project) {
+    return `
+        <div class="project-card" data-project-id="${project.id}">
+            <h4>${escapeHtml(getProjectTitle(project))}</h4>
+            <p>${escapeHtml(project.scope_of_work || '')}</p>
+        </div>
+    `;
+}
+
+export function renderVendorJobRow(job) {
+    return renderVendorJobRows([job]);
+}
+
+export function renderJobFollowupRow(followup) {
+    return renderFollowupRows([followup]);
 }
 
 /*================================================================
