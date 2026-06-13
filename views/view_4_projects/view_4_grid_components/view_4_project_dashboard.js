@@ -2,10 +2,10 @@
 FILE METADATA
 ================================================================
 FILE NAME    : view_4_project_dashboard.js
-SUPABASE TBL : facility_projects, project_actions
+SUPABASE TBL : facility_projects, project_actions, report_images
 VIEW NAME    : Single Project Dashboard
 POP-UP TITLE : Project Action Dashboard
-LAST UPDATED : 2026-06-12 @ 08:50 PM
+LAST UPDATED : 2026-06-12 @ 10:55 PM
 ================================================================*/
 const __FILENAME = 'view_4_project_dashboard.js';
 
@@ -31,7 +31,7 @@ import {
 // Import supabase client if available globally, or look for it on the window object
 const supabaseClient = window.supabase;
 
-export async function renderSingleProjectDashboard({ facility, project }, nav) {
+export async function renderSingleProjectDashboard({ facility, project, isFromReport = false }, nav) {
     const app = document.getElementById('app');
 
     if (!facility || !facility.id || !project || !project.id) {
@@ -42,6 +42,24 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
     const actions = await fetchProjectActions(project.id);
     const facilityName = escapeHtml(facility.name || facility.Name || 'Facility');
     const projectTitle = escapeHtml(getProjectTitle(project));
+
+    // Dynamic state evaluation context configuration
+    const textButtonVisibility = isFromReport ? 'display: none;' : '';
+    const emailButtonVisibility = isFromReport ? 'display: none;' : '';
+    
+    let navigationActionButtonsHtml = `
+        <button id="projectBackBtn" class="cabinet-btn cabinet-btn-gray">
+            10. ⬅️ Back to Projects
+        </button>
+    `;
+
+    if (isFromReport) {
+        navigationActionButtonsHtml = `
+            <button id="projectAttachSelectedReportBtn" class="cabinet-btn cabinet-btn-green" style="background-color: #28a745; color: #fff; font-weight: bold; padding: 14px;">
+                ➡️ ATTACH SELECTED IMAGES TO REPORT
+            </button>
+        `;
+    }
 
     app.innerHTML = `
         ${renderStyles()}
@@ -75,11 +93,11 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                     </div>
 
                     <div class="cabinet-action-grid">
-                        <button id="projectStatusBtn" class="cabinet-btn cabinet-btn-blue">
+                        <button id="projectStatusBtn" class="cabinet-btn cabinet-btn-blue" style="${textButtonVisibility}">
                             4. 📌 Project Status
                         </button>
 
-                        <button id="projectSpecialNotesBtn" class="cabinet-btn cabinet-btn-blue">
+                        <button id="projectSpecialNotesBtn" class="cabinet-btn cabinet-btn-blue" style="${textButtonVisibility}">
                             5. ⭐ Project Special Notes
                         </button>
 
@@ -87,11 +105,11 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                             6. 🧰 Supplies / Parts Needed
                         </button>
 
-                        <button id="projectVendorQuotesFilesBtn" class="cabinet-btn cabinet-btn-green">
+                        <button id="projectVendorQuotesFilesBtn" class="cabinet-btn cabinet-btn-green" style="${emailButtonVisibility}">
                             7. 📄 Vendor Quotes / Files
                         </button>
 
-                        <button id="projectCreateReportBtn" class="cabinet-btn cabinet-btn-blue">
+                        <button id="projectCreateReportBtn" class="cabinet-btn cabinet-btn-blue" style="${emailButtonVisibility}">
                             8. 📋 Create Report
                         </button>
 
@@ -99,9 +117,7 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                             9. ➕ Create New Action Button
                         </button>
 
-                        <button id="projectBackBtn" class="cabinet-btn cabinet-btn-gray">
-                            10. ⬅️ Back to Projects
-                        </button>
+                        ${navigationActionButtonsHtml}
                     </div>
                 </div>
 
@@ -115,7 +131,7 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
                 ${renderProjectActionModal()}
 
                 <div id="uiTag_view_4_project_dashboard" class="ui-metadata-tag-view4">
-                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 08:50 PM
+                    Source: view_4_project_dashboard.js | Project Action Dashboard | Updated: 2026-06-12 10:55 PM
                 </div>
             </div>
         </div>
@@ -127,8 +143,9 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
             nav.renderPhotoDashboard({ 
                 facility, 
                 project, 
-                photoType: photoType, // 'Before', 'During', or 'After'
-                dashboardTitle: `${photoType.toUpperCase()} Photo Dashboard`
+                photoType: photoType, 
+                dashboardTitle: `${photoType.toUpperCase()} Photo Dashboard`,
+                isFromReport: isFromReport
             });
         } else {
             alert(`${photoType} Dashboard routing requested, but nav.renderPhotoDashboard helper missing context definitions.`);
@@ -144,6 +161,47 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
 
     const afterPicBtn = document.getElementById('projectAfterPicBtn');
     if (afterPicBtn) afterPicBtn.onclick = () => routeToPhotoDashboard('After');
+
+    // Custom Submission Database Pipe for report connection integration
+    const attachSelectedBtn = document.getElementById('projectAttachSelectedReportBtn');
+    if (attachSelectedBtn) {
+        attachSelectedBtn.onclick = async () => {
+            // Evaluates active marked images within current active list
+            const checkedElements = document.querySelectorAll('.gallery-checkbox:checked, input[type="checkbox"]:checked');
+            const targetIds = Array.from(checkedElements).map(el => el.value).filter(val => val);
+
+            if (targetIds.length === 0) {
+                alert('[view_4_project_dashboard_notice]: Please select at least one captured image from the selection blocks.');
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert('[view_4_project_dashboard_error]: Database client window context is currently unmounted.');
+                return;
+            }
+
+            // Build structural insert arrays mapping selections directly into the persistent table
+            const insertPayloads = targetIds.map(id => ({
+                project_id: project.id,
+                image_id: id,
+                image_url: document.querySelector(`img[data-id="${id}"]`)?.src || ''
+            }));
+
+            const { error } = await supabaseClient
+                .from('report_images')
+                .insert(insertPayloads);
+
+            if (error) {
+                alert(`[view_4_project_dashboard_db_error]: ${error.message}`);
+                return;
+            }
+
+            // Route back straight to report builder module cleanly
+            if (window.renderProjectReportBuilderView) {
+                window.renderProjectReportBuilderView({ facility, project }, nav);
+            }
+        };
+    }
 
     // Remaining Dashboard Navigation Links
     const backBtn = document.getElementById('projectBackBtn');
@@ -164,7 +222,6 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
             if (nav && nav.renderCreateReport) {
                 nav.renderCreateReport({ facility, project });
             } else {
-                // Fallback direct execution if route isn't pre-mounted on shared nav context
                 if (window.renderProjectReportBuilderView) {
                     window.renderProjectReportBuilderView({ facility, project }, nav);
                 } else {
@@ -183,7 +240,7 @@ export async function renderSingleProjectDashboard({ facility, project }, nav) {
     setupProjectDashboardEvents({
         facility,
         project,
-        refreshProject: () => renderSingleProjectDashboard({ facility, project }, nav),
+        refreshProject: () => renderSingleProjectDashboard({ facility, project, isFromReport }, nav),
         nav
     });
 }
