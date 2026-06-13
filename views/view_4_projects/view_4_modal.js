@@ -6,7 +6,7 @@ File pash : FACILITYS_TRACKER_APP/views/view_4_projects/view_4_modal.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups, report_images
 VIEW NAME    : Facility Projects Dashboard
 POP-UP TITLE : Create New Project / Add Project Action / Report Generator View
-LAST UPDATED : 2026-06-12 @ 11:00 PM
+LAST UPDATED : 2026-06-12 @ 11:05 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -19,8 +19,7 @@ AI CODING RULES & CONSTRAINTS (Read before making any changes)
    at the user's prompt text or comments for the exact sequential 
    filename (e.g., view_2_data.js). NEVER invent, guess, or substitute 
    a descriptive semantic name (like facility_data_service.js) based 
-   on the code context. If the exact filename cannot be verified, 
-   leave the placeholder intact or ask the user.
+   on the code context. If the exact filename cannot be verified, \n   leave the placeholder intact or ask the user.
 
 3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any rules 
    in this section. Never alter any system comments or structural 
@@ -56,11 +55,11 @@ import {
     renderProjectRow,
     renderVendorJobRow,
     renderJobFollowupRow
-} from './view_4_render_helpers.js';
+} from './view_4_grid_components/view_4_render_helpers.js';
 
 import {
     renderStyles
-} from './view_4_styles.js';
+} from './view_4_grid_components/view_4_styles.js';
 
 // Fixed: Bind to the correct initialized global client instance window.supabase
 const supabaseClient = window.supabase;
@@ -332,5 +331,5 @@ export async function renderProjectReportBuilderView({ facility, project }, nav)
 
 /*================================================================
 END FILE: view_4_modal.js
-UPDATED: 2026-06-12 @ 11:00 PM
+UPDATED: 2026-06-12 @ 11:05 PM
 ================================================================*/
