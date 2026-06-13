@@ -5,7 +5,7 @@ FILE NAME    : view_4_render_helpers.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : View 4 Shared Render Helpers
 POP-UP TITLE : Shared Render Helpers
-LAST UPDATED : 2026-06-12 @ 08:41 PM
+LAST UPDATED : 2026-06-12 @ 09:10 PM
 ================================================================*/
 const __FILENAME = 'view_4_render_helpers.js';
 
@@ -42,6 +42,40 @@ export function formatDate(value) {
 }
 
 // ===================== HOME & PROJECT HELPERS =====================
+export function renderProjectButtons(projects) {
+    if (!projects || projects.length === 0) {
+        return '<p class="cabinet-empty-text">No custom facility tracker projects mapped.</p>';
+    }
+    return projects.map(p => `
+        <button class="project-btn text-left" data-open-project="${p.id}" style="width:100%; padding:14px; text-align:left; background:#ffffff; border:1px solid #ced4da; border-radius:6px; cursor:pointer; display:flex; flex-direction:column; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            <span style="font-weight:bold; color:#003366; font-size:15px;">📁 ${escapeHtml(getProjectTitle(p))}</span>
+            <span style="font-size:12px; color:#666;">Status: <b style="color:#28a745;">${escapeHtml(p.status || 'Active')}</b></span>
+        </button>
+    `).join('');
+}
+
+export function renderHomeModals(projects, vendors) {
+    return `
+        <div id="cabinetProjectModal" class="cabinet-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
+            <div class="cabinet-modal-body" style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%; max-width:500px; border-radius:8px;">
+                <h3 style="margin-top:0; color:#003366;">Create New Facility Project</h3>
+                <div id="cabinetProjectModalNotice" style="display:none; color:red; margin-bottom:10px; font-weight:bold;"></div>
+                
+                <label style="display:block; margin-bottom:5px; font-weight:bold;">Project Title</label>
+                <input type="text" id="cabinetProjectTitleInput" class="cabinet-input" style="width:100%; padding:8px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;" placeholder="Enter project title...">
+                
+                <label style="display:block; margin-bottom:5px; font-weight:bold;">Description Notes</label>
+                <textarea id="cabinetProjectNotesInput" class="cabinet-textarea" style="width:100%; padding:8px; height:80px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px; resize:vertical;" placeholder="Enter general setup requirements..."></textarea>
+                
+                <div style="text-align:right; gap:10px; display:flex; justify-content:flex-end;">
+                    <button id="cabinetCloseProjectModalBtn" class="cabinet-btn cabinet-btn-gray" type="button">Cancel</button>
+                    <button id="cabinetSaveProjectBtn" class="cabinet-btn cabinet-btn-green" type="button">Create Project</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 export function renderProjectCards(projects) {
     if (!projects || projects.length === 0) {
         return '<p class="cabinet-empty-text">No active projects found for this facility context.</p>';
