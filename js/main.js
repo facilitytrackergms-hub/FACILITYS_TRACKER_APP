@@ -46,8 +46,11 @@ window.navigateTo = async (view, context = {}) => {
         }
         else if (view === 'view_3_contacts') {
             // UPDATED ROUTE LAYER: Points directly down into the view_3_grid_components folder structure
-            const { renderFacilityContacts } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
-            await renderFacilityContacts(context);
+           const module = await import(
+  `/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`
+);
+
+await module.renderFacilityContacts(context);
         }
         else if (view === 'view_4_projects') {
             const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_core/view_4_grid.js${cb}`);
