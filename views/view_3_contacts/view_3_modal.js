@@ -1,7 +1,7 @@
 /*================================================================
 FACILITY_TRACKER_APP - CODEBASE EXECUTION PARAMETERS
 ================================================================
-DESCRIPTION: Full file delivery with button event binding and z-index fix.
+DESCRIPTION: Full file delivery with DOM-ready button binding fix.
 ================================================================*/
 /*================================================================
 FILE METADATA
@@ -10,7 +10,7 @@ FILE NAME    : view_3_modal.js
 SUPABASE TBL : contacts
 VIEW NAME    : Modify Contact Details
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-14 @ 04:45 PM
+LAST UPDATED : 2026-06-14 @ 04:55 PM
 ================================================================*/
 
 import { insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
@@ -20,10 +20,6 @@ export function renderStandaloneContactModal(containerId, config = {}) {
     if (!targetContainer) return;
 
     targetContainer.innerHTML = `
-        <style>
-            .contacts-modal-overlay { display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:9999; }
-            .contacts-modal-window { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
-        </style>
         <div id="manualContactModal" class="contacts-modal-overlay">
             <div class="contacts-modal-window">
                 <h3 class="contacts-modal-title">Create Directory Entry</h3>
@@ -48,36 +44,45 @@ export function renderStandaloneContactModal(containerId, config = {}) {
         </div>
     `;
 
-    document.getElementById('modalCloseBtn').onclick = () => {
-        document.getElementById('manualContactModal').style.display = 'none';
-    };
-
-    document.getElementById('modalSaveContactBtn').onclick = async () => {
-        const name = document.getElementById('modalContactName').value.trim();
-        const role = document.getElementById('modalContactRole').value.trim();
-        const phone = document.getElementById('modalContactPhone').value.trim();
-        const email = document.getElementById('modalContactEmail').value.trim();
-
-        if (!name) {
-            showUniqueAlert('view_3_modal_alert', "Name parameter validation context missing.");
-            return;
+    // Ensure DOM is parsed before binding events
+    setTimeout(() => {
+        const closeBtn = document.getElementById('modalCloseBtn');
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                document.getElementById('manualContactModal').style.display = 'none';
+            };
         }
 
-        const success = await insertContact({
-            facility_id: config.facilityId,
-            contact_name: name,
-            role: role,
-            phone: phone,
-            email: email
-        });
+        const saveBtn = document.getElementById('modalSaveContactBtn');
+        if (saveBtn) {
+            saveBtn.onclick = async () => {
+                const name = document.getElementById('modalContactName').value.trim();
+                const role = document.getElementById('modalContactRole').value.trim();
+                const phone = document.getElementById('modalContactPhone').value.trim();
+                const email = document.getElementById('modalContactEmail').value.trim();
 
-        if (success) {
-            document.getElementById('manualContactModal').style.display = 'none';
-            if (typeof config.onSuccess === 'function') config.onSuccess(success);
-        } else {
-            showUniqueAlert('view_3_modal_alert', "Failed to execute standalone insert operations.");
+                if (!name) {
+                    showUniqueAlert('view_3_modal_alert', "Name parameter validation context missing.");
+                    return;
+                }
+
+                const success = await insertContact({
+                    facility_id: config.facilityId,
+                    contact_name: name,
+                    role: role,
+                    phone: phone,
+                    email: email
+                });
+
+                if (success) {
+                    document.getElementById('manualContactModal').style.display = 'none';
+                    if (typeof config.onSuccess === 'function') config.onSuccess(success);
+                } else {
+                    showUniqueAlert('view_3_modal_alert', "Failed to execute standalone insert operations.");
+                }
+            };
         }
-    };
+    }, 100);
 
     appendSourceTag();
 }
@@ -91,10 +96,10 @@ function appendSourceTag() {
         tag.style.color = '#888';
         tag.style.padding = '5px 10px';
         tag.style.textAlign = 'right';
-        const modalContent = document.querySelector('.contacts-modal-window');
+        const modalContent = document.querySelector('#manualContactModal .modal-content') || document.getElementById('manualContactModal');
         if (modalContent) modalContent.appendChild(tag);
     }
-    tag.innerText = `Source: view_3_modal.js | Updated: 2026-06-14 04:45 PM`;
+    tag.innerText = `Source: view_3_modal.js | Updated: 2026-06-14 04:55 PM`;
 }
 
 function showUniqueAlert(alertId, message) {
@@ -112,7 +117,7 @@ function showUniqueAlert(alertId, message) {
         alertBox.style.border = '1px solid #d8000c';
         alertBox.style.padding = '10px 20px';
         alertBox.style.borderRadius = '4px';
-        alertBox.style.zIndex = '10000';
+        alertBox.style.zIndex = '9999';
         document.body.appendChild(alertBox);
     }
     alertBox.textContent = message;
