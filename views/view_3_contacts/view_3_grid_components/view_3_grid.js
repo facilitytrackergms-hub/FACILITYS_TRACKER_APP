@@ -28,7 +28,13 @@ code file must be processed, updated, and formatted upon output.
 
 12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields in the active metadata block (File Name, Table, View, Title, Date, Time) are fully updated and preserved at the top of the file.
 
-
+13. LINE COUNT CONSTRAINT & AUTOMATIC FILE SPLITTING (GIT-ALIGNED):
+- Absolute Ceiling: The maximum allowable length for the entire single file is 350 lines to accommodate local editor line-wrapping and Git line-ending interpretations.
+- Mandatory Pre-Check: BEFORE outputting any code block, the AI must explicitly print a "LINE COUNT AUDIT" in plain text containing: Raw Line Count (including this 53-line header), Git-Scaled Line Count (Raw x 1.5), and Split Decision Status.
+- Empty Line & Wrap Accounting: When calculating the total line count, all empty lines, blank spacing, and visually wrapped or long string layout blocks must be accounted for using a 1.5x scaling margin to guarantee strict alignment with Git repositories.
+- Split Trigger: The exact moment the total Git-Scaled Line Count reaches or exceeds 350 lines, processing MUST stop automatically. NO CODE BLOCK MAY BE GENERATED.
+- Action Required: Explicitly flag the line count to the user, cite this constraint, and propose an even split plan aimed at creating two balanced files of approximately 175 lines each.
+- User Confirmation: Wait for the user's explicit approval or division plan before outputting any code blocks.
 ================================================================*/
 /*================================================================
 FILE METADATA
@@ -37,7 +43,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-07 @ 06:38 AM
+LAST UPDATED : 2026-06-13 @ 07:20 PM
 ================================================================*/
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
@@ -83,7 +89,7 @@ export async function renderFacilityContacts(data) {
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
-            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:6px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; word-wrap:break-word; word-break:break-all; white-space:normal; overflow:hidden; }
+            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-top:15px; text-align:center; padding:6px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; word-wrap:break-word; word-break:break-all; white-space:normal; overflow:hidden; }
 
             /* Associated Contextual Layout Elements */
             .contact-history-header { font-weight:bold; color:#00264d; font-size:12px; text-transform:uppercase; border-top:1px solid #e5e7eb; padding-top:15px; margin-top:15px; display:block; }
@@ -101,10 +107,6 @@ export async function renderFacilityContacts(data) {
                 
                 <h1 class="contacts-view-title" id="viewHeaderTitle">Facility Directory</h1>
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
-
-                <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-07 06:38:00 AM
-                </div>
 
                 <div id="directorySelectionLayout">
                     <button id="manualContactTriggerBtn" class="contacts-view-btn btn-emerald">➕ Add New Contact</button>
@@ -135,6 +137,10 @@ export async function renderFacilityContacts(data) {
                 </div>
 
                 <button id="backBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Back to Controls</button>
+
+                <div class="view-build-stamp" id="viewBuildStampInfo">
+                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-13 07:20:00 PM
+                </div>
             </div>
 
             <div id="manualContactModal" class="modal-mask">
@@ -157,7 +163,7 @@ export async function renderFacilityContacts(data) {
                     <input type="text" id="manualContactRole" class="form-field-input">
 
                     <label class="form-field-label">Phone Number</label>
-                    <input type="text" id="manualContactPhone" class="form-field-input">
+                    <input type="tel" id="manualContactPhone" class="form-field-input" inputmode="numeric" pattern="[0-9]*" autocomplete="tel">
 
                     <label class="form-field-label">Email Address</label>
                     <input type="email" id="manualContactEmail" class="form-field-input">
@@ -186,7 +192,6 @@ export async function renderFacilityContacts(data) {
         }
     };
 
-    // Initialize logic layer
     // Initialize logic layer
     await initializeGridLogic({
         ...data,
