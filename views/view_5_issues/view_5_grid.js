@@ -262,8 +262,9 @@ export async function renderFacilityIssues(data) {
                 <div class="issue-list-meta">Status: ${issue.status} | ${issue.reported_by}</div>
             `;
 
-            row.onclick = () => openIssueModal(facility, issue);
-            listElement.appendChild(row);
+        row.onclick = () => openIssueModal(facility, issue, {
+    name: issue.reported_by
+});
         });
     }
 
