@@ -1,7 +1,12 @@
 /*================================================================
-Purpose: Updated Maintenance History Click Handler
-Location: view_3_grid_logic.js (inside showContactProfile)
+FILE METADATA
+================================================================
+FILE NAME    : view_3_grid_logic.js
+SUPABASE TBL : contacts
+VIEW NAME    : Facility Directory Logic
+LAST UPDATED : 2026-06-14 @ 06:15 PM
 ================================================================*/
+
 import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
 import { fetchFacilityIssues, insertFacilityIssue } from '../../view_5_issues/view_5_data.js';
@@ -105,7 +110,6 @@ export async function initializeGridLogic(viewContext) {
                             <div style="font-size:11px; color:#6b7280; margin-top:2px;">Status: <b style="color:#10b981;">${issue.status || 'Open'}</b></div>
                         `;
 
-                        // FIXED: Direct call to openIssueModal with the facility and issue object
                         issueActionBtn.onclick = () => {
                             if (typeof openIssueModal === 'function') {
                                 openIssueModal(viewContext.facility, issue);
