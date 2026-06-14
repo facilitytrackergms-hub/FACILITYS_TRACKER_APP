@@ -5,7 +5,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-13 @ 08:05 PM
+LAST UPDATED : 2026-06-14 @ PREFILL FIX
 ================================================================*/
 
 import { fetchFacilityIssues, insertFacilityIssue } from './view_5_data.js';
@@ -18,6 +18,9 @@ export async function renderFacilityIssues(data) {
 
     const facility = data?.facility ? data.facility : data;
     let localContactsCache = [];
+
+    // NEW: capture prefill from contacts flow
+    const prefilledReporterName = data?.prefilledReporterName || '';
 
     const styles = `
         <style>
@@ -180,6 +183,12 @@ export async function renderFacilityIssues(data) {
     document.getElementById('addIssueTriggerBtn').onclick = async () => {
         modal.style.display = 'flex';
         await populateContactsDropdown();
+
+        // NEW: prefill reporter from contacts flow
+        if (prefilledReporterName) {
+            const input = document.getElementById('issueFormReporter');
+            if (input) input.value = prefilledReporterName;
+        }
     };
 
     document.getElementById('closeIssueFormBtn').onclick = () => {
@@ -190,29 +199,28 @@ export async function renderFacilityIssues(data) {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility });
     };
 
- /* FIXED SUBMIT HANDLER */
-document.getElementById('submitIssueFormBtn').onclick = async () => {
-    const title = document.getElementById('issueFormTitle')?.value || '';
-    const description = document.getElementById('issueFormDesc')?.value || '';
-    const reported_by = document.getElementById('issueFormReporter')?.value || '';
+    document.getElementById('submitIssueFormBtn').onclick = async () => {
+        const title = document.getElementById('issueFormTitle')?.value || '';
+        const description = document.getElementById('issueFormDesc')?.value || '';
+        const reported_by = document.getElementById('issueFormReporter')?.value || '';
 
-    if (!title.trim()) return;
+        if (!title.trim()) return;
 
-    const result = await insertFacilityIssue({
-        facility_id: facility?.id,
-        title,
-        description,
-        reported_by
-    });
+        const result = await insertFacilityIssue({
+            facility_id: facility?.id || data?.facility?.id,
+            title,
+            description,
+            reported_by
+        });
 
-    if (result?.error) {
-        console.error("Insert failed:", result.error);
-        return;
-    }
+        if (result?.error) {
+            console.error("Insert failed:", result.error);
+            return;
+        }
 
-    modal.style.display = 'none';
-    await loadIssuesListData();
-};
+        modal.style.display = 'none';
+        await loadIssuesListData();
+    };
 
     async function loadIssuesListData() {
         const listElement = document.getElementById('issuesListElement');
@@ -230,7 +238,6 @@ document.getElementById('submitIssueFormBtn').onclick = async () => {
             row.className = 'issue-list-item';
 
             row.onclick = () => {
-                // FIX: ensure we always pass a CLEAN object (prevents [object Object])
                 const cleanIssue = {
                     id: issue?.id,
                     title: issue?.title,
@@ -259,6 +266,7 @@ document.getElementById('submitIssueFormBtn').onclick = async () => {
     await populateContactsDropdown();
     await loadIssuesListData();
 }
+
 /*================================================================
-END FILE: view_5_grid.js
+END FILE
 ================================================================*/
