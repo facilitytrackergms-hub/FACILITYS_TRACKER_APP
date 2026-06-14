@@ -9,7 +9,6 @@ LAST UPDATED : 2026-06-14 @ 06:40 AM
 ================================================================*/
 
 import { saveFacilityIssue } from './view_5_data.js';
-import { renderImageManagerSection } from '../../js/imageManager.js';
 
 let activeIssue = null;
 
@@ -17,49 +16,31 @@ export function setupIssuesEvents(facility, refreshFn) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
 
-    const saveBtn = document.getElementById('saveIssueBtn');
+    // Apply specific background change to distinguish this modal view
+    const shell = modal.querySelector('.modal-shell');
+    if (shell) shell.style.background = '#f9fafb';
 
-    saveBtn.onclick = async () => {
-        const reporterName = document.getElementById('issueFormReporter')?.value?.trim() || '';
-
-        const payload = {
-            facility_id: facility.id,
-            title: document.getElementById('issueTitleInput')?.value || '',
-            description: document.getElementById('issueDescInput')?.value || '',
-            priority: document.getElementById('issuePriorityInput')?.value || 'Medium',
-            status: document.getElementById('issueStatusInput')?.value || 'Open',
-            reported_by: reporterName
+    // Text Button Functionality
+    const textBtn = document.getElementById('issueTextBtn');
+    if (textBtn) {
+        textBtn.onclick = () => {
+            const title = document.getElementById('issueTitleInput')?.value || '';
+            const body = `Maintenance Update: ${title}`;
+            window.location.href = `sms:?&body=${encodeURIComponent(body)}`;
         };
+    }
 
-        const rawId = document.getElementById('issueId')?.value;
-        const id = Number(rawId);
-
-        // HARD SAFE GUARD: prevent NaN ever reaching Supabase
-        if (!rawId || rawId === '' || !Number.isFinite(id)) {
-            console.warn("Invalid issue ID → forcing INSERT instead of UPDATE", rawId);
-
-            const insertResult = await saveFacilityIssue(payload, null);
-
-            if (insertResult?.error) {
-                alert("Save failed: " + insertResult.error.message);
-                return;
-            }
-
-            modal.style.display = 'none';
-            await refreshFn();
-            return;
-        }
-
-        const result = await saveFacilityIssue(payload, id);
-
-        if (result?.error) {
-            alert("Save failed: " + result.error.message);
-            return;
-        }
-
-        modal.style.display = 'none';
-        await refreshFn();
-    };
+    // Email Button Functionality
+    const emailBtn = document.getElementById('issueEmailBtn');
+    if (emailBtn) {
+        emailBtn.onclick = () => {
+            const title = document.getElementById('issueTitleInput')?.value || '';
+            const desc = document.getElementById('issueDescInput')?.value || '';
+            const subject = `Maintenance Request: ${title}`;
+            const body = `Details: ${desc}`;
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        };
+    }
 }
 
 export function openIssueModal(facility, issue, contactReporter) {
@@ -81,8 +62,8 @@ export function openIssueModal(facility, issue, contactReporter) {
 
     document.getElementById('issueTitleInput').value = issue?.title || '';
     document.getElementById('issueDescInput').value = issue?.description || '';
-    document.getElementById('issuePriorityInput').value = issue?.severity || 'Medium';
     document.getElementById('issueStatusInput').value = issue?.status || 'Open';
+    document.getElementById('issuePartsInput').value = issue?.parts_needed || '';
 
     const reporter = contactReporter?.name || issue?.reported_by || '';
     const reporterField = document.getElementById('issueFormReporter');
