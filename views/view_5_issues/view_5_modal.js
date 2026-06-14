@@ -5,7 +5,7 @@ FILE NAME    : view_5_modal.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Modal
 POP-UP TITLE : Issue Maintenance Request
-LAST UPDATED : 2026-06-13 @ 08:10 PM
+LAST UPDATED : 2026-06-13 @ 08:25 PM
 ================================================================*/
 
 import { saveFacilityIssue } from './view_5_data.js';
@@ -30,14 +30,18 @@ export function setupIssuesEvents(facility, refreshFn) {
             description: document.getElementById('issueDescInput')?.value || '',
             priority: document.getElementById('issuePriorityInput')?.value || 'Medium',
             status: document.getElementById('issueStatusInput')?.value || 'Open',
-
-            // FIX: THIS is what was missing
             reported_by: reporterName
         };
 
-        const result = await saveFacilityIssue(payload, activeIssue?.id || null);
+        // FIX: always resolve ID from activeIssue first (prevents NaN PATCH)
+        const id =
+            activeIssue?.id ??
+            document.getElementById('issueId')?.value ??
+            null;
 
-        if (result.error) {
+        const result = await saveFacilityIssue(payload, id);
+
+        if (result?.error) {
             alert("Save failed");
             return;
         }
@@ -53,7 +57,10 @@ export function openIssueModal(facility, issue, contactReporter) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
 
-    document.getElementById('issueId').value = issue?.id || '';
+    // FIX: ensure consistent ID storage (backup only, not primary source)
+    const issueIdField = document.getElementById('issueId');
+    if (issueIdField) issueIdField.value = issue?.id ?? '';
+
     document.getElementById('issueTitleInput').value = issue?.title || '';
     document.getElementById('issueDescInput').value = issue?.description || '';
     document.getElementById('issuePriorityInput').value = issue?.severity || 'Medium';
