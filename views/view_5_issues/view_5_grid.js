@@ -137,8 +137,7 @@ export async function renderFacilityIssues(data) {
         document.getElementById('issueModal').style.display = 'none';
         await loadIssuesListData();
     };
-
-    // Update Logic (Now includes status and parts)
+// Update Logic (Now includes status and parts)
     document.getElementById('saveIssueBtn').onclick = async () => {
         const id = document.getElementById('issueId').value;
         const updates = { 
