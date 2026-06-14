@@ -5,11 +5,10 @@ FILE NAME    : view_5_modal.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Modal
 POP-UP TITLE : Issue Maintenance Request
-LAST UPDATED : 2026-06-14 @ 06:40 AM
+LAST UPDATED : 2026-06-14 @ 07:00 AM
 ================================================================*/
 
 import { saveFacilityIssue } from './view_5_data.js';
-import { renderImageManagerSection } from '../../js/imageManager.js';
 
 let activeIssue = null;
 
@@ -31,12 +30,12 @@ export function setupIssuesEvents(facility, refreshFn) {
             reported_by: reporterName
         };
 
-        // EXPLICIT PARSING: Force ID to be an integer
+        // FULL ID EXTRACTION & PARSING
         const idField = document.getElementById('issueId')?.value;
         const id = parseInt(idField, 10);
 
         if (isNaN(id)) {
-            console.error("Save aborted: Invalid ID detected.", idField);
+            console.error("Save aborted: No valid ID found in hidden field.", idField);
             return;
         }
 
@@ -58,10 +57,9 @@ export function openIssueModal(facility, issue, contactReporter) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
 
-    // Ensure we store the primitive ID
     const issueIdField = document.getElementById('issueId');
     if (issueIdField) {
-        // Handle potential nested object structure
+        // Extract ID as a primitive number
         const val = (typeof issue?.id === 'object' && issue.id !== null) ? issue.id.id : issue?.id;
         issueIdField.value = val || '';
     }
