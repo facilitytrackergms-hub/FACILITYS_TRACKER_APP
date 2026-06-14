@@ -4,7 +4,7 @@ FILE METADATA
 FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
-LAST UPDATED : 2026-06-14 @ 06:15 PM
+LAST UPDATED : 2026-06-14 @ 06:22 PM
 ================================================================*/
 
 import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
@@ -25,7 +25,6 @@ export async function initializeGridLogic(viewContext) {
     const closeModalBtn = document.getElementById('cancelContactModalBtn');
     const saveContactBtn = document.getElementById('saveContactBtn');
 
-    // Load directory details
     if (viewContext.facility?.id) {
         localContactsList = await fetchContacts(viewContext.facility.id);
         renderGrid(localContactsList);
@@ -43,7 +42,6 @@ export async function initializeGridLogic(viewContext) {
         contacts.forEach(item => {
             const card = document.createElement('div');
             card.className = 'contact-thumbnail';
-            
             const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
             const displayPhoto = item.image_url || item.profile_photo_url || fallbackAvatar;
 
@@ -62,7 +60,6 @@ export async function initializeGridLogic(viewContext) {
         if (!profilePane || !directorySelectionLayout) return;
 
         const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
-        
         document.getElementById('detailAvatar').src = contact.image_url || contact.profile_photo_url || fallbackAvatar;
         document.getElementById('detailName').textContent = contact.contact_name || 'Unnamed Contact';
         document.getElementById('detailRole').textContent = contact.role || contact.role_title || 'N/A';
@@ -82,9 +79,7 @@ export async function initializeGridLogic(viewContext) {
         directorySelectionLayout.style.display = 'none';
         profilePane.style.display = 'block';
 
-        if (backBtn) {
-            backBtn.style.display = 'none';
-        }
+        if (backBtn) backBtn.style.display = 'none';
 
         const targetHistoryContainer = document.getElementById('contactIssuesHistoryList');
         if (targetHistoryContainer && viewContext.facility?.id) {
@@ -104,18 +99,14 @@ export async function initializeGridLogic(viewContext) {
                         const issueActionBtn = document.createElement('button');
                         issueActionBtn.className = 'contacts-view-btn';
                         issueActionBtn.style.cssText = 'background:white; border:1px solid #d1d5db; border-radius:6px; padding:10px; margin-bottom:6px; display:flex; flex-direction:column; align-items:flex-start; width:100%; text-align:left; text-transform:none; font-weight:normal; font-family:Arial, sans-serif; cursor:pointer; box-sizing:border-box; box-shadow:0 1px 2px rgba(0,0,0,0.05);';
-                        
                         issueActionBtn.innerHTML = `
                             <div style="font-weight:bold; color:#00264d; font-size:13px;">🛠️ ${issue.title || 'Untitled Request'}</div>
                             <div style="font-size:11px; color:#6b7280; margin-top:2px;">Status: <b style="color:#10b981;">${issue.status || 'Open'}</b></div>
                         `;
 
+                        // FIXED: Directly binding the modal trigger to the issue
                         issueActionBtn.onclick = () => {
-                            if (typeof openIssueModal === 'function') {
-                                openIssueModal(viewContext.facility, issue);
-                            } else {
-                                console.error("openIssueModal function not found.");
-                            }
+                            openIssueModal(viewContext.facility, issue);
                         };
                         targetHistoryContainer.appendChild(issueActionBtn);
                     });
@@ -130,7 +121,6 @@ export async function initializeGridLogic(viewContext) {
     function hideContactProfile() {
         activeSelectedContact = null;
         if (!profilePane || !directorySelectionLayout) return;
-
         profilePane.style.display = 'none';
         directorySelectionLayout.style.display = 'block';
         if (backBtn) backBtn.style.display = 'block';
@@ -148,7 +138,6 @@ export async function initializeGridLogic(viewContext) {
 
     function openCreateDirectoryEntry(prefilledName = "") {
         if (!modalShell) return;
-
         document.getElementById('modalTemplateTitle').textContent = "Create Directory Entry";
         document.getElementById('editingContactId').value = "";
         document.getElementById('manualContactImage').value = "";
@@ -163,7 +152,6 @@ export async function initializeGridLogic(viewContext) {
         if (typeof window.attachModalStampTracker === 'function') {
             window.attachModalStampTracker();
         }
-
         modalShell.style.display = 'flex';
     }
 
@@ -186,7 +174,6 @@ export async function initializeGridLogic(viewContext) {
     if (saveContactBtn && modalShell) {
         saveContactBtn.onclick = async () => {
             const contactId = document.getElementById('editingContactId').value;
-
             const payload = {
                 facility_id: viewContext.facility?.id,
                 contact_name: document.getElementById('manualContactName').value.trim(),
@@ -231,7 +218,6 @@ export async function initializeGridLogic(viewContext) {
     if (document.getElementById('profileEditBtn')) {
         document.getElementById('profileEditBtn').onclick = () => {
             if (!activeSelectedContact || !modalShell) return;
-
             document.getElementById('manualContactImage').value = activeSelectedContact.image_url || activeSelectedContact.profile_photo_url || "";
             document.getElementById('manualContactName').value = activeSelectedContact.contact_name || "";
             document.getElementById('manualContactRole').value = activeSelectedContact.role || activeSelectedContact.role_title || "";
@@ -278,9 +264,7 @@ export async function initializeGridLogic(viewContext) {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(evt) {
-                    if (hiddenImageInput) {
-                        hiddenImageInput.value = evt.target.result;
-                    }
+                    if (hiddenImageInput) hiddenImageInput.value = evt.target.result;
                     if (cameraStatusText) {
                         cameraStatusText.textContent = "Photo captured successfully";
                         cameraStatusText.style.color = "#10b981";
