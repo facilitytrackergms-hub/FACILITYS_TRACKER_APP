@@ -1,16 +1,11 @@
 /*================================================================
-FACILITY_TRACKER_APP - CODEBASE EXECUTION PARAMETERS
-================================================================
-DESCRIPTION: Full file delivery with DOM-ready button binding fix.
-================================================================*/
-/*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_3_modal.js
 SUPABASE TBL : contacts
 VIEW NAME    : Modify Contact Details
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-14 @ 04:55 PM
+LAST UPDATED : 2026-06-14 @ 05:05 PM
 ================================================================*/
 
 import { insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
@@ -20,7 +15,7 @@ export function renderStandaloneContactModal(containerId, config = {}) {
     if (!targetContainer) return;
 
     targetContainer.innerHTML = `
-        <div id="manualContactModal" class="contacts-modal-overlay">
+        <div id="manualContactModal" class="contacts-modal-overlay" style="display:flex;">
             <div class="contacts-modal-window">
                 <h3 class="contacts-modal-title">Create Directory Entry</h3>
                 
@@ -44,16 +39,17 @@ export function renderStandaloneContactModal(containerId, config = {}) {
         </div>
     `;
 
-    // Ensure DOM is parsed before binding events
+    // Wait for DOM to render then bind
     setTimeout(() => {
         const closeBtn = document.getElementById('modalCloseBtn');
+        const saveBtn = document.getElementById('modalSaveContactBtn');
+
         if (closeBtn) {
             closeBtn.onclick = () => {
                 document.getElementById('manualContactModal').style.display = 'none';
             };
         }
 
-        const saveBtn = document.getElementById('modalSaveContactBtn');
         if (saveBtn) {
             saveBtn.onclick = async () => {
                 const name = document.getElementById('modalContactName').value.trim();
@@ -82,7 +78,7 @@ export function renderStandaloneContactModal(containerId, config = {}) {
                 }
             };
         }
-    }, 100);
+    }, 50);
 
     appendSourceTag();
 }
@@ -96,10 +92,10 @@ function appendSourceTag() {
         tag.style.color = '#888';
         tag.style.padding = '5px 10px';
         tag.style.textAlign = 'right';
-        const modalContent = document.querySelector('#manualContactModal .modal-content') || document.getElementById('manualContactModal');
+        const modalContent = document.querySelector('.contacts-modal-window');
         if (modalContent) modalContent.appendChild(tag);
     }
-    tag.innerText = `Source: view_3_modal.js | Updated: 2026-06-14 04:55 PM`;
+    tag.innerText = `Source: view_3_modal.js | Updated: 2026-06-14 05:05 PM`;
 }
 
 function showUniqueAlert(alertId, message) {
@@ -117,7 +113,7 @@ function showUniqueAlert(alertId, message) {
         alertBox.style.border = '1px solid #d8000c';
         alertBox.style.padding = '10px 20px';
         alertBox.style.borderRadius = '4px';
-        alertBox.style.zIndex = '9999';
+        alertBox.style.zIndex = '10000';
         document.body.appendChild(alertBox);
     }
     alertBox.textContent = message;
