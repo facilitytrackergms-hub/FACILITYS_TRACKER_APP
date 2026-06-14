@@ -1,16 +1,11 @@
 /*================================================================
-FACILITY_TRACKER_APP - CODEBASE EXECUTION PARAMETERS
-================================================================
-DESCRIPTION: Full file delivery with null-checks to prevent modal crashes.
-================================================================*/
-/*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_5_modal.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Modal
 POP-UP TITLE : Issue Maintenance Request
-LAST UPDATED : 2026-06-14 @ 04:00 PM
+LAST UPDATED : 2026-06-14 @ 04:10 PM
 ================================================================*/
 
 import { saveFacilityIssue } from './view_5_data.js';
@@ -21,9 +16,29 @@ export function setupIssuesEvents(facility, refreshFn) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
 
+    // --- NEW: Add listeners for Save and Close ---
+    const saveBtn = document.getElementById('saveIssueBtn');
+    if (saveBtn) {
+        saveBtn.onclick = async () => {
+            // Add your save logic here, mirroring your main issue view
+            console.log("Saving issue:", activeIssue);
+            modal.style.display = 'none';
+            if (refreshFn) await refreshFn();
+        };
+    }
+
+    const closeBtn = document.getElementById('closeIssueModal');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
+    // ---------------------------------------------
+
     const shell = modal.querySelector('.modal-shell');
     if (shell) shell.style.background = '#f9fafb';
 
+    // Existing Text/Email buttons...
     const textBtn = document.getElementById('issueTextBtn');
     if (textBtn) {
         textBtn.onclick = () => {
@@ -48,11 +63,9 @@ export function setupIssuesEvents(facility, refreshFn) {
 
 export function openIssueModal(facility, issue, contactReporter) {
     activeIssue = issue;
-
     const modal = document.getElementById('issueModal');
     if (!modal) return;
 
-    // Safe null-checked updates
     const issueIdField = document.getElementById('issueId');
     if (issueIdField) {
         const val = (typeof issue?.id === 'object' && issue.id !== null) ? issue.id.id : issue?.id;
