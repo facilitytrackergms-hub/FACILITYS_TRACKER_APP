@@ -5,14 +5,15 @@ FILE NAME    : view_5_data.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Data Service
 POP-UP TITLE : Manage Facility Issues
-LAST UPDATED : 2026-06-13 @ 08:10 PM
+LAST UPDATED : 2026-06-13 @ 08:32 PM
 ================================================================*/
 
 import { supabase } from '../../js/supabaseClient.js';
 
 export async function fetchFacilityIssues(facilityId) {
-    const safeId = parseInt(facilityId, 10);
-    if (isNaN(safeId)) return [];
+    const safeId = facilityId;
+
+    if (!safeId) return [];
 
     const { data, error } = await supabase
         .from('facility_issues')
@@ -30,8 +31,9 @@ export async function fetchFacilityIssues(facilityId) {
 }
 
 export async function fetchFacilityContacts(facilityId) {
-    const safeId = parseInt(facilityId, 10);
-    if (isNaN(safeId)) return [];
+    const safeId = facilityId;
+
+    if (!safeId) return [];
 
     const { data, error } = await supabase
         .from('facility_contacts')
@@ -47,7 +49,8 @@ export async function fetchFacilityContacts(facilityId) {
 }
 
 export async function saveFacilityIssue(payload, id = null, linkedContactId = null) {
-    const safeFacilityId = parseInt(payload.facility_id, 10);
+
+    const safeFacilityId = payload.facility_id;
 
     const mappedPayload = {
         facility_id: safeFacilityId,
@@ -55,8 +58,6 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
         description: payload.description || '',
         severity: payload.priority || 'Medium',
         status: payload.status || 'Open',
-
-        // FIX: always trust UI-provided reporter first
         reported_by: payload.reported_by || payload.initiated_by || 'Staff'
     };
 
@@ -72,15 +73,15 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
             await supabase
                 .from('contact_issues')
                 .insert([{
-                    contact_id: parseInt(linkedContactId, 10),
-                    issue_id: parseInt(result.data[0].id, 10)
+                    contact_id: linkedContactId,
+                    issue_id: result.data[0].id
                 }]);
         }
     } else {
         result = await supabase
             .from('facility_issues')
             .update(mappedPayload)
-            .eq('id', parseInt(id, 10))
+            .eq('id', id)
             .select();
     }
 
@@ -92,8 +93,8 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
 }
 
 export async function deleteFacilityIssue(issueId) {
-    const safeId = parseInt(issueId, 10);
-    if (isNaN(safeId)) return { success: false };
+    const safeId = issueId;
+    if (!safeId) return { success: false };
 
     await supabase
         .from('contact_issues')
