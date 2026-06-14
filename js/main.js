@@ -5,8 +5,8 @@ window.navigateTo = async (view, context = {}) => {
         return;
     }
 
-    // DEFENSIVE REPAIR: preserve UUID/string IDs. Do not force Number().
     const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups', 'view_4_photo_dashboard'];
+
     if (facilityViews.includes(view)) {
         const facilityId = context?.facility?.id || context?.id || context?.facilityId;
         if (facilityId === undefined || facilityId === null || String(facilityId) === '[object Object]') {
@@ -22,7 +22,6 @@ window.navigateTo = async (view, context = {}) => {
 
     const cb = "?v=2026_vendor_jobs_v1";
 
-    // Reusable runtime navigation object passed down to individual view render functions
     const navRuntime = {
         renderPendingProjects: (ctx) => window.navigateTo('view_4_projects', ctx),
         renderPhotoDashboard: (ctx) => window.navigateTo('view_4_photo_dashboard', ctx),
@@ -39,58 +38,66 @@ window.navigateTo = async (view, context = {}) => {
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility' || view === 'view_1_dashboard') {
             const { renderFacilities } = await import(`/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_grid.js${cb}`);
             await renderFacilities(context);
-        } 
+        }
+
         else if (view === 'view_2_controls') {
             const { renderFacilityControls } = await import(`/FACILITYS_TRACKER_APP/views/view_2_controls/view_2_grid.js${cb}`);
             await renderFacilityControls(context);
         }
-        else if (view === 'view_3_contacts') {
-            // UPDATED ROUTE LAYER: Points directly down into the view_3_grid_components folder structure
-           const module = await import(
-  `/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`
-);
 
-await module.renderFacilityContacts(context);
+        else if (view === 'view_3_contacts') {
+            // FIX: no destructuring — ensures runtime module resolution works correctly
+            const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid.js${cb}`);
+
+            const fn = module.renderFacilityContacts || module.default;
+
+            if (typeof fn !== 'function') {
+                throw new Error('renderFacilityContacts export missing in view_3_grid.js');
+            }
+
+            await fn(context);
         }
+
         else if (view === 'view_4_projects') {
             const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_core/view_4_grid.js${cb}`);
             await renderPendingProjects(context, navRuntime);
         }
+
         else if (view === 'view_4_project_dashboard') {
-            // UPDATED ROUTE LAYER: Directed straight to the sub folder path configuration
             const { renderSingleProjectDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_project_dashboard.js${cb}`);
             await renderSingleProjectDashboard(context, navRuntime);
         }
+
         else if (view === 'view_4_photo_dashboard') {
-            // Normalize context parameters passed dynamically from project dashboard click triggers
-            if (!context.photoType && context.type) {
-                context.photoType = context.type;
-            }
-            
-            // FIXED PATH REPAIR: Now points accurately to the view_4_grid_components sub-folder structure
             const { renderPhotoDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_photo_dashboard.js${cb}`);
             await renderPhotoDashboard(context, navRuntime);
         }
+
         else if (view === 'view_5_issues') {
             const { renderFacilityIssues } = await import(`/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_grid.js${cb}`);
             await renderFacilityIssues(context);
         }
+
         else if (view === 'view_6_images') {
             const { renderFacilityImages } = await import(`/FACILITYS_TRACKER_APP/views/view_6_images/view_6_grid.js${cb}`);
             await renderFacilityImages(context);
         }
+
         else if (view === 'view_7_followups') {
             const { renderIssueFollowups } = await import(`/FACILITYS_TRACKER_APP/views/view_7_followups/view_7_grid.js${cb}`);
             await renderIssueFollowups(context);
         }
+
         else if (view === 'view_8_reports' || view === 'reports') {
             const { renderReports } = await import(`/FACILITYS_TRACKER_APP/views/view_8_reports/view_8_grid.js${cb}`);
             await renderReports(context);
         }
+
         else {
             console.warn(`Unknown view "${view}"`);
             app.innerHTML = `<p style="text-align:center; padding:20px; color:#6b7280;">View not found.</p>`;
         }
+
     } catch (err) {
         console.error("Navigation error:", err);
         app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}<br><small>${err.message || err}</small></p>`;
@@ -101,8 +108,3 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
     window.navigateTo('view_1_facility');
 });
-
-/* =================================================
-END FILE: main.js
-UPDATED: 2026-06-12 05:20:00 PM
-================================================= */
