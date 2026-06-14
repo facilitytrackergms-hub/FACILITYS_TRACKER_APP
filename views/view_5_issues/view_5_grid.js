@@ -4,7 +4,7 @@ Table: N/A
 View: view_5_issues
 Title: Facility Issues Grid
 Date: 2026-06-13
-Time: 08:38 PM
+Time: 08:49 PM
 ================================================================*/
 
 const __FILENAME = 'view_5_grid.js';
@@ -18,6 +18,10 @@ export async function renderFacilityIssues(data) {
     if (!app) return;
 
     const facility = data?.facility ? data.facility : data;
+    // Captured passed-in prefill data
+    const prefilledReporter = data?.prefilledReporterName || '';
+    const openFormInstantly = data?.openFormInstantly || false;
+
     let localContactsCache = [];
 
     const styles = `
@@ -78,7 +82,7 @@ export async function renderFacilityIssues(data) {
                 <div id="issuesListElement" class="issues-list-layout">Loading issues...</div>
                 <div class="view-build-stamp">
                     File: views/view_5_issues/view_5_grid.js<br>
-                    Updated: 2026-06-13 08:38:00 PM
+                    Updated: 2026-06-13 08:49:00 PM
                 </div>
             </div>
 
@@ -171,10 +175,16 @@ export async function renderFacilityIssues(data) {
         });
     }
 
-    document.getElementById('addIssueTriggerBtn').onclick = async () => {
+    async function triggerAddIssueWorkflow() {
         modal.style.display = 'flex';
         await populateContactsDropdown();
-    };
+        // Prefill logic
+        if (prefilledReporter) {
+            textOverlay.value = prefilledReporter;
+        }
+    }
+
+    document.getElementById('addIssueTriggerBtn').onclick = triggerAddIssueWorkflow;
 
     document.getElementById('closeIssueFormBtn').onclick = () => {
         modal.style.display = 'none';
@@ -212,4 +222,9 @@ export async function renderFacilityIssues(data) {
     setupIssuesEvents(facility, loadIssuesListData);
     await populateContactsDropdown();
     await loadIssuesListData();
+
+    // Auto-open modal if requested
+    if (openFormInstantly) {
+        await triggerAddIssueWorkflow();
+    }
 }
