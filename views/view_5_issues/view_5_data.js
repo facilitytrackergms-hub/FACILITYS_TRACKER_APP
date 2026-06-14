@@ -5,14 +5,13 @@ FILE NAME    : view_5_data.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Data Service
 POP-UP TITLE : Manage Facility Issues
-LAST UPDATED : 2026-06-13 @ 08:32 PM
+LAST UPDATED : 2026-06-14 @ 06:50 AM
 ================================================================*/
 
 import { supabase } from '../../js/supabaseClient.js';
 
 export async function fetchFacilityIssues(facilityId) {
     const safeId = facilityId;
-
     if (!safeId) return [];
 
     const { data, error } = await supabase
@@ -32,7 +31,6 @@ export async function fetchFacilityIssues(facilityId) {
 
 export async function fetchFacilityContacts(facilityId) {
     const safeId = facilityId;
-
     if (!safeId) return [];
 
     const { data, error } = await supabase
@@ -49,7 +47,6 @@ export async function fetchFacilityContacts(facilityId) {
 }
 
 export async function saveFacilityIssue(payload, id = null, linkedContactId = null) {
-
     const safeFacilityId = payload.facility_id;
 
     const mappedPayload = {
@@ -78,10 +75,13 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
                 }]);
         }
     } else {
+        // SANITIZATION: Force ID to be a primitive integer/string
+        const primitiveId = (typeof id === 'object' && id !== null) ? (id.id || id) : id;
+        
         result = await supabase
             .from('facility_issues')
             .update(mappedPayload)
-            .eq('id', id)
+            .eq('id', primitiveId)
             .select();
     }
 
