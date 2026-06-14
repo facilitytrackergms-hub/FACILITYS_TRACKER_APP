@@ -144,6 +144,19 @@ export async function renderFacilityIssues(data) {
         </div>
     `;
 
+
+// Deletion Logic
+    const confirmDialog = document.getElementById('view_5_grid_contact_confirm_dialog');
+    document.getElementById('deleteIssueRequestBtn').onclick = () => { confirmDialog.style.display = 'flex'; };
+    document.getElementById('view_5_grid_confirm_no').onclick = () => { confirmDialog.style.display = 'none'; };
+    document.getElementById('view_5_grid_confirm_yes').onclick = async () => {
+        const id = document.getElementById('issueId').value;
+        await deleteFacilityIssue(id);
+        confirmDialog.style.display = 'none';
+        document.getElementById('issueModal').style.display = 'none';
+        await loadIssuesListData();
+    };
+    
     const modal = document.getElementById('issueFormModal');
     const selectUnderlay = document.getElementById('issueFormReporterSelect');
     const textOverlay = document.getElementById('issueFormReporter');
