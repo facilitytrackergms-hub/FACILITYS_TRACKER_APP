@@ -28,6 +28,17 @@ export async function fetchFacilityIssues(facilityId) {
     );
 }
 
+export async function updateFacilityIssue(id, updates) {
+    const { data, error } = await supabase
+        .from('facility_issues')
+        .update(updates)
+        .eq('id', id)
+        .select();
+    
+    if (error) console.error("updateFacilityIssue error:", error);
+    return { data, error };
+}
+
 export async function saveFacilityIssue(payload, id = null, linkedContactId = null) {
 
     // -------------------------------
