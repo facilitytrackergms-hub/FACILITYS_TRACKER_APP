@@ -5,7 +5,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-14 @ PREFILL FIX
+LAST UPDATED : 2026-06-14 @ MODAL AUTO-OPEN FIX
 ================================================================*/
 
 import { fetchFacilityIssues, insertFacilityIssue } from './view_5_data.js';
@@ -17,10 +17,9 @@ export async function renderFacilityIssues(data) {
     if (!app) return;
 
     const facility = data?.facility ? data.facility : data;
-    let localContactsCache = [];
-
-    // NEW: capture prefill from contacts flow
     const prefilledReporterName = data?.prefilledReporterName || '';
+    const openFormInstantly = data?.openFormInstantly || false;
+    let localContactsCache = [];
 
     const styles = `
         <style>
@@ -75,7 +74,7 @@ export async function renderFacilityIssues(data) {
 
                 <div class="view-build-stamp">
                     File: views/view_5_issues/view_5_grid.js<br>
-                    Updated: 2026-06-13 08:05:00 PM
+                    Updated: 2026-06-14 @ MODAL AUTO-OPEN FIX
                 </div>
             </div>
 
@@ -107,31 +106,24 @@ export async function renderFacilityIssues(data) {
             <div id="issueModal" class="modal-mask">
                 <div class="modal-shell">
                     <h3 id="issueModalTitle" class="modal-shell-title">Issue Dashboard</h3>
-
                     <input type="hidden" id="issueId">
-
                     <label class="form-field-label">Issue Title / Subject</label>
                     <input type="text" id="issueTitleInput" class="form-field-input">
-
                     <label class="form-field-label">Description / Details</label>
                     <textarea id="issueDescInput" class="form-field-input"></textarea>
-
                     <label class="form-field-label">Priority</label>
                     <select id="issuePriorityInput" class="form-field-input">
                         <option>Low</option>
                         <option>Medium</option>
                         <option>High</option>
                     </select>
-
                     <label class="form-field-label">Status</label>
                     <select id="issueStatusInput" class="form-field-input">
                         <option>Open</option>
                         <option>In Progress</option>
                         <option>Closed</option>
                     </select>
-
                     <div id="issue-image-container"></div>
-
                     <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
                         <button id="openFollowupsBtn" class="issues-view-btn btn-emerald">Follow Up</button>
                         <button id="saveIssueBtn" class="issues-view-btn btn-navy">Update Info</button>
@@ -140,7 +132,6 @@ export async function renderFacilityIssues(data) {
                     </div>
                 </div>
             </div>
-
             <div id="view_5_grid_contact_confirm_dialog" class="custom-confirm-mask">
                 <div class="custom-confirm-box">
                     <div id="view_5_grid_confirm_message" class="custom-confirm-msg"></div>
@@ -157,19 +148,13 @@ export async function renderFacilityIssues(data) {
     const selectUnderlay = document.getElementById('issueFormReporterSelect');
     const textOverlay = document.getElementById('issueFormReporter');
 
-    selectUnderlay.onchange = () => {
-        if (selectUnderlay.value) textOverlay.value = selectUnderlay.value;
-    };
-
-    textOverlay.oninput = () => {
-        selectUnderlay.value = "";
-    };
+    selectUnderlay.onchange = () => { if (selectUnderlay.value) textOverlay.value = selectUnderlay.value; };
+    textOverlay.oninput = () => { selectUnderlay.value = ""; };
 
     async function populateContactsDropdown() {
         if (!facility?.id) return;
         localContactsCache = await fetchContacts(facility.id);
         selectUnderlay.innerHTML = '<option value=""></option>';
-
         localContactsCache.forEach(c => {
             if (c.contact_name) {
                 const opt = document.createElement('option');
@@ -180,89 +165,53 @@ export async function renderFacilityIssues(data) {
         });
     }
 
+    // Auto-open logic
+    if (openFormInstantly) {
+        modal.style.display = 'flex';
+        await populateContactsDropdown();
+        if (prefilledReporterName) textOverlay.value = prefilledReporterName;
+    }
+
     document.getElementById('addIssueTriggerBtn').onclick = async () => {
         modal.style.display = 'flex';
         await populateContactsDropdown();
-
-        // NEW: prefill reporter from contacts flow
-        if (prefilledReporterName) {
-            const input = document.getElementById('issueFormReporter');
-            if (input) input.value = prefilledReporterName;
-        }
     };
 
-    document.getElementById('closeIssueFormBtn').onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    document.getElementById('backToControlsBtn').onclick = () => {
-        if (window.navigateTo) window.navigateTo('view_2_controls', { facility });
-    };
+    document.getElementById('closeIssueFormBtn').onclick = () => { modal.style.display = 'none'; };
+    document.getElementById('backToControlsBtn').onclick = () => { if (window.navigateTo) window.navigateTo('view_2_controls', { facility }); };
 
     document.getElementById('submitIssueFormBtn').onclick = async () => {
         const title = document.getElementById('issueFormTitle')?.value || '';
         const description = document.getElementById('issueFormDesc')?.value || '';
         const reported_by = document.getElementById('issueFormReporter')?.value || '';
-
         if (!title.trim()) return;
-
         const result = await insertFacilityIssue({
             facility_id: facility?.id || data?.facility?.id,
-            title,
-            description,
-            reported_by
+            title, description, reported_by
         });
-
-        if (result?.error) {
-            console.error("Insert failed:", result.error);
-            return;
-        }
-
-        modal.style.display = 'none';
-        await loadIssuesListData();
+        if (!result?.error) { modal.style.display = 'none'; await loadIssuesListData(); }
     };
 
     async function loadIssuesListData() {
         const listElement = document.getElementById('issuesListElement');
         const issues = await fetchFacilityIssues(facility.id);
-
         listElement.innerHTML = '';
-
-        if (!issues?.length) {
-            listElement.innerHTML = '<div>No ongoing requests logged.</div>';
-            return;
-        }
-
+        if (!issues?.length) { listElement.innerHTML = '<div>No ongoing requests logged.</div>'; return; }
         issues.forEach(issue => {
             const row = document.createElement('div');
             row.className = 'issue-list-item';
-
             row.onclick = () => {
-                const cleanIssue = {
-                    id: issue?.id,
-                    title: issue?.title,
-                    description: issue?.description,
-                    severity: issue?.severity,
-                    status: issue?.status,
-                    reported_by: issue?.reported_by
-                };
-
-                openIssueModal(facility, cleanIssue, {
-                    name: issue?.reported_by
-                });
+                openIssueModal(facility, { ...issue }, { name: issue?.reported_by });
             };
-
             row.innerHTML = `
                 <div class="issue-list-title">${issue.title}</div>
                 <div class="issue-list-meta">Status: ${issue.status} | ${issue.reported_by}</div>
             `;
-
             listElement.appendChild(row);
         });
     }
 
     setupIssuesEvents(facility, loadIssuesListData);
-
     await populateContactsDropdown();
     await loadIssuesListData();
 }
