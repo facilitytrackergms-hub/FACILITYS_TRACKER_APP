@@ -5,7 +5,7 @@ FILE NAME    : view_5_modal.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Modal
 POP-UP TITLE : Issue Maintenance Request
-LAST UPDATED : 2026-06-14 @ 06:40 AM
+LAST UPDATED : 2026-06-14 @ FINAL UPDATED FIX
 ================================================================*/
 
 import { saveFacilityIssue } from './view_5_data.js';
@@ -25,8 +25,10 @@ export function setupIssuesEvents(facility, refreshFn) {
     if (textBtn) {
         textBtn.onclick = () => {
             const title = document.getElementById('issueTitleInput')?.value || '';
-            const body = `Maintenance Update: ${title}`;
-            window.location.href = `sms:?&body=${encodeURIComponent(body)}`;
+            const desc = document.getElementById('issueDescInput')?.value || '';
+            const body = `Maintenance Update: ${title} - ${desc}`;
+            // Using window.open for better mobile compatibility
+            window.open(`sms:?body=${encodeURIComponent(body)}`, '_blank');
         };
     }
 
