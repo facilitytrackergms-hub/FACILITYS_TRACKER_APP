@@ -63,7 +63,7 @@ export async function renderFacilityIssues(data) {
 
             <div id="issueFormModal" class="modal-mask">
                 <div class="modal-shell">
-                    <h3 class="modal-shell-title">Report Maintenance Issue</h3>
+                    <h3 class="modal-shell-title">Create New Maintenance Request</h3>
                     <label class="form-field-label">Issue Title / Subject</label>
                     <input type="text" id="issueFormTitle" class="form-field-input">
                     <label class="form-field-label">Description / Details</label>
@@ -83,7 +83,7 @@ export async function renderFacilityIssues(data) {
             <div id="issueModal" class="modal-mask">
                 <div class="modal-shell">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 id="issueModalTitle" class="modal-shell-title">Issue Dashboard</h3>
+                        <h3 id="issueModalTitle" class="modal-shell-title">Follow Up Maintenance Request View</h3>
                         <button id="deleteIssueRequestBtn" style="background:none; border:none; font-size:24px; cursor:pointer; color:red;">🗑️</button>
                     </div>
                     <input type="hidden" id="issueId">
