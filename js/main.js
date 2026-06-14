@@ -1,3 +1,6 @@
+/* -------------------------------------------
+        MAIN NAVIGATION CONTROLLER
+   ------------------------------------------- */
 window.navigateTo = async (view, context = {}) => {
     const app = document.getElementById('app');
     if (!app) {
@@ -43,7 +46,7 @@ window.navigateTo = async (view, context = {}) => {
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_contacts') {
-            const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_logic.js${cb}`);
+            const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid.js${cb}`);
             await module.initializeGridLogic(context);
         }
         else if (view === 'view_4_projects') {
@@ -91,3 +94,6 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
     window.navigateTo('view_1_facility');
 });
+/* -------------------------------------------
+        END NAVIGATION CONTROLLER
+   ------------------------------------------- */
