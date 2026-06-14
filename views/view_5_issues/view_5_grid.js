@@ -91,6 +91,22 @@ export async function renderFacilityIssues(data) {
                     <input type="text" id="issueTitleInput" class="form-field-input">
                     <label class="form-field-label">Description / Details</label>
                     <textarea id="issueDescInput" class="form-field-input"></textarea>
+                    
+                    <label class="form-field-label">Status</label>
+                    <select id="issueStatusInput" class="form-field-input">
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+
+                    <label class="form-field-label">Parts Needed</label>
+                    <input type="text" id="issuePartsInput" class="form-field-input">
+                    
+                    <div style="margin-top:15px; display:flex; gap:10px;">
+                        <button id="issueTextBtn" class="issues-view-btn btn-navy" style="font-size:10px;">📱 Text</button>
+                        <button id="issueEmailBtn" class="issues-view-btn btn-navy" style="font-size:10px;">📧 Email</button>
+                    </div>
+
                     <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
                         <button id="saveIssueBtn" class="issues-view-btn btn-navy">Update Info</button>
                         <button id="closeIssueModal" class="issues-view-btn btn-gray">Back to Issues</button>
@@ -122,12 +138,16 @@ export async function renderFacilityIssues(data) {
         await loadIssuesListData();
     };
 
-    // Update Logic
+    // Update Logic (Now includes status and parts)
     document.getElementById('saveIssueBtn').onclick = async () => {
         const id = document.getElementById('issueId').value;
-        const title = document.getElementById('issueTitleInput').value;
-        const description = document.getElementById('issueDescInput').value;
-        await updateFacilityIssue(id, { title, description });
+        const updates = { 
+            title: document.getElementById('issueTitleInput').value,
+            description: document.getElementById('issueDescInput').value,
+            status: document.getElementById('issueStatusInput').value,
+            parts_needed: document.getElementById('issuePartsInput').value
+        };
+        await updateFacilityIssue(id, updates);
         document.getElementById('issueModal').style.display = 'none';
         await loadIssuesListData();
     };
@@ -191,6 +211,8 @@ export async function renderFacilityIssues(data) {
                 document.getElementById('issueId').value = issue.id;
                 document.getElementById('issueTitleInput').value = issue.title;
                 document.getElementById('issueDescInput').value = issue.description;
+                document.getElementById('issueStatusInput').value = issue.status || 'Open';
+                document.getElementById('issuePartsInput').value = issue.parts_needed || '';
                 document.getElementById('issueModal').style.display = 'flex';
             };
             row.innerHTML = `<div class="issue-list-title">${issue.title}</div><div class="issue-list-meta">Status: ${issue.status}</div>`;
