@@ -9,6 +9,7 @@ LAST UPDATED : 2026-06-14 @ FINAL LOCKED UPDATE
 ================================================================*/
 
 import { fetchFacilityIssues, insertFacilityIssue, deleteFacilityIssue, updateFacilityIssue } from './view_5_data.js';
+import { openIssueModal, setupIssuesEvents } from './view_5_modal.js';
 import { fetchContacts } from '../view_3_contacts/view_3_data.js';
 
 export async function renderFacilityIssues(data) {
@@ -82,7 +83,7 @@ export async function renderFacilityIssues(data) {
             <div id="issueModal" class="modal-mask">
                 <div class="modal-shell">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 id="issueModalTitle" class="modal-shell-title">Issue Follow-up</h3>
+                        <h3 id="issueModalTitle" class="modal-shell-title">Issue Dashboard</h3>
                         <button id="deleteIssueRequestBtn" style="background:none; border:none; font-size:24px; cursor:pointer; color:red;">🗑️</button>
                     </div>
                     <input type="hidden" id="issueId">
@@ -131,7 +132,7 @@ export async function renderFacilityIssues(data) {
         await loadIssuesListData();
     };
 
-    // Submit Logic
+    // Corrected Submit Logic
     document.getElementById('submitIssueFormBtn').onclick = async (e) => {
         e.preventDefault();
         const title = document.getElementById('issueFormTitle').value;
