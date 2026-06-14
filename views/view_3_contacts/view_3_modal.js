@@ -1,11 +1,16 @@
 /*================================================================
+FACILITY_TRACKER_APP - CODEBASE EXECUTION PARAMETERS
+================================================================
+DESCRIPTION: Full file delivery with immediate DOM-existence binding fix.
+================================================================*/
+/*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_3_modal.js
 SUPABASE TBL : contacts
 VIEW NAME    : Modify Contact Details
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-14 @ 05:05 PM
+LAST UPDATED : 2026-06-14 @ 05:15 PM
 ================================================================*/
 
 import { insertContact } from '/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_data.js';
@@ -39,8 +44,8 @@ export function renderStandaloneContactModal(containerId, config = {}) {
         </div>
     `;
 
-    // Wait for DOM to render then bind
-    setTimeout(() => {
+    // Force bind after the browser paint
+    requestAnimationFrame(() => {
         const closeBtn = document.getElementById('modalCloseBtn');
         const saveBtn = document.getElementById('modalSaveContactBtn');
 
@@ -78,7 +83,7 @@ export function renderStandaloneContactModal(containerId, config = {}) {
                 }
             };
         }
-    }, 50);
+    });
 
     appendSourceTag();
 }
@@ -95,7 +100,7 @@ function appendSourceTag() {
         const modalContent = document.querySelector('.contacts-modal-window');
         if (modalContent) modalContent.appendChild(tag);
     }
-    tag.innerText = `Source: view_3_modal.js | Updated: 2026-06-14 05:05 PM`;
+    tag.innerText = `Source: view_3_modal.js | Updated: 2026-06-14 05:15 PM`;
 }
 
 function showUniqueAlert(alertId, message) {
