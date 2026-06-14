@@ -240,8 +240,34 @@ export async function openIssueModal(facility, issue = null, contactReporter = n
         }
     }
 
-    const deleteBtn = document.getElementById('deleteIssueRequestBtn');
-    if (deleteBtn) {
+   const deleteBtn = document.getElementById('deleteIssueRequestBtn');
+if (deleteBtn) {
+    deleteBtn.onclick = async () => {
+        const issueId = document.getElementById('issueId')?.value;
+
+        if (!issueId) {
+            alert("[ERR-DELETE] No issue selected.");
+            return;
+        }
+
+        const confirmed = confirm("Delete this issue permanently?");
+        if (!confirmed) return;
+
+        const result = await import('./view_5_data.js')
+            .then(m => m.deleteFacilityIssue(issueId));
+
+        if (!result?.success) {
+            alert("[ERR-DELETE] Failed to delete issue.");
+            return;
+        }
+
+        modal.style.display = 'none';
+
+        if (renderFacilityIssuesFn) {
+            await renderFacilityIssuesFn(facility);
+        }
+    };
+}
         deleteBtn.style.display = issue?.id ? 'block' : 'none';
     }
 
