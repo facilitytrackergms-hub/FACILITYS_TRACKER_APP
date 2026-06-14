@@ -5,7 +5,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-13 @ 08:20 PM
+LAST UPDATED : 2026-06-13 @ 08:30 PM
 ================================================================*/
 
 import { fetchFacilityIssues, insertFacilityIssue } from './view_5_data.js';
@@ -19,56 +19,71 @@ export async function renderFacilityIssues(data) {
     const facility = data?.facility ? data.facility : data;
     let localContactsCache = [];
 
+    const styles = `
+        <style>
+            .issues-view-container { padding:20px; font-family:Arial; }
+            .issues-card-wrapper { max-width:500px; margin:0 auto; }
+            .issue-list-item { padding:12px; border:1px solid #ddd; margin-bottom:10px; cursor:pointer; }
+        </style>
+    `;
+
     app.innerHTML = `
-        <div style="padding:20px;font-family:Arial;">
-            <h2>Maintenance Requests</h2>
+        ${styles}
 
-            <button id="addIssueTriggerBtn">+ Create Maintenance Request</button>
-            <button id="backToControlsBtn">Back</button>
+        <div class="issues-view-container">
+            <div class="issues-card-wrapper">
 
-            <div id="issuesListElement">Loading...</div>
+                <h2>Maintenance Requests</h2>
 
-            <!-- FORM -->
-            <div id="issueFormModal" style="display:none;">
-                <h3>Report Maintenance Issue</h3>
+                <button id="addIssueTriggerBtn">+ Create Maintenance Request</button>
+                <button id="backToControlsBtn">Back</button>
 
-                <input id="issueFormTitle" placeholder="Title">
-                <textarea id="issueFormDesc" placeholder="Description"></textarea>
+                <div id="issuesListElement">Loading...</div>
 
-                <label>Reported By</label>
-                <input id="issueFormReporter" placeholder="Reported By">
+                <!-- FORM MODAL -->
+                <div id="issueFormModal" style="display:none;">
+                    <h3>Report Maintenance Issue</h3>
 
-                <button id="submitIssueFormBtn">Submit Request</button>
-                <button id="closeIssueFormBtn">Cancel</button>
-            </div>
+                    <input id="issueFormTitle" placeholder="Title">
+                    <textarea id="issueFormDesc" placeholder="Description"></textarea>
 
-            <!-- DASHBOARD -->
-            <div id="issueModal" style="display:none;">
-                <input type="hidden" id="issueId">
+                    <label>Reported By</label>
+                    <input id="issueFormReporter" placeholder="Reported By">
 
-                <input id="issueTitleInput">
-                <textarea id="issueDescInput"></textarea>
+                    <button id="submitIssueFormBtn">Submit Request</button>
+                    <button id="closeIssueFormBtn">Cancel</button>
+                </div>
 
-                <select id="issuePriorityInput">
-                    <option>Low</option>
-                    <option>Medium</option>
-                    <option>High</option>
-                </select>
+                <!-- ISSUE MODAL -->
+                <div id="issueModal" style="display:none;">
+                    <input type="hidden" id="issueId">
 
-                <select id="issueStatusInput">
-                    <option>Open</option>
-                    <option>In Progress</option>
-                    <option>Closed</option>
-                </select>
+                    <input id="issueTitleInput">
+                    <textarea id="issueDescInput"></textarea>
 
-                <button id="saveIssueBtn">Save</button>
+                    <select id="issuePriorityInput">
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                    </select>
+
+                    <select id="issueStatusInput">
+                        <option>Open</option>
+                        <option>In Progress</option>
+                        <option>Closed</option>
+                    </select>
+
+                    <button id="saveIssueBtn">Save</button>
+                </div>
+
             </div>
         </div>
     `;
 
-    // OPEN FORM
+    const formModal = document.getElementById('issueFormModal');
+
     document.getElementById('addIssueTriggerBtn').onclick = async () => {
-        document.getElementById('issueFormModal').style.display = 'block';
+        formModal.style.display = 'block';
 
         if (facility?.id) {
             localContactsCache = await fetchContacts(facility.id);
@@ -76,27 +91,31 @@ export async function renderFacilityIssues(data) {
     };
 
     document.getElementById('closeIssueFormBtn').onclick = () => {
-        document.getElementById('issueFormModal').style.display = 'none';
+        formModal.style.display = 'none';
     };
 
-    // 🔥 THIS IS THE FIX (was missing)
+    // ✅ FIX IS HERE (this was missing before)
     document.getElementById('submitIssueFormBtn').onclick = async () => {
+
+        const title = document.getElementById('issueFormTitle').value;
+        const desc = document.getElementById('issueFormDesc').value;
+        const reporter = document.getElementById('issueFormReporter').value;
+
         const payload = {
             facility_id: facility.id,
-            title: document.getElementById('issueFormTitle').value,
-            description: document.getElementById('issueFormDesc').value,
+            title: title,
+            description: desc,
 
-            // IMPORTANT FIX
-            reported_by: document.getElementById('issueFormReporter').value || 'Staff'
+            // 🔥 THIS FIXES YOUR "STAFF" ISSUE
+            reported_by: reporter || 'Staff'
         };
 
         await insertFacilityIssue(payload);
 
-        document.getElementById('issueFormModal').style.display = 'none';
+        formModal.style.display = 'none';
         await loadIssues();
     };
 
-    // LIST
     async function loadIssues() {
         const list = document.getElementById('issuesListElement');
         const issues = await fetchFacilityIssues(facility.id);
@@ -105,9 +124,7 @@ export async function renderFacilityIssues(data) {
 
         issues.forEach(issue => {
             const div = document.createElement('div');
-            div.style.padding = "10px";
-            div.style.border = "1px solid #ddd";
-            div.style.marginBottom = "8px";
+            div.className = 'issue-list-item';
 
             div.innerHTML = `
                 <b>${issue.title}</b><br>
@@ -119,7 +136,6 @@ export async function renderFacilityIssues(data) {
         });
     }
 
-    // MODAL EVENTS
     setupIssuesEvents(facility, loadIssues);
 
     document.getElementById('backToControlsBtn').onclick = () => {
