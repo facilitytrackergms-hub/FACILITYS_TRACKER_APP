@@ -190,22 +190,29 @@ export async function renderFacilityIssues(data) {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility });
     };
 
-    document.getElementById('submitIssueFormBtn').onclick = async () => {
-        const title = document.getElementById('issueFormTitle')?.value || '';
-        const description = document.getElementById('issueFormDesc')?.value || '';
-        const reported_by = document.getElementById('issueFormReporter')?.value || '';
+ /* FIXED SUBMIT HANDLER */
+document.getElementById('submitIssueFormBtn').onclick = async () => {
+    const title = document.getElementById('issueFormTitle')?.value || '';
+    const description = document.getElementById('issueFormDesc')?.value || '';
+    const reported_by = document.getElementById('issueFormReporter')?.value || '';
 
-        if (!title.trim()) return;
+    if (!title.trim()) return;
 
-        await insertFacilityIssue(facility.id, {
-            title,
-            description,
-            reported_by
-        });
+    const result = await insertFacilityIssue({
+        facility_id: facility?.id,
+        title,
+        description,
+        reported_by
+    });
 
-        modal.style.display = 'none';
-        await loadIssuesListData();
-    };
+    if (result?.error) {
+        console.error("Insert failed:", result.error);
+        return;
+    }
+
+    modal.style.display = 'none';
+    await loadIssuesListData();
+};
 
     async function loadIssuesListData() {
         const listElement = document.getElementById('issuesListElement');
