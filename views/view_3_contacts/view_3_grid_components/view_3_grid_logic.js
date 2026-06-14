@@ -4,7 +4,7 @@ FILE METADATA
 FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
-LAST UPDATED : 2026-06-14 @ 06:22 PM
+LAST UPDATED : 2026-06-14 @ 06:40 PM
 ================================================================*/
 
 import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
@@ -98,13 +98,13 @@ export async function initializeGridLogic(viewContext) {
                     matchedIssues.forEach(issue => {
                         const issueActionBtn = document.createElement('button');
                         issueActionBtn.className = 'contacts-view-btn';
-                        issueActionBtn.style.cssText = 'background:white; border:1px solid #d1d5db; border-radius:6px; padding:10px; margin-bottom:6px; display:flex; flex-direction:column; align-items:flex-start; width:100%; text-align:left; text-transform:none; font-weight:normal; font-family:Arial, sans-serif; cursor:pointer; box-sizing:border-box; box-shadow:0 1px 2px rgba(0,0,0,0.05);';
+                        issueActionBtn.style.cssText = 'background:white; border:1px solid #d1d5db; border-radius:6px; padding:10px; margin-bottom:6px; display:flex; flex-direction:column; align-items:flex-start; width:100%; text-align:left; cursor:pointer;';
                         issueActionBtn.innerHTML = `
                             <div style="font-weight:bold; color:#00264d; font-size:13px;">🛠️ ${issue.title || 'Untitled Request'}</div>
                             <div style="font-size:11px; color:#6b7280; margin-top:2px;">Status: <b style="color:#10b981;">${issue.status || 'Open'}</b></div>
                         `;
 
-                        // FIXED: Directly binding the modal trigger to the issue
+                        // THE FIX: Directly calling the imported openIssueModal
                         issueActionBtn.onclick = () => {
                             openIssueModal(viewContext.facility, issue);
                         };
