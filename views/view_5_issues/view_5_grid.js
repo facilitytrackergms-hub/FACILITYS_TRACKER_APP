@@ -1,4 +1,3 @@
-
 /*================================================================
 FILE METADATA
 ================================================================
@@ -6,7 +5,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-13 @ 07:05 PM
+LAST UPDATED : 2026-06-13 @ 07:32 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -124,7 +123,7 @@ export async function renderFacilityIssues(data) {
 
                 <div class="view-build-stamp">
                     File: views/view_5_issues/view_5_grid.js<br>
-                    Updated: 2026-06-13 07:05:00 PM
+                    Updated: 2026-06-13 07:32:00 PM
                 </div>
             </div>
 
@@ -242,6 +241,26 @@ export async function renderFacilityIssues(data) {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility });
     };
 
+    /* ===========================
+       FIX: SUBMIT BUTTON HANDLER
+       =========================== */
+    document.getElementById('submitIssueFormBtn').onclick = async () => {
+        const title = document.getElementById('issueFormTitle')?.value || '';
+        const description = document.getElementById('issueFormDesc')?.value || '';
+        const reported_by = document.getElementById('issueFormReporter')?.value || '';
+
+        if (!title.trim()) return;
+
+        await insertFacilityIssue(facility.id, {
+            title,
+            description,
+            reported_by
+        });
+
+        modal.style.display = 'none';
+        await loadIssuesListData();
+    };
+
     async function loadIssuesListData() {
         const listElement = document.getElementById('issuesListElement');
         const issues = await fetchFacilityIssues(facility.id);
@@ -262,9 +281,9 @@ export async function renderFacilityIssues(data) {
                 <div class="issue-list-meta">Status: ${issue.status} | ${issue.reported_by}</div>
             `;
 
-        row.onclick = () => openIssueModal(facility, issue, {
-    name: issue.reported_by
-});
+            row.onclick = () => openIssueModal(facility, issue, {
+                name: issue.reported_by
+            });
         });
     }
 
@@ -276,5 +295,3 @@ export async function renderFacilityIssues(data) {
 /*================================================================
 END FILE: view_5_grid.js
 ================================================================*/
-
-
