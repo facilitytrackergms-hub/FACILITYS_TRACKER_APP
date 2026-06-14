@@ -1,11 +1,11 @@
- /*================================================================
+/*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_5_data.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Data Service
 POP-UP TITLE : Manage Facility Issues
-LAST UPDATED : 2026-06-14 @ FINAL FIX STABLE
+LAST UPDATED : 2026-06-14 @ FINAL STABLE FIX
 ================================================================*/
 
 import { supabase } from '../../js/supabaseClient.js';
@@ -30,20 +30,30 @@ export async function fetchFacilityIssues(facilityId) {
 
 export async function saveFacilityIssue(payload, id = null, linkedContactId = null) {
 
-    // SAFE payload mapping (matches your working UI structure)
+    // -------------------------------
+    // HARD GUARD: facility_id MUST exist
+    // -------------------------------
+    if (!payload?.facility_id) {
+        console.error("BLOCKED: facility_id is missing", payload);
+        return { error: { message: "facility_id is required" }, data: null };
+    }
+
+    // -------------------------------
+    // SAFE PAYLOAD MAPPING
+    // -------------------------------
     const mappedPayload = {
-    facility_id: payload.facility_id || null,
-    title: payload.title || 'Maintenance Request',
-    description: payload.description || '',
-    severity: payload.priority || 'Medium',
-    status: payload.status || 'Open',
-    reported_by: payload.reported_by || 'Staff'
-};
+        facility_id: payload.facility_id,
+        title: payload.title || 'Maintenance Request',
+        description: payload.description || '',
+        severity: payload.priority || 'Medium',
+        status: payload.status || 'Open',
+        reported_by: payload.reported_by || 'Staff'
+    };
 
     let result;
 
     // -------------------------------
-    // SAFE ID NORMALIZATION (NO NaN EVER)
+    // ID NORMALIZATION (NO NaN EVER)
     // -------------------------------
     let cleanId = null;
 
