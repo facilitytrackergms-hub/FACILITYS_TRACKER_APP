@@ -5,7 +5,7 @@ FILE NAME    : view_5_modal.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Modal
 POP-UP TITLE : Issue Maintenance Request
-LAST UPDATED : 2026-06-13 @ 08:25 PM
+LAST UPDATED : 2026-06-13 @ 09:30 PM
 ================================================================*/
 
 import { saveFacilityIssue } from './view_5_data.js';
@@ -20,9 +20,7 @@ export function setupIssuesEvents(facility, refreshFn) {
     const saveBtn = document.getElementById('saveIssueBtn');
 
     saveBtn.onclick = async () => {
-
-        const reporterName =
-            document.getElementById('issueFormReporter')?.value?.trim() || '';
+        const reporterName = document.getElementById('issueFormReporter')?.value?.trim() || '';
 
         const payload = {
             facility_id: facility.id,
@@ -33,16 +31,19 @@ export function setupIssuesEvents(facility, refreshFn) {
             reported_by: reporterName
         };
 
-        // FIX: always resolve ID from activeIssue first (prevents NaN PATCH)
-        const id =
-            activeIssue?.id ??
-            document.getElementById('issueId')?.value ??
-            null;
+        // SAFETY FIX: Ensure ID is primitive (e.g., string/number) and not an object
+        let rawId = activeIssue?.id ?? document.getElementById('issueId')?.value;
+        const id = (typeof rawId === 'object' && rawId !== null) ? rawId.id : rawId;
+
+        if (!id) {
+            console.error("Save aborted: No valid ID found.");
+            return;
+        }
 
         const result = await saveFacilityIssue(payload, id);
 
         if (result?.error) {
-            alert("Save failed");
+            alert("Save failed: " + result.error.message);
             return;
         }
 
@@ -57,9 +58,11 @@ export function openIssueModal(facility, issue, contactReporter) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
 
-    // FIX: ensure consistent ID storage (backup only, not primary source)
+    // Ensure we store the primitive ID
     const issueIdField = document.getElementById('issueId');
-    if (issueIdField) issueIdField.value = issue?.id ?? '';
+    if (issueIdField) {
+        issueIdField.value = (typeof issue?.id === 'object') ? issue.id.id : (issue?.id ?? '');
+    }
 
     document.getElementById('issueTitleInput').value = issue?.title || '';
     document.getElementById('issueDescInput').value = issue?.description || '';
@@ -67,7 +70,6 @@ export function openIssueModal(facility, issue, contactReporter) {
     document.getElementById('issueStatusInput').value = issue?.status || 'Open';
 
     const reporter = contactReporter?.name || issue?.reported_by || '';
-
     const reporterField = document.getElementById('issueFormReporter');
     if (reporterField) reporterField.value = reporter;
 
