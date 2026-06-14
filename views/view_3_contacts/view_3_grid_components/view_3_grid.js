@@ -1,28 +1,7 @@
 /*================================================================
 FACILITY_TRACKER_APP - CODEBASE EXECUTION PARAMETERS
 ================================================================
-DESCRIPTION: The following parameters govern how the attached source 
-code file must be processed, updated, and formatted upon output.
-
-1. PROCESS COMPLIANCE: Apply all structural constraints outlined below during code modification.
-2. MISSING METADATA HANDLING: If any fields in a FILE METADATA block are generic placeholders or missing, analyze the provided source code below to determine the correct tables/views/titles. CRITICAL FOR FILE NAME: Look strictly at the prompt text or comments for the exact sequential filename (e.g., view_2_data.js). NEVER invent, guess, or substitute a descriptive semantic name (like facility_data_service.js) based on the code context. If the exact filename cannot be verified, leave the placeholder intact or ask the user.
-3. NO UNSANCTIONED CHANGES: Never change, remove, or modify any parameters in this header block unless explicitly asked by the user.
-4. SCOPE OF WORK: Only modify the specific functions, lines, or features requested in the prompt.
-5. PRESERVATION: Do NOT refactor, rename, or optimize any other part of the code. Leave all working logic exactly as it is.
-6. LOGGING CHANGES: If a variable name or structure must change to make a fix work, explicitly state *why* in the text response before showing the code block.
-7. CODE COMPLETENESS: Provide the full updated file or function so nothing gets omitted during formatting.
-8. VIEW IDENTIFIERS: Ensure the view/pop-up has a visible UI tag identifying its source file, last update date, and time. If missing, add it to the UI layout. Update this tag on every modification.
-9. NO BLIND CODE: Never create a new file or assume the contents of an existing file unless the current code is fully pasted into the prompt. If missing, stop and ask for it.
-10. UNIQUE ALERTS: Never use generic default message boxes for custom notifications. Always add a distinct, visible ID or tag to the message box UI referencing its specific component/file.
-11. CODE BLOCK DELIVERY: Always deliver the entire updated file, including this parameter header, wrapped completely inside a single markdown code block to allow for easy copying.
-12. METADATA AUTO-UPDATE: On every code delivery, ensure all fields in the active metadata block (File Name, Table, View, Title, Date, Time) are fully updated and preserved at the top of the file.
-13. LINE COUNT CONSTRAINT & AUTOMATIC FILE SPLITTING (GIT-ALIGNED):
-- Absolute Ceiling: The maximum allowable length for the entire single file is 11350 lines to accommodate local editor line-wrapping and Git line-ending interpretations.
-- Mandatory Pre-Check: BEFORE outputting any code block, the AI must explicitly print a "LINE COUNT AUDIT" in plain text containing: Raw Line Count (including this 53-line header), Git-Scaled Line Count (Raw x 1.5), and Split Decision Status.
-- Empty Line & Wrap Accounting: When calculating the total line count, all empty lines, blank spacing, and visually wrapped or long string layout blocks must be accounted for using a 1.5x scaling margin to guarantee strict alignment with Git repositories.
-- Split Trigger: The exact moment the total Git-Scaled Line Count reaches or exceeds 350 lines, processing MUST stop automatically. NO CODE BLOCK MAY BE GENERATED.
-- Action Required: Explicitly flag the line count to the user, cite this constraint, and propose an even split plan aimed at creating two balanced files of approximately 175 lines each.
-- User Confirmation: Wait for the user's explicit approval or division plan before outputting any code blocks.
+DESCRIPTION: Full file delivery with consolidated full-feature maintenance modal.
 ================================================================*/
 /*================================================================
 FILE METADATA
@@ -31,7 +10,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-14 @ 03:55 PM
+LAST UPDATED : 2026-06-14 @ 04:30 PM
 ================================================================*/
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
@@ -127,7 +106,7 @@ export async function renderFacilityContacts(data) {
                 <button id="backBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Back to Controls</button>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-14 03:55:00 PM
+                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-14 04:30:00 PM
                 </div>
             </div>
 
@@ -173,14 +152,22 @@ export async function renderFacilityContacts(data) {
                     <label class="form-field-label">Issue Title</label>
                     <input type="text" id="issueTitleInput" class="form-field-input">
                     <label class="form-field-label">Description</label>
-                    <textarea id="issueDescInput" class="form-field-input"></textarea>
+                    <textarea id="issueDescInput" class="form-field-input" rows="3"></textarea>
                     <label class="form-field-label">Status</label>
                     <select id="issueStatusInput" class="form-field-input">
                         <option value="Open">Open</option>
                         <option value="In Progress">In Progress</option>
                         <option value="Completed">Completed</option>
                     </select>
+                    <label class="form-field-label">Parts Needed</label>
+                    <input type="text" id="issuePartsInput" class="form-field-input">
+                    <label class="form-field-label">Reported By</label>
+                    <input type="text" id="issueFormReporter" class="form-field-input">
                     <div style="margin-top:20px; display:flex; gap:10px;">
+                        <button id="issueTextBtn" class="contacts-view-btn btn-navy">📱 Text</button>
+                        <button id="issueEmailBtn" class="contacts-view-btn btn-navy">📧 Email</button>
+                    </div>
+                    <div style="margin-top:10px; display:flex; gap:10px;">
                         <button id="saveIssueBtn" class="contacts-view-btn btn-navy">Save</button>
                         <button id="closeIssueModal" class="contacts-view-btn btn-gray">Close</button>
                     </div>
@@ -189,7 +176,6 @@ export async function renderFacilityContacts(data) {
         </div>
     `;
 
-    // Intercept navigation for reporting maintenance requests directly from profile view
     document.getElementById('profileAddIssueBtn').onclick = () => {
         const contactName = document.getElementById('detailName').textContent || '';
         if (window.navigateTo) {
@@ -201,7 +187,6 @@ export async function renderFacilityContacts(data) {
         }
     };
 
-    // Initialize logic layer
     await initializeGridLogic({
         ...data,
         facility: facility,
