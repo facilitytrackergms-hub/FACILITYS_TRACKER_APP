@@ -46,8 +46,8 @@ window.navigateTo = async (view, context = {}) => {
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_contacts') {
-            const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid.js${cb}`);
-            await module.initializeGridLogic(context);
+            const { initializeGridLogic } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid_logic.js${cb}`);
+            await initializeGridLogic(context);
         }
         else if (view === 'view_4_projects') {
             const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_core/view_4_grid.js${cb}`);
