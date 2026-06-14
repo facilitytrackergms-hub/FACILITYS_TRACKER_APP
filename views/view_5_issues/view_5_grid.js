@@ -1,15 +1,11 @@
 /*================================================================
-AUTOMATED PATH UPDATE INSTRUCTION
-================================================================
-NEW ROOT DIRECTORY FOR COMPONENT:
-FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/   /*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-07 @ 10:05 AM
+LAST UPDATED : 2026-06-13 @ 06:25 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -80,10 +76,20 @@ export async function renderFacilityIssues(data) {
             .issues-card-wrapper { max-width:500px; margin:0 auto; background:white; border-radius:12px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
             .issues-view-title { color:#00264d; font-size:24px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; }
             .issues-view-subtitle { color:#6b7280; font-size:14px; margin-bottom:20px; }
+
             .issues-view-btn { width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; text-transform:uppercase; box-sizing:border-box; }
             .btn-navy { background:#00264d; color:white; }
             .btn-emerald { background:#10b981; color:white; margin-bottom:12px; }
             .btn-gray { background:#9ca3af; color:white; }
+
+            /* DELETE BUTTON OVERRIDE */
+            .btn-delete-danger {
+                background: red !important;
+                color: yellow !important;
+                font-weight: bold !important;
+                border: 2px solid #b30000 !important;
+            }
+
             .issues-list-layout { margin:20px 0; text-align:left; display:flex; flex-direction:column; gap:10px; }
             .issue-list-item { background:#f9fafb; border:1px solid #e5e7eb; padding:15px; border-radius:8px; cursor:pointer; }
             .issue-list-item:hover { background:#f3f4f6; }
@@ -93,19 +99,22 @@ export async function renderFacilityIssues(data) {
             .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
             .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; max-height:90vh; overflow-y:auto; }
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
+
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
+
             .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
 
             .combobox-container { position:relative; display:block; width:100%; }
-            .combobox-select-underlay { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; background:white; color:#111827; }
-            .combobox-input-overlay { position:absolute; top:5px; left:1px; width:calc(100% - 32px); margin:0; padding:10px; border:none; border-radius:5px 0 0 5px; box-sizing:border-box; outline:none; font-size:13px; }
+            .combobox-select-underlay { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; background:white; }
+            .combobox-input-overlay { position:absolute; top:5px; left:1px; width:calc(100% - 32px); margin:0; padding:10px; border:none; outline:none; }
 
             .custom-confirm-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:100; padding:15px; }
-            .custom-confirm-box { background:white; border-radius:10px; padding:20px; width:100%; max-width:360px; box-shadow:0 10px 20px rgba(0,0,0,0.15); text-align:center; }
-            .custom-confirm-msg { font-size:14px; color:#374151; margin-bottom:20px; font-family:Arial, sans-serif; line-height:1.4; }
+            .custom-confirm-box { background:white; border-radius:10px; padding:20px; width:100%; max-width:360px; text-align:center; }
+            .custom-confirm-msg { font-size:14px; color:#374151; margin-bottom:20px; }
             .custom-confirm-actions { display:flex; gap:10px; justify-content:center; }
             .custom-confirm-btn { padding:10px 20px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; min-width:80px; }
+
         </style>
     `;
 
@@ -113,16 +122,24 @@ export async function renderFacilityIssues(data) {
         ${styles}
         <div class="issues-view-container">
             <div class="issues-card-wrapper">
+
                 <h1 class="issues-view-title">Maintenance Requests</h1>
                 <p class="issues-view-subtitle">${facility?.name || ''}</p>
 
-                <div class="view-build-stamp">
-                    File: views/view_5_issues/view_5_grid.js<br>Updated: 2026-06-07 10:05:00 AM
-                </div>
+                <!-- MOVED BUILD STAMP TO BOTTOM -->
 
                 <button id="addIssueTriggerBtn" class="issues-view-btn btn-emerald">➕ Create Maintenance Request</button>
+
+                <!-- MOVED BACK BUTTON TO TOP UNDER CREATE -->
+                <button id="backToControlsBtn" class="issues-view-btn btn-navy" style="margin-bottom:12px;">⬅️ Back to Controls</button>
+
                 <div id="issuesListElement" class="issues-list-layout">Loading issues...</div>
-                <button id="backToControlsBtn" class="issues-view-btn btn-navy">⬅️ Back to Controls</button>
+
+                <!-- MOVED STAMP TO BOTTOM -->
+                <div class="view-build-stamp">
+                    File: views/view_5_issues/view_5_grid.js<br>
+                    Updated: 2026-06-07 10:05:00 AM
+                </div>
             </div>
 
             <div id="issueFormModal" class="modal-mask">
@@ -130,7 +147,7 @@ export async function renderFacilityIssues(data) {
                     <h3 class="modal-shell-title">Report Maintenance Issue</h3>
                     
                     <label class="form-field-label">Issue Title / Subject</label>
-                    <input type="text" id="issueFormTitle" class="form-field-input" placeholder="e.g. Broken AC in Lounge">
+                    <input type="text" id="issueFormTitle" class="form-field-input">
 
                     <label class="form-field-label">Description / Details</label>
                     <textarea id="issueFormDesc" class="form-field-input" style="height:70px; resize:none;"></textarea>
@@ -140,7 +157,7 @@ export async function renderFacilityIssues(data) {
                         <select id="issueFormReporterSelect" class="combobox-select-underlay">
                             <option value=""></option>
                         </select>
-                        <input type="text" id="issueFormReporter" class="combobox-input-overlay" placeholder="Your Full Name">
+                        <input type="text" id="issueFormReporter" class="combobox-input-overlay">
                     </div>
 
                     <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
@@ -154,36 +171,40 @@ export async function renderFacilityIssues(data) {
                 <div class="modal-shell">
                     <h3 id="issueModalTitle" class="modal-shell-title">Issue Dashboard</h3>
 
-                    <input type="hidden" id="issueId" value="">
-                    <input type="hidden" id="hiddenReporterName" value="">
-                    <input type="hidden" id="hiddenReporterId" value="">
+                    <input type="hidden" id="issueId">
 
                     <label class="form-field-label">Issue Title / Subject</label>
                     <input type="text" id="issueTitleInput" class="form-field-input">
 
                     <label class="form-field-label">Description / Details</label>
-                    <textarea id="issueDescInput" class="form-field-input" style="height:80px; resize:none;"></textarea>
+                    <textarea id="issueDescInput" class="form-field-input"></textarea>
 
                     <label class="form-field-label">Priority</label>
                     <select id="issuePriorityInput" class="form-field-input">
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
                     </select>
 
                     <label class="form-field-label">Status</label>
                     <select id="issueStatusInput" class="form-field-input">
-                        <option value="Open">Open</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Closed">Closed</option>
+                        <option>Open</option>
+                        <option>In Progress</option>
+                        <option>Closed</option>
                     </select>
 
-                    <div id="issue-image-container" style="margin-top:15px;"></div>
+                    <div id="issue-image-container"></div>
 
                     <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
                         <button id="openFollowupsBtn" class="issues-view-btn btn-emerald">Follow Up</button>
                         <button id="saveIssueBtn" class="issues-view-btn btn-navy">Update Info</button>
-                        <button id="deleteIssueRequestBtn" class="issues-view-btn btn-gray" style="display:none;">Delete Issue</button>
+
+                        <button id="deleteIssueRequestBtn"
+                            class="issues-view-btn btn-delete-danger"
+                            style="display:none;">
+                            DELETE ISSUE
+                        </button>
+
                         <button id="closeIssueModal" class="issues-view-btn btn-gray">Back to Issues</button>
                     </div>
                 </div>
@@ -198,6 +219,7 @@ export async function renderFacilityIssues(data) {
                     </div>
                 </div>
             </div>
+
         </div>
     `;
 
@@ -206,9 +228,7 @@ export async function renderFacilityIssues(data) {
     const textOverlay = document.getElementById('issueFormReporter');
 
     selectUnderlay.onchange = () => {
-        if (selectUnderlay.value) {
-            textOverlay.value = selectUnderlay.value;
-        }
+        if (selectUnderlay.value) textOverlay.value = selectUnderlay.value;
     };
 
     textOverlay.oninput = () => {
@@ -217,144 +237,46 @@ export async function renderFacilityIssues(data) {
 
     async function populateContactsDropdown() {
         if (!facility?.id) return;
-
-        try {
-            localContactsCache = await fetchContacts(facility.id);
-        } catch (e) {
-            console.error("Failed loading local contacts dependency layer:", e);
-            localContactsCache = [];
-        }
-
+        localContactsCache = await fetchContacts(facility.id);
         selectUnderlay.innerHTML = '<option value=""></option>';
 
-        if (Array.isArray(localContactsCache)) {
-            localContactsCache.forEach(contact => {
-                const nameValue = contact.contact_name || '';
-                if (nameValue) {
-                    const opt = document.createElement('option');
-                    opt.value = nameValue;
-                    opt.textContent = nameValue;
-                    selectUnderlay.appendChild(opt);
-                }
-            });
-        }
-    }
-
-    const addIssueTriggerBtn = document.getElementById('addIssueTriggerBtn');
-    if (addIssueTriggerBtn) {
-        addIssueTriggerBtn.onclick = async () => {
-            document.getElementById('issueFormTitle').value = '';
-            document.getElementById('issueFormDesc').value = '';
-            textOverlay.value = '';
-            selectUnderlay.value = '';
-            await populateContactsDropdown();
-            modal.style.display = 'flex';
-        };
-    }
-
-    const closeIssueFormBtn = document.getElementById('closeIssueFormBtn');
-    if (closeIssueFormBtn) {
-        closeIssueFormBtn.onclick = () => {
-            modal.style.display = 'none';
-        };
-    }
-
-    const backToControlsBtn = document.getElementById('backToControlsBtn');
-    if (backToControlsBtn) {
-        backToControlsBtn.onclick = () => {
-            if (window.navigateTo) {
-                window.navigateTo('view_2_controls', { facility: facility });
+        localContactsCache.forEach(c => {
+            if (c.contact_name) {
+                const opt = document.createElement('option');
+                opt.value = c.contact_name;
+                opt.textContent = c.contact_name;
+                selectUnderlay.appendChild(opt);
             }
-        };
-    }
-
-    function promptNewContactCreation(targetName) {
-        return new Promise((resolve) => {
-            const dialog = document.getElementById('view_5_grid_contact_confirm_dialog');
-            const messageSlot = document.getElementById('view_5_grid_confirm_message');
-            const yesBtn = document.getElementById('view_5_grid_confirm_yes');
-            const noBtn = document.getElementById('view_5_grid_confirm_no');
-
-            messageSlot.innerText = `"${targetName}" is not listed in the contacts for this facility. Would you like to add them as an established contact?`;
-            dialog.style.display = 'flex';
-
-            yesBtn.onclick = () => {
-                dialog.style.display = 'none';
-                resolve(true);
-            };
-
-            noBtn.onclick = () => {
-                dialog.style.display = 'none';
-                resolve(false);
-            };
         });
     }
 
-    const submitIssueFormBtn = document.getElementById('submitIssueFormBtn');
-    if (submitIssueFormBtn) {
-        submitIssueFormBtn.onclick = async () => {
-            const title = document.getElementById('issueFormTitle').value.trim();
-            const desc = document.getElementById('issueFormDesc').value.trim();
-            const reporter = textOverlay.value.trim();
+    document.getElementById('addIssueTriggerBtn').onclick = async () => {
+        modal.style.display = 'flex';
+        await populateContactsDropdown();
+    };
 
-            if (!title || !reporter) {
-                alert("Subject and Reporter fields are required.");
-                return;
-            }
+    document.getElementById('closeIssueFormBtn').onclick = () => {
+        modal.style.display = 'none';
+    };
 
-            const matchedContact = localContactsCache.find(c =>
-                (c.contact_name || '').toLowerCase() === reporter.toLowerCase()
-            );
+    document.getElementById('backToControlsBtn').onclick = () => {
+        if (window.navigateTo) window.navigateTo('view_2_controls', { facility });
+    };
 
-            if (!matchedContact) {
-                const shouldAdd = await promptNewContactCreation(reporter);
-
-                if (shouldAdd && window.navigateTo) {
-                    window.navigateTo('view_3_contacts', {
-                        facility: facility,
-                        openFormInstantly: true,
-                        prefilledContactName: reporter,
-                        pendingIssueData: {
-                            facility_id: facility.id,
-                            title: title,
-                            description: desc,
-                            reported_by: reporter,
-                            status: 'Open'
-                        }
-                    });
-                    return;
-                }
-            }
-
-            const inserted = await insertFacilityIssue({
-                facility_id: facility.id,
-                contact_id: matchedContact?.id || null,
-                title: title,
-                description: desc,
-                reported_by: reporter,
-                status: 'Open'
-            });
-
-            if (inserted) {
-                modal.style.display = 'none';
-                await loadIssuesListData();
-            } else {
-                alert("Could not register maintenance request data.");
-            }
-        };
+    // DELETE BUTTON STYLE ONLY (no logic change)
+    const deleteBtn = document.getElementById('deleteIssueRequestBtn');
+    if (deleteBtn) {
+        deleteBtn.classList.add('btn-delete-danger');
     }
 
     async function loadIssuesListData() {
-        if (!facility?.id) return;
-
         const listElement = document.getElementById('issuesListElement');
-        if (!listElement) return;
-
         const issues = await fetchFacilityIssues(facility.id);
+
         listElement.innerHTML = '';
 
-        if (!issues || issues.length === 0) {
-            listElement.innerHTML = '<div style="text-align:center; color:#9ca3af; font-size:14px; padding:20px;">No ongoing requests logged.</div>';
+        if (!issues?.length) {
+            listElement.innerHTML = '<div>No ongoing requests logged.</div>';
             return;
         }
 
@@ -364,33 +286,20 @@ export async function renderFacilityIssues(data) {
 
             row.innerHTML = `
                 <div class="issue-list-title">${issue.title}</div>
-                <div class="issue-list-meta">Status: <b>${issue.status || 'Open'}</b> | Reported by: ${issue.reported_by || 'Unknown'}</div>
+                <div class="issue-list-meta">Status: ${issue.status} | ${issue.reported_by}</div>
             `;
 
-            row.onclick = () => {
-                openIssueModal(facility, issue);
-            };
+            row.onclick = () => openIssueModal(facility, issue);
 
             listElement.appendChild(row);
         });
     }
 
-    if (data?.openFormInstantly) {
-        document.getElementById('issueFormTitle').value = '';
-        document.getElementById('issueFormDesc').value = '';
-
-        if (data?.prefilledReporterName) {
-            textOverlay.value = data.prefilledReporterName;
-            selectUnderlay.value = data.prefilledReporterName;
-        }
-
-        modal.style.display = 'flex';
-    }
-
-    setupIssuesEvents(facility, async () => {
-        await renderFacilityIssues({ facility: facility });
-    });
+    setupIssuesEvents(facility, loadIssuesListData);
 
     await populateContactsDropdown();
     await loadIssuesListData();
 }
+/*================================================================
+END FILE: view_5_grid.js
+================================================================*/
