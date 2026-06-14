@@ -131,7 +131,7 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
         description: payload.description || '',
         severity: payload.priority || 'Medium',
         status: payload.status || 'Open',
-        reported_by: payload.initiated_by || payload.reported_by || 'Staff'
+       reported_by: payload.reported_by || payload.initiated_by || 'Staff'
     };
 
     let result;
