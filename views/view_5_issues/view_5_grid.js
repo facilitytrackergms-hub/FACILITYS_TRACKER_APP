@@ -5,7 +5,7 @@ FILE NAME    : view_5_grid.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Maintenance Requests
 POP-UP TITLE : Report Maintenance Issue
-LAST UPDATED : 2026-06-13 @ 06:25 PM
+LAST UPDATED : 2026-06-13 @ 07:05 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
@@ -76,26 +76,18 @@ export async function renderFacilityIssues(data) {
             .issues-card-wrapper { max-width:500px; margin:0 auto; background:white; border-radius:12px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
             .issues-view-title { color:#00264d; font-size:24px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; }
             .issues-view-subtitle { color:#6b7280; font-size:14px; margin-bottom:20px; }
-
             .issues-view-btn { width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; text-transform:uppercase; box-sizing:border-box; }
             .btn-navy { background:#00264d; color:white; }
             .btn-emerald { background:#10b981; color:white; margin-bottom:12px; }
             .btn-gray { background:#9ca3af; color:white; }
-
-            /* DELETE BUTTON OVERRIDE */
-            .btn-delete-danger {
-                background: red !important;
-                color: yellow !important;
-                font-weight: bold !important;
-                border: 2px solid #b30000 !important;
-            }
+            .btn-delete-danger { background:red !important; color:yellow !important; font-weight:bold !important; border:2px solid #b30000 !important; }
 
             .issues-list-layout { margin:20px 0; text-align:left; display:flex; flex-direction:column; gap:10px; }
             .issue-list-item { background:#f9fafb; border:1px solid #e5e7eb; padding:15px; border-radius:8px; cursor:pointer; }
             .issue-list-item:hover { background:#f3f4f6; }
             .issue-list-title { font-weight:bold; color:#00264d; font-size:15px; }
             .issue-list-meta { font-size:12px; color:#6b7280; margin-top:4px; }
-            
+
             .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:50; padding:15px; }
             .modal-shell { background:white; padding:25px; border-radius:12px; width:100%; max-width:400px; text-align:left; box-shadow:0 10px 25px rgba(0,0,0,0.1); box-sizing:border-box; max-height:90vh; overflow-y:auto; }
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
@@ -103,7 +95,7 @@ export async function renderFacilityIssues(data) {
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
 
-            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
+            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-top:15px; text-align:center; padding:4px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; }
 
             .combobox-container { position:relative; display:block; width:100%; }
             .combobox-select-underlay { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; background:white; }
@@ -114,7 +106,6 @@ export async function renderFacilityIssues(data) {
             .custom-confirm-msg { font-size:14px; color:#374151; margin-bottom:20px; }
             .custom-confirm-actions { display:flex; gap:10px; justify-content:center; }
             .custom-confirm-btn { padding:10px 20px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; min-width:80px; }
-
         </style>
     `;
 
@@ -122,30 +113,24 @@ export async function renderFacilityIssues(data) {
         ${styles}
         <div class="issues-view-container">
             <div class="issues-card-wrapper">
-
                 <h1 class="issues-view-title">Maintenance Requests</h1>
                 <p class="issues-view-subtitle">${facility?.name || ''}</p>
 
-                <!-- MOVED BUILD STAMP TO BOTTOM -->
-
                 <button id="addIssueTriggerBtn" class="issues-view-btn btn-emerald">➕ Create Maintenance Request</button>
-
-                <!-- MOVED BACK BUTTON TO TOP UNDER CREATE -->
                 <button id="backToControlsBtn" class="issues-view-btn btn-navy" style="margin-bottom:12px;">⬅️ Back to Controls</button>
 
                 <div id="issuesListElement" class="issues-list-layout">Loading issues...</div>
 
-                <!-- MOVED STAMP TO BOTTOM -->
                 <div class="view-build-stamp">
                     File: views/view_5_issues/view_5_grid.js<br>
-                    Updated: 2026-06-07 10:05:00 AM
+                    Updated: 2026-06-13 07:05:00 PM
                 </div>
             </div>
 
             <div id="issueFormModal" class="modal-mask">
                 <div class="modal-shell">
                     <h3 class="modal-shell-title">Report Maintenance Issue</h3>
-                    
+
                     <label class="form-field-label">Issue Title / Subject</label>
                     <input type="text" id="issueFormTitle" class="form-field-input">
 
@@ -198,13 +183,7 @@ export async function renderFacilityIssues(data) {
                     <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
                         <button id="openFollowupsBtn" class="issues-view-btn btn-emerald">Follow Up</button>
                         <button id="saveIssueBtn" class="issues-view-btn btn-navy">Update Info</button>
-
-                        <button id="deleteIssueRequestBtn"
-                            class="issues-view-btn btn-delete-danger"
-                            style="display:none;">
-                            DELETE ISSUE
-                        </button>
-
+                        <button id="deleteIssueRequestBtn" class="issues-view-btn btn-delete-danger" style="display:none;">DELETE ISSUE</button>
                         <button id="closeIssueModal" class="issues-view-btn btn-gray">Back to Issues</button>
                     </div>
                 </div>
@@ -219,7 +198,6 @@ export async function renderFacilityIssues(data) {
                     </div>
                 </div>
             </div>
-
         </div>
     `;
 
@@ -263,12 +241,6 @@ export async function renderFacilityIssues(data) {
         if (window.navigateTo) window.navigateTo('view_2_controls', { facility });
     };
 
-    // DELETE BUTTON STYLE ONLY (no logic change)
-    const deleteBtn = document.getElementById('deleteIssueRequestBtn');
-    if (deleteBtn) {
-        deleteBtn.classList.add('btn-delete-danger');
-    }
-
     async function loadIssuesListData() {
         const listElement = document.getElementById('issuesListElement');
         const issues = await fetchFacilityIssues(facility.id);
@@ -290,7 +262,6 @@ export async function renderFacilityIssues(data) {
             `;
 
             row.onclick = () => openIssueModal(facility, issue);
-
             listElement.appendChild(row);
         });
     }
