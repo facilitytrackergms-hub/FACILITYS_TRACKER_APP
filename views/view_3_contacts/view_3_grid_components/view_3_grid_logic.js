@@ -1,12 +1,4 @@
-/*================================================================
-FILE METADATA
-================================================================
-FILE NAME    : view_3_grid_logic.js
-SUPABASE TBL : contacts
-VIEW NAME    : Facility Directory Logic
-LAST UPDATED : 2026-06-14 @ 03:45 PM
-================================================================*/
-
+import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
 import { fetchFacilityIssues, insertFacilityIssue } from '../../view_5_issues/view_5_data.js';
 export async function initializeGridLogic(viewContext) {
