@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-07 @ 06:38 AM
+LAST UPDATED : 2026-06-13 @ 06:45 PM
 ================================================================*/
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
@@ -89,7 +89,7 @@ export async function renderFacilityContacts(data) {
             .modal-shell-title { margin-top:0; color:#00264d; font-size:18px; font-weight:bold; margin-bottom:15px; }
             .form-field-label { display:block; font-size:12px; font-weight:bold; color:#4b5563; margin-top:12px; }
             .form-field-input { width:100%; padding:10px; margin-top:4px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box; }
-            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-bottom:15px; text-align:center; padding:6px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; word-wrap:break-word; word-break:break-all; white-space:normal; overflow:hidden; }
+            .view-build-stamp { font-size:11px; color:#9ca3af; font-family:monospace; margin-top:15px; text-align:center; padding:6px; background:#f9fafb; border-radius:6px; border:1px dashed #d1d5db; word-wrap:break-word; word-break:break-all; white-space:normal; overflow:hidden; }
 
             /* Associated Contextual Layout Elements */
             .contact-history-header { font-weight:bold; color:#00264d; font-size:12px; text-transform:uppercase; border-top:1px solid #e5e7eb; padding-top:15px; margin-top:15px; display:block; }
@@ -107,10 +107,6 @@ export async function renderFacilityContacts(data) {
                 
                 <h1 class="contacts-view-title" id="viewHeaderTitle">Facility Directory</h1>
                 <p class="contacts-view-subtitle" id="viewHeaderSubtitle">${facility?.name || ''}</p>
-
-                <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-07 06:38:00 AM
-                </div>
 
                 <div id="directorySelectionLayout">
                     <button id="manualContactTriggerBtn" class="contacts-view-btn btn-emerald">➕ Add New Contact</button>
@@ -141,6 +137,10 @@ export async function renderFacilityContacts(data) {
                 </div>
 
                 <button id="backBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Back to Controls</button>
+
+                <div class="view-build-stamp" id="viewBuildStampInfo">
+                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-13 06:45:00 PM
+                </div>
             </div>
 
             <div id="manualContactModal" class="modal-mask">
