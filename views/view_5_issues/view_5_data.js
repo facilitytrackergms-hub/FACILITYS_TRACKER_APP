@@ -32,13 +32,13 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
 
     // SAFE payload mapping (matches your working UI structure)
     const mappedPayload = {
-        facility_id: payload.facility_id,
-        title: payload.title || 'Maintenance Request',
-        description: payload.description || '',
-        severity: payload.priority || 'Medium',
-        status: payload.status || 'Open',
-        reported_by: payload.reported_by || 'Staff'
-    };
+    facility_id: payload.facility_id || null,
+    title: payload.title || 'Maintenance Request',
+    description: payload.description || '',
+    severity: payload.priority || 'Medium',
+    status: payload.status || 'Open',
+    reported_by: payload.reported_by || 'Staff'
+};
 
     let result;
 
