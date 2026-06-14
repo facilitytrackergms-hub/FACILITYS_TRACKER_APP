@@ -1,7 +1,7 @@
 /*================================================================
 FACILITY_TRACKER_APP - CODEBASE EXECUTION PARAMETERS
 ================================================================
-DESCRIPTION: Full file delivery with maintenance history fix.
+DESCRIPTION: Full file delivery with maintenance history modal fix.
 ================================================================*/
 /*================================================================
 FILE METADATA
@@ -9,7 +9,7 @@ FILE METADATA
 FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
-LAST UPDATED : 2026-06-14 @ 03:40 PM
+LAST UPDATED : 2026-06-14 @ 03:45 PM
 ================================================================*/
 import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
@@ -93,8 +93,11 @@ export async function initializeGridLogic(viewContext) {
                     btn.style.cssText = 'background:white; border:1px solid #d1d5db; padding:10px; margin-bottom:6px; display:block; width:100%; text-align:left; cursor:pointer;';
                     btn.innerHTML = `<div style="font-weight:bold; color:#00264d;">🛠️ ${issue.title}</div><div style="font-size:11px;">Status: ${issue.status}</div>`;
                     
-                    // FIXED: This bridge now opens the modal correctly
-                    btn.onclick = () => openIssueModal(viewContext.facility, issue, contact);
+                    // FIXED: This specifically calls the modal with the full issue payload
+                    btn.onclick = () => {
+                        console.log("Opening modal for issue:", issue);
+                        openIssueModal(viewContext.facility, issue, contact);
+                    };
                     targetHistoryContainer.appendChild(btn);
                 });
             } catch (err) {
