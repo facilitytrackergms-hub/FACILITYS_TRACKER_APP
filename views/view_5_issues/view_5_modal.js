@@ -5,10 +5,11 @@ FILE NAME    : view_5_modal.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Modal
 POP-UP TITLE : Issue Maintenance Request
-LAST UPDATED : 2026-06-14 @ 07:00 AM
+LAST UPDATED : 2026-06-14 @ 06:40 AM
 ================================================================*/
 
 import { saveFacilityIssue } from './view_5_data.js';
+import { renderImageManagerSection } from '../../js/imageManager.js';
 
 let activeIssue = null;
 
@@ -30,12 +31,17 @@ export function setupIssuesEvents(facility, refreshFn) {
             reported_by: reporterName
         };
 
-        // FULL ID EXTRACTION & PARSING
-        const idField = document.getElementById('issueId')?.value;
-        const id = parseInt(idField, 10);
+        const rawId = document.getElementById('issueId')?.value;
 
-        if (isNaN(id)) {
-            console.error("Save aborted: No valid ID found in hidden field.", idField);
+        if (!rawId || rawId === '' || rawId === 'undefined') {
+            console.error("Save aborted: Missing issue ID.");
+            return;
+        }
+
+        const id = Number(rawId);
+
+        if (!Number.isFinite(id)) {
+            console.error("Save aborted: Invalid numeric ID.", rawId);
             return;
         }
 
@@ -58,10 +64,14 @@ export function openIssueModal(facility, issue, contactReporter) {
     if (!modal) return;
 
     const issueIdField = document.getElementById('issueId');
+
     if (issueIdField) {
-        // Extract ID as a primitive number
-        const val = (typeof issue?.id === 'object' && issue.id !== null) ? issue.id.id : issue?.id;
-        issueIdField.value = val || '';
+        const val =
+            (typeof issue?.id === 'object' && issue.id !== null)
+                ? issue.id.id
+                : issue?.id;
+
+        issueIdField.value = String(val ?? '');
     }
 
     document.getElementById('issueTitleInput').value = issue?.title || '';
