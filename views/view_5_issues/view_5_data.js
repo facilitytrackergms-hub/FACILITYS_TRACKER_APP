@@ -144,4 +144,4 @@ export async function deleteFacilityIssue(issueId) {
     return { success: !error, error };
 }
 
-export { saveFacilityIssue, saveFacilityIssue as insertFacilityIssue };
+export { saveFacilityIssue as insertFacilityIssue };
