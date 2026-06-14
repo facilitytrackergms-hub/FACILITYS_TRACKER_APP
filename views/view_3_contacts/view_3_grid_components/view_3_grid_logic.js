@@ -2,7 +2,7 @@
 Purpose: Updated Maintenance History Click Handler
 Location: view_3_grid_logic.js (inside showContactProfile)
 ================================================================*/
-
+import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
 import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
 import { fetchFacilityIssues, insertFacilityIssue } from '../../view_5_issues/view_5_data.js';
