@@ -43,7 +43,7 @@ FILE NAME    : view_3_grid.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory
 POP-UP TITLE : Create Directory Entry
-LAST UPDATED : 2026-06-13 @ 07:10 PM
+LAST UPDATED : 2026-06-13 @ 07:20 PM
 ================================================================*/
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
@@ -139,7 +139,7 @@ export async function renderFacilityContacts(data) {
                 <button id="backBtn" class="contacts-view-btn btn-navy" style="margin-top:15px;">⬅️ Back to Controls</button>
 
                 <div class="view-build-stamp" id="viewBuildStampInfo">
-                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-13 07:10:00 PM
+                    File: views/view_3_contacts/view_3_grid_components/view_3_grid.js<br>Updated: 2026-06-13 07:20:00 PM
                 </div>
             </div>
 
@@ -163,7 +163,7 @@ export async function renderFacilityContacts(data) {
                     <input type="text" id="manualContactRole" class="form-field-input">
 
                     <label class="form-field-label">Phone Number</label>
-                    <input type="text" id="manualContactPhone" class="form-field-input">
+                    <input type="tel" id="manualContactPhone" class="form-field-input" inputmode="numeric" pattern="[0-9]*" autocomplete="tel">
 
                     <label class="form-field-label">Email Address</label>
                     <input type="email" id="manualContactEmail" class="form-field-input">
