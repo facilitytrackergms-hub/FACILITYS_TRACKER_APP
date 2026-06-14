@@ -17,28 +17,40 @@ export function setupIssuesEvents(facility, refreshFn) {
     const modal = document.getElementById('issueModal');
     if (!modal) return;
 
-  saveBtn.onclick = async () => {
-    const reporterName = document.getElementById('issueFormReporter')?.value?.trim() || '';
+    const saveBtn = document.getElementById('saveIssueBtn');
 
-    const payload = {
-        facility_id: facility.id,
-        title: document.getElementById('issueTitleInput')?.value || '',
-        description: document.getElementById('issueDescInput')?.value || '',
-        priority: document.getElementById('issuePriorityInput')?.value || 'Medium',
-        status: document.getElementById('issueStatusInput')?.value || 'Open',
-        reported_by: reporterName
-    };
+    saveBtn.onclick = async () => {
+        const reporterName = document.getElementById('issueFormReporter')?.value?.trim() || '';
 
-    const rawId = document.getElementById('issueId')?.value;
+        const payload = {
+            facility_id: facility.id,
+            title: document.getElementById('issueTitleInput')?.value || '',
+            description: document.getElementById('issueDescInput')?.value || '',
+            priority: document.getElementById('issuePriorityInput')?.value || 'Medium',
+            status: document.getElementById('issueStatusInput')?.value || 'Open',
+            reported_by: reporterName
+        };
 
-    // HARD STOP: prevent any update attempt unless valid ID exists
-    const id = Number(rawId);
+        const rawId = document.getElementById('issueId')?.value;
+        const id = Number(rawId);
 
-    if (!rawId || rawId === '' || !Number.isFinite(id)) {
-        console.warn("Update mode blocked: invalid or missing issue ID", rawId);
+        // HARD SAFE GUARD: prevent NaN ever reaching Supabase
+        if (!rawId || rawId === '' || !Number.isFinite(id)) {
+            console.warn("Invalid issue ID → forcing INSERT instead of UPDATE", rawId);
 
-        // force INSERT instead of UPDATE
-        const result = await saveFacilityIssue(payload, null);
+            const insertResult = await saveFacilityIssue(payload, null);
+
+            if (insertResult?.error) {
+                alert("Save failed: " + insertResult.error.message);
+                return;
+            }
+
+            modal.style.display = 'none';
+            await refreshFn();
+            return;
+        }
+
+        const result = await saveFacilityIssue(payload, id);
 
         if (result?.error) {
             alert("Save failed: " + result.error.message);
@@ -47,19 +59,8 @@ export function setupIssuesEvents(facility, refreshFn) {
 
         modal.style.display = 'none';
         await refreshFn();
-        return;
-    }
-
-    const result = await saveFacilityIssue(payload, id);
-
-    if (result?.error) {
-        alert("Save failed: " + result.error.message);
-        return;
-    }
-
-    modal.style.display = 'none';
-    await refreshFn();
-};
+    };
+}
 
 export function openIssueModal(facility, issue, contactReporter) {
     activeIssue = issue;
