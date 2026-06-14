@@ -1,7 +1,7 @@
 /*================================================================
 FACILITY_TRACKER_APP - CODEBASE EXECUTION PARAMETERS
 ================================================================
-DESCRIPTION: Full file delivery with immediate DOM-existence binding fix.
+DESCRIPTION: Full file delivery with global window binding to bypass import path failures.
 ================================================================*/
 /*================================================================
 FILE METADATA
@@ -9,7 +9,7 @@ FILE METADATA
 FILE NAME    : view_3_grid_logic.js
 SUPABASE TBL : contacts
 VIEW NAME    : Facility Directory Logic
-LAST UPDATED : 2026-06-14 @ 07:10 PM
+LAST UPDATED : 2026-06-14 @ 07:15 PM
 ================================================================*/
 
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
@@ -107,12 +107,12 @@ export async function initializeGridLogic(viewContext) {
                             <div style="font-size:11px; color:#6b7280; margin-top:2px;">Status: <b style="color:#10b981;">${issue.status || 'Open'}</b></div>
                         `;
 
-                        // FIXED: Direct call to global function
+                        // MANDATORY BINDING: Use window scope to avoid path/import failures
                         issueActionBtn.onclick = () => {
-                            if (typeof window.openIssueModal === 'function') {
-                                window.openIssueModal(viewContext.facility, issue);
+                            if (window.AppRegistry?.openIssueModal) {
+                                window.AppRegistry.openIssueModal(viewContext.facility, issue);
                             } else {
-                                console.error("Global openIssueModal not found.");
+                                console.error("Global openIssueModal not found in window.AppRegistry");
                             }
                         };
                         targetHistoryContainer.appendChild(issueActionBtn);
