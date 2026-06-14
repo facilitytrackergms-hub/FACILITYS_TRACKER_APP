@@ -137,7 +137,8 @@ export async function renderFacilityIssues(data) {
         document.getElementById('issueModal').style.display = 'none';
         await loadIssuesListData();
     };
-// Update Logic (Now includes status and parts)
+
+    // Update Logic (Now includes status and parts)
     document.getElementById('saveIssueBtn').onclick = async () => {
         const id = document.getElementById('issueId').value;
         const updates = { 
@@ -218,6 +219,9 @@ export async function renderFacilityIssues(data) {
             listElement.appendChild(row);
         });
     }
+
+    // THIS IS THE LINE THAT CONNECTS THE MODAL LOGIC TO THE GRID
+    setupIssuesEvents(facility, loadIssuesListData);
 
     await loadIssuesListData();
 }
