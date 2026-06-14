@@ -1,11 +1,11 @@
-/*================================================================
+ /*================================================================
 FILE METADATA
 ================================================================
 FILE NAME    : view_5_data.js
 SUPABASE TBL : facility_issues
 VIEW NAME    : Facility Issues Data Service
 POP-UP TITLE : Manage Facility Issues
-LAST UPDATED : 2026-06-14 @ FIXED SAFE VERSION
+LAST UPDATED : 2026-06-14 @ FINAL FIX STABLE
 ================================================================*/
 
 import { supabase } from '../../js/supabaseClient.js';
@@ -19,7 +19,7 @@ export async function fetchFacilityIssues(facilityId) {
         .eq('facility_id', facilityId);
 
     if (error) {
-        console.error("Fetch error:", error);
+        console.error("fetchFacilityIssues error:", error);
         return [];
     }
 
@@ -30,36 +30,40 @@ export async function fetchFacilityIssues(facilityId) {
 
 export async function saveFacilityIssue(payload, id = null, linkedContactId = null) {
 
-    // SAFE mapping (matches most Supabase setups)
+    // SAFE payload mapping (matches your working UI structure)
     const mappedPayload = {
         facility_id: payload.facility_id,
-        issue: payload.title || 'Maintenance Request',
+        title: payload.title || 'Maintenance Request',
         description: payload.description || '',
-        priority: payload.priority || 'Medium',
+        severity: payload.priority || 'Medium',
         status: payload.status || 'Open',
         reported_by: payload.reported_by || 'Staff'
     };
 
     let result;
 
-    // NORMALIZE ID SAFELY
-    let safeId = null;
+    // -------------------------------
+    // SAFE ID NORMALIZATION (NO NaN EVER)
+    // -------------------------------
+    let cleanId = null;
 
-    if (id && typeof id === 'object') {
-        safeId = id.id ?? null;
+    if (typeof id === 'object' && id !== null) {
+        cleanId = id.id ?? null;
     } else {
-        safeId = id;
+        cleanId = id;
     }
 
-    const numericId = Number(safeId);
+    const numericId = Number(cleanId);
 
     const isValidUpdate =
-        safeId !== null &&
-        safeId !== undefined &&
-        safeId !== '' &&
+        cleanId !== null &&
+        cleanId !== undefined &&
+        cleanId !== '' &&
         Number.isFinite(numericId);
 
+    // -------------------------------
     // INSERT MODE
+    // -------------------------------
     if (!isValidUpdate) {
         result = await supabase
             .from('facility_issues')
@@ -74,7 +78,9 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
         return { error: null, data: result.data?.[0] || null };
     }
 
+    // -------------------------------
     // UPDATE MODE
+    // -------------------------------
     result = await supabase
         .from('facility_issues')
         .update(mappedPayload)
@@ -90,25 +96,29 @@ export async function saveFacilityIssue(payload, id = null, linkedContactId = nu
 }
 
 export async function deleteFacilityIssue(issueId) {
-    const safeId = Number(issueId);
+    let cleanId = null;
 
-    if (!Number.isFinite(safeId)) {
+    if (typeof issueId === 'object' && issueId !== null) {
+        cleanId = issueId.id ?? null;
+    } else {
+        cleanId = issueId;
+    }
+
+    const numericId = Number(cleanId);
+
+    if (!Number.isFinite(numericId)) {
         return { success: false };
     }
 
     await supabase
         .from('contact_issues')
         .delete()
-        .eq('issue_id', safeId);
+        .eq('issue_id', numericId);
 
     const { error } = await supabase
         .from('facility_issues')
         .delete()
-        .eq('id', safeId);
-
-    if (error) {
-        console.error("Delete error:", error);
-    }
+        .eq('id', numericId);
 
     return { success: !error, error };
 }
