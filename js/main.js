@@ -1,4 +1,17 @@
+/*================================================================
+FILE METADATA
+================================================================
+FILE NAME    : main.js
+VIEW NAME    : Application Entry Point
+LAST UPDATED : 2026-06-14 @ 07:10 PM
+================================================================*/
+import { openIssueModal } from './FACILITYS_TRACKER_APP/views/view_5_issues/view_5_modal.js';
+
+// --- REGISTER MODAL GLOBALLY ---
+window.AppRegistry = { openIssueModal };
+
 window.navigateTo = async (view, context = {}) => {
+    // ... (Keep existing navigateTo logic exactly as is)
     const app = document.getElementById('app');
     if (!app) {
         console.error("App container not found.");
