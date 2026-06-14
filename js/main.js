@@ -1,6 +1,3 @@
-/* -------------------------------------------
-        MAIN NAVIGATION CONTROLLER
-   ------------------------------------------- */
 window.navigateTo = async (view, context = {}) => {
     const app = document.getElementById('app');
     if (!app) {
@@ -8,6 +5,7 @@ window.navigateTo = async (view, context = {}) => {
         return;
     }
 
+    // DEFENSIVE REPAIR: preserve UUID/string IDs. Do not force Number().
     const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups', 'view_4_photo_dashboard'];
     if (facilityViews.includes(view)) {
         const facilityId = context?.facility?.id || context?.id || context?.facilityId;
@@ -24,6 +22,7 @@ window.navigateTo = async (view, context = {}) => {
 
     const cb = "?v=2026_vendor_jobs_v1";
 
+    // Reusable runtime navigation object passed down to individual view render functions
     const navRuntime = {
         renderPendingProjects: (ctx) => window.navigateTo('view_4_projects', ctx),
         renderPhotoDashboard: (ctx) => window.navigateTo('view_4_photo_dashboard', ctx),
@@ -46,21 +45,26 @@ window.navigateTo = async (view, context = {}) => {
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_contacts') {
-            const { initializeGridLogic } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid_logic.js${cb}`);
-            await initializeGridLogic(context);
+            // UPDATED ROUTE LAYER: Points directly down into the view_3_grid_components folder structure
+            const { renderFacilityContacts } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
+            await renderFacilityContacts(context);
         }
         else if (view === 'view_4_projects') {
             const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_core/view_4_grid.js${cb}`);
             await renderPendingProjects(context, navRuntime);
         }
         else if (view === 'view_4_project_dashboard') {
+            // UPDATED ROUTE LAYER: Directed straight to the sub folder path configuration
             const { renderSingleProjectDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_project_dashboard.js${cb}`);
             await renderSingleProjectDashboard(context, navRuntime);
         }
         else if (view === 'view_4_photo_dashboard') {
+            // Normalize context parameters passed dynamically from project dashboard click triggers
             if (!context.photoType && context.type) {
                 context.photoType = context.type;
             }
+            
+            // FIXED PATH REPAIR: Now points accurately to the view_4_grid_components sub-folder structure
             const { renderPhotoDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_photo_dashboard.js${cb}`);
             await renderPhotoDashboard(context, navRuntime);
         }
@@ -94,6 +98,8 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
     window.navigateTo('view_1_facility');
 });
-/* -------------------------------------------
-        END NAVIGATION CONTROLLER
-   ------------------------------------------- */
+
+/* =================================================
+END FILE: main.js
+UPDATED: 2026-06-12 05:20:00 PM
+================================================= */
