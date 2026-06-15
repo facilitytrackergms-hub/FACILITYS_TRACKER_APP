@@ -68,8 +68,7 @@ export async function renderFacilityContacts(data) {
     `;
 
     app.innerHTML = `
-document.querySelector('.contacts-card-wrapper').style.pointerEvents = 'auto';
-document.querySelector('.contacts-view-container').style.pointerEvents = 'auto';
+
 
     
         ${styles}
@@ -150,7 +149,13 @@ document.querySelector('.contacts-view-container').style.pointerEvents = 'auto';
             </div>
         </div>
     `;
+requestAnimationFrame(() => {
+    const wrapper = document.querySelector('.contacts-card-wrapper');
+    const container = document.querySelector('.contacts-view-container');
 
+    if (wrapper) wrapper.style.pointerEvents = 'auto';
+    if (container) container.style.pointerEvents = 'auto';
+});
     // Intercept navigation for reporting maintenance requests directly from profile view
     document.getElementById('profileAddIssueBtn').onclick = () => {
         const contactName = document.getElementById('detailName').textContent || '';
