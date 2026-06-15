@@ -1,30 +1,17 @@
 /*================================================================
 FILE NAME    : data.js
 FILE PATH    : views/view_4_projects/data.js
+LAST UPDATED : 2026-06-15 @ 08:00 PM
 ================================================================*/
 
-// Robust helper to get the initialized Supabase instance
-const getSupabaseInstance = () => {
-    // Check both potential locations where your app might store the client
-    const client = window.supabaseClient || window.supabase;
-    
-    if (!client) {
-        console.error("Supabase error: Client not found on window object.");
-        return null;
-    }
-    
-    // Check if it's actually an initialized instance (must have a 'from' function)
-    if (typeof client.from !== 'function') {
-        console.error("Supabase error: Client is not initialized (missing .from). Did you run createClient()?");
-        return null;
-    }
-    
-    return client;
-};
+// Import the client directly from your config file
+import { supabase } from '../../supabaseClient.js'; 
 
 export async function fetchProjects(facilityId) {
-    const supabase = getSupabaseInstance();
-    if (!supabase) return [];
+    if (!supabase || typeof supabase.from !== 'function') {
+        console.error("Supabase client is not imported correctly.");
+        return [];
+    }
 
     try {
         const { data, error } = await supabase
@@ -38,10 +25,22 @@ export async function fetchProjects(facilityId) {
         }
         return data || [];
     } catch (err) {
-        console.error('Supabase execution error:', err);
+        console.error('Fetch execution error:', err);
         return [];
     }
 }
+
+export async function saveProject(projectData) {
+    if (!supabase || typeof supabase.from !== 'function') return null;
+    
+    const { data, error } = await supabase
+        .from('facility_projects')
+        .insert([projectData])
+        .select();
+        
+    return error ? null : data[0];
+}
+
 /*================================================================
 END FILE: data.js
 ================================================================*/
