@@ -1,15 +1,10 @@
-/*================================================================
-FILE: view_3_grid.js (REBUILT)
-PURPOSE: Clean UI layer only (NO logic, NO pointer hacks)
-================================================================*/
-
 import { initializeGridLogic } from './view_3_grid_logic.js';
 
 export async function renderFacilityContacts(data) {
     const app = document.getElementById('app');
     if (!app) return;
 
-    const facility = data?.facility || {};
+    const facility = data?.facility ? data.facility : data;
 
     const styles = `
     <style>
@@ -18,40 +13,30 @@ export async function renderFacilityContacts(data) {
             font-family:Arial;
             min-height:100vh;
             background:#f3f4f6;
-            box-sizing:border-box;
         }
 
         .contacts-card-wrapper {
-            max-width:520px;
+            max-width:500px;
             margin:0 auto;
             background:white;
             border-radius:12px;
             padding:20px;
-            box-shadow:0 4px 10px rgba(0,0,0,0.08);
+            box-shadow:0 4px 10px rgba(0,0,0,0.05);
         }
 
-        .contacts-view-title {
-            font-size:22px;
-            font-weight:bold;
-            color:#00264d;
-            text-transform:uppercase;
-            margin-bottom:5px;
+        .header {
+            text-align:center;
+            margin-bottom:20px;
         }
 
-        .contacts-view-subtitle {
-            font-size:13px;
-            color:#6b7280;
-            margin-bottom:15px;
-        }
-
-        .btn {
+        .contacts-view-btn {
             width:100%;
             padding:12px;
+            margin-top:8px;
             border:none;
             border-radius:8px;
             cursor:pointer;
             font-weight:bold;
-            margin-bottom:10px;
         }
 
         .btn-primary { background:#00264d; color:white; }
@@ -61,15 +46,15 @@ export async function renderFacilityContacts(data) {
 
         .grid {
             display:grid;
-            grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
+            grid-template-columns:repeat(2,1fr);
             gap:10px;
+            margin-top:15px;
         }
 
         .card {
             padding:10px;
             border:1px solid #e5e7eb;
             border-radius:8px;
-            text-align:center;
             cursor:pointer;
         }
 
@@ -81,23 +66,13 @@ export async function renderFacilityContacts(data) {
             border-radius:8px;
         }
 
-        .actions {
-            display:flex;
-            gap:8px;
-            margin-bottom:10px;
-        }
-
-        .actions button {
-            flex:1;
-        }
-
         .history {
-            margin-top:10px;
+            margin-top:15px;
             padding:10px;
             border:1px solid #e5e7eb;
-            border-radius:6px;
-            max-height:160px;
-            overflow:auto;
+            border-radius:8px;
+            max-height:150px;
+            overflow-y:auto;
         }
     </style>
     `;
@@ -108,44 +83,39 @@ export async function renderFacilityContacts(data) {
         <div class="contacts-view-container">
             <div class="contacts-card-wrapper">
 
-                <div class="contacts-view-title">Facility Directory</div>
-                <div class="contacts-view-subtitle">${facility.name || ''}</div>
-
-                <!-- GRID -->
-                <div id="directorySelectionLayout">
-                    <button id="addContactBtn" class="btn btn-green">Add Contact</button>
-                    <div id="contactsGridElement" class="grid"></div>
+                <div class="header">
+                    <h2>${facility?.name || 'Facility'}</h2>
                 </div>
 
-                <!-- DETAIL -->
-                <div id="contactDetailPane" class="detail-pane">
+                <div id="gridView">
+                    <button id="addContactBtn" class="contacts-view-btn btn-green">Add Contact</button>
 
-                    <div id="detailName" style="font-weight:bold; margin-bottom:10px;"></div>
-
-                    <div class="actions">
-                        <button id="editBtn" class="btn btn-gray">Edit</button>
-                        <button id="deleteBtn" class="btn btn-red">Delete</button>
-                        <button id="addIssueBtn" class="btn btn-green">Add Issue</button>
+                    <div id="contactsGrid" class="grid">
+                        Loading...
                     </div>
+                </div>
 
-                    <div>Role: <span id="detailRole"></span></div>
-                    <div>Phone: <span id="detailPhone"></span></div>
-                    <div>Email: <span id="detailEmail"></span></div>
+                <div id="detailView" class="detail-pane">
+                    <h3 id="contactName"></h3>
+
+                    <button id="editBtn" class="contacts-view-btn btn-primary">Edit</button>
+                    <button id="deleteBtn" class="contacts-view-btn btn-red">Delete</button>
+                    <button id="addIssueBtn" class="contacts-view-btn btn-green">Add Issue</button>
+
+                    <div id="contactInfo"></div>
 
                     <div class="history" id="historyBox">
                         Loading history...
                     </div>
 
-                    <button id="closeBtn" class="btn btn-primary">Back</button>
-
+                    <button id="closeDetailBtn" class="contacts-view-btn btn-gray">
+                        Back
+                    </button>
                 </div>
-
-                <button id="backBtn" class="btn btn-primary">Back to Controls</button>
 
             </div>
         </div>
     `;
 
-    // initialize logic AFTER DOM is clean
-    await initializeGridLogic({ facility });
+    await initializeGridLogic(data);
 }
