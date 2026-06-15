@@ -1,7 +1,9 @@
 /*================================================================
 FILE NAME    : view_3_grid_logic.js
-PURPOSE      : Contact Directory Logic & Grid Management
-LOCATION     : /views/view_3_contacts/view_3_grid_components/
+SUPABASE TBL : contacts
+VIEW NAME    : Facility Directory Logic
+POP-UP TITLE : Create Directory Entry
+LAST UPDATED : 2026-06-15 @ 07:20 AM
 ================================================================*/
 
 import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
@@ -22,7 +24,6 @@ export async function initializeGridLogic(viewContext) {
     const closeModalBtn = document.getElementById('cancelContactModalBtn');
     const saveContactBtn = document.getElementById('saveContactBtn');
 
-    // Load directory details
     if (viewContext.facility?.id) {
         localContactsList = await fetchContacts(viewContext.facility.id);
         renderGrid(localContactsList);
@@ -50,7 +51,7 @@ export async function initializeGridLogic(viewContext) {
                 <div class="thumbnail-role">${item.role || item.role_title || 'No Title'}</div>
             `;
             
-            // --- UPDATED: Direct navigation to Issue View ---
+            // Navigation logic to Follow-Up Issue View
             card.onclick = () => {
                 if (window.navigateTo) {
                     window.navigateTo('view_5_issues', { 
@@ -70,7 +71,6 @@ export async function initializeGridLogic(viewContext) {
         if (!profilePane || !directorySelectionLayout) return;
 
         const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
-        
         document.getElementById('detailAvatar').src = contact.image_url || contact.profile_photo_url || fallbackAvatar;
         document.getElementById('detailName').textContent = contact.contact_name || 'Unnamed Contact';
         document.getElementById('detailRole').textContent = contact.role || contact.role_title || 'N/A';
@@ -134,7 +134,6 @@ export async function initializeGridLogic(viewContext) {
     function hideContactProfile() {
         activeSelectedContact = null;
         if (!profilePane || !directorySelectionLayout) return;
-
         profilePane.style.display = 'none';
         directorySelectionLayout.style.display = 'block';
         if (backBtn) backBtn.style.display = 'block';
@@ -152,7 +151,6 @@ export async function initializeGridLogic(viewContext) {
 
     function openCreateDirectoryEntry(prefilledName = "") {
         if (!modalShell) return;
-
         document.getElementById('modalTemplateTitle').textContent = "Create Directory Entry";
         document.getElementById('editingContactId').value = "";
         document.getElementById('manualContactImage').value = "";
@@ -163,29 +161,13 @@ export async function initializeGridLogic(viewContext) {
         document.getElementById('manualContactNotes').value = "";
         document.getElementById('cameraStatusText').textContent = "No photo captured";
         document.getElementById('cameraStatusText').style.color = "#6b7280";
-
-        if (typeof window.attachModalStampTracker === 'function') {
-            window.attachModalStampTracker();
-        }
-
+        if (typeof window.attachModalStampTracker === 'function') window.attachModalStampTracker();
         modalShell.style.display = 'flex';
     }
 
-    if (openModalBtn && modalShell) {
-        openModalBtn.onclick = () => {
-            openCreateDirectoryEntry("");
-        };
-    }
-
-    if (viewContext?.openFormInstantly) {
-        openCreateDirectoryEntry(viewContext.prefilledContactName || "");
-    }
-
-    if (closeModalBtn && modalShell) {
-        closeModalBtn.onclick = () => {
-            modalShell.style.display = 'none';
-        };
-    }
+    if (openModalBtn && modalShell) openModalBtn.onclick = () => openCreateDirectoryEntry("");
+    if (viewContext?.openFormInstantly) openCreateDirectoryEntry(viewContext.prefilledContactName || "");
+    if (closeModalBtn && modalShell) closeModalBtn.onclick = () => modalShell.style.display = 'none';
 
     if (saveContactBtn && modalShell) {
         saveContactBtn.onclick = async () => {
@@ -200,29 +182,15 @@ export async function initializeGridLogic(viewContext) {
                 image_url: document.getElementById('manualContactImage').value
             };
 
-            if (!payload.contact_name) {
-                alert("Please assign a contact name field baseline before saving.");
-                return;
-            }
+            if (!payload.contact_name) { alert("Please assign a contact name field baseline before saving."); return; }
 
             let savedContact;
-            if (contactId) {
-                await updateContact(contactId, payload);
-                savedContact = { id: contactId };
-            } else {
-                savedContact = await createContact(payload);
-            }
+            if (contactId) { await updateContact(contactId, payload); savedContact = { id: contactId }; }
+            else { savedContact = await createContact(payload); }
 
             if (viewContext.pendingIssueData && savedContact?.id) {
-                await insertFacilityIssue({
-                    ...viewContext.pendingIssueData,
-                    contact_id: savedContact.id
-                });
-
-                if (window.navigateTo) {
-                    window.navigateTo('view_5_issues', { facility: viewContext.facility });
-                    return;
-                }
+                await insertFacilityIssue({ ...viewContext.pendingIssueData, contact_id: savedContact.id });
+                if (window.navigateTo) { window.navigateTo('view_5_issues', { facility: viewContext.facility }); return; }
             }
 
             localContactsList = await fetchContacts(viewContext.facility?.id);
@@ -235,7 +203,6 @@ export async function initializeGridLogic(viewContext) {
     if (document.getElementById('profileEditBtn')) {
         document.getElementById('profileEditBtn').onclick = () => {
             if (!activeSelectedContact || !modalShell) return;
-
             document.getElementById('manualContactImage').value = activeSelectedContact.image_url || activeSelectedContact.profile_photo_url || "";
             document.getElementById('manualContactName').value = activeSelectedContact.contact_name || "";
             document.getElementById('manualContactRole').value = activeSelectedContact.role || activeSelectedContact.role_title || "";
@@ -247,10 +214,7 @@ export async function initializeGridLogic(viewContext) {
                 document.getElementById('cameraStatusText').textContent = "Existing photo active";
                 document.getElementById('cameraStatusText').style.color = "#10b981";
             }
-
-            if (typeof window.attachModalStampTracker === 'function') {
-                window.attachModalStampTracker();
-            }
+            if (typeof window.attachModalStampTracker === 'function') window.attachModalStampTracker();
             modalShell.style.display = 'flex';
         };
     }
@@ -273,18 +237,13 @@ export async function initializeGridLogic(viewContext) {
     const hiddenImageInput = document.getElementById('manualContactImage');
 
     if (cameraTriggerBtn && cameraFileInput) {
-        cameraTriggerBtn.addEventListener('click', () => {
-            cameraFileInput.click();
-        });
-
+        cameraTriggerBtn.addEventListener('click', () => cameraFileInput.click());
         cameraFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(evt) {
-                    if (hiddenImageInput) {
-                        hiddenImageInput.value = evt.target.result;
-                    }
+                    if (hiddenImageInput) hiddenImageInput.value = evt.target.result;
                     if (cameraStatusText) {
                         cameraStatusText.textContent = "Photo captured successfully";
                         cameraStatusText.style.color = "#10b981";
