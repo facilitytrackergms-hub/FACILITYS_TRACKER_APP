@@ -42,8 +42,7 @@ window.navigateTo = async (view, context = {}) => {
         else if (view === 'view_2_controls') {
             const { renderFacilityControls } = await import(`/FACILITYS_TRACKER_APP/views/view_2_controls/view_2_grid.js${cb}`);
             await renderFacilityControls(context);
-    }
-            
+                
      else if (view === 'view_3_contacts') {
             // Import the UI file that exports renderFacilityContacts
             const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
