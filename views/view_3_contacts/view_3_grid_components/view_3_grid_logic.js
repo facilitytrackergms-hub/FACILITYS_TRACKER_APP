@@ -126,22 +126,22 @@ document.getElementById('contactDetailPane').style.pointerEvents = 'auto';
             }
         }
 
-        function hideContactProfile() {
-            activeSelectedContact = null;
-            if (!profilePane || !directorySelectionLayout) return;
-            profilePane.style.display = 'none';
-            directorySelectionLayout.style.display = 'block';
-            if (backBtn) backBtn.style.display = 'block';
-        }
+    function hideContactProfile() {
+    activeSelectedContact = null;
 
-        const closeDetailBtn = document.getElementById('closeDetailPaneBtn');
-        if (closeDetailBtn) closeDetailBtn.onclick = hideContactProfile;
+    const detailPane = document.getElementById('contactDetailPane');
+    const directory = document.getElementById('directorySelectionLayout');
 
-        if (backBtn) {
-            backBtn.onclick = () => {
-                if (window.navigateTo) window.navigateTo('view_2_controls', { facility: viewContext.facility });
-            };
-        }
+    if (detailPane) {
+        detailPane.style.display = 'none';
+        detailPane.style.pointerEvents = 'none';
+    }
+
+    if (directory) {
+        directory.style.display = 'block';
+        directory.style.pointerEvents = 'auto';
+    }
+}
 
         const profileAddIssueBtn = document.getElementById('profileAddIssueBtn');
         if (profileAddIssueBtn) {
