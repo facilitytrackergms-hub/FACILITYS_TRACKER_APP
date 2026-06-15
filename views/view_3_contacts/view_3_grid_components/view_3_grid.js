@@ -1,7 +1,7 @@
 /*================================================================
-FILE NAME    : view_3_grid.js
-PURPOSE      : Contact Directory UI Shell
-LOCATION     : /views/view_3_contacts/view_3_grid_components/
+   FILE NAME   : view_3_grid.js
+   PURPOSE     : Contact Directory UI Shell (Updated with Event Delegation)
+   LOCATION    : /views/view_3_contacts/view_3_grid_components/
 ================================================================*/
 
 import { initializeGridLogic } from './view_3_grid_logic.js';
@@ -9,7 +9,7 @@ import { initializeGridLogic } from './view_3_grid_logic.js';
 export async function renderFacilityContacts(viewContext) {
     const app = document.getElementById('app');
 
-    // 1. Set up the UI Structure required by view_3_grid_logic.js
+    // 1. Set up the UI Structure
     app.innerHTML = `
         <div id="directorySelectionLayout">
             <button id="backBtn" style="margin-bottom:10px;">Back</button>
@@ -53,6 +53,25 @@ export async function renderFacilityContacts(viewContext) {
         </div>
     `;
 
-    // 2. Initialize the Logic
+    // 2. Attach Global Event Delegation to the app container
+    app.onclick = (event) => {
+        const target = event.target;
+
+        if (target.id === 'manualContactTriggerBtn') {
+            document.getElementById('manualContactModal').style.display = 'flex';
+        } 
+        else if (target.id === 'cancelContactModalBtn') {
+            document.getElementById('manualContactModal').style.display = 'none';
+        }
+        else if (target.id === 'saveContactBtn') {
+            // Trigger your specific save logic here
+            console.log("Save Contact action initiated");
+        }
+        else if (target.id === 'cameraTriggerBtn') {
+            document.getElementById('manualContactImageFile').click();
+        }
+    };
+
+    // 3. Initialize other Logic (if needed)
     await initializeGridLogic(viewContext);
 }
