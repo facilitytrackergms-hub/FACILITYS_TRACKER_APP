@@ -1,3 +1,6 @@
+/*================================================================
+UPDATED: Navigation Controller (Cleaned of View 4 Ghost Imports)
+================================================================*/
 window.navigateTo = async (view, context = {}) => {
     const app = document.getElementById('app');
     if (!app) {
@@ -5,7 +8,7 @@ window.navigateTo = async (view, context = {}) => {
         return;
     }
 
-    const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups', 'view_4_photo_dashboard'];
+    const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups'];
     if (facilityViews.includes(view)) {
         const facilityId = context?.facility?.id || context?.id || context?.facilityId;
         if (facilityId === undefined || facilityId === null || String(facilityId) === '[object Object]') {
@@ -22,14 +25,9 @@ window.navigateTo = async (view, context = {}) => {
 
     const navRuntime = {
         renderPendingProjects: (ctx) => window.navigateTo('view_4_projects', ctx),
-        renderPhotoDashboard: (ctx) => window.navigateTo('view_4_photo_dashboard', ctx),
-        renderSingleProjectDashboard: (ctx) => window.navigateTo('view_4_project_dashboard', ctx),
-        renderVendorDashboard: (ctx) => alert('Vendor Dashboard module coming soon!'),
-        renderSuppliesDashboard: (ctx) => alert('Supplies Dashboard module coming soon!'),
-        renderProjectStatus: (ctx) => alert('Project Status module coming soon!'),
-        renderCreateReport: (ctx) => alert('Create Report module coming soon!'),
-        renderSpecialNotes: (ctx) => alert('Special Notes module coming soon!'),
-        renderAddAction: (ctx) => alert('Add Action module coming soon!')
+        // Other dashboard renderers are currently disabled until re-connected
+        renderPhotoDashboard: (ctx) => alert('Module pending reconnection'),
+        renderSingleProjectDashboard: (ctx) => alert('Module pending reconnection')
     };
 
     try {
@@ -42,23 +40,18 @@ window.navigateTo = async (view, context = {}) => {
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_contacts') {
-            // STEP 1: Load the UI Builder
             const ui = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
-            // STEP 2: Execute the render function which builds HTML + triggers logic
             await ui.renderFacilityContacts(context);
         }
+        // ==========================================================
+        // VIEW 4: CONSOLIDATED (Pending Reconnection)
+        // ==========================================================
         else if (view === 'view_4_projects') {
-            const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_core/view_4_grid.js${cb}`);
-            await renderPendingProjects(context, navRuntime);
-        }
-        else if (view === 'view_4_project_dashboard') {
-            const { renderSingleProjectDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_project_dashboard.js${cb}`);
-            await renderSingleProjectDashboard(context, navRuntime);
-        }
-        else if (view === 'view_4_photo_dashboard') {
-            if (!context.photoType && context.type) context.photoType = context.type;
-            const { renderPhotoDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_photo_dashboard.js${cb}`);
-            await renderPhotoDashboard(context, navRuntime);
+             // Broken imports removed to stop crashing. 
+             // Once you create your new grid.js, uncomment and update path below:
+             // const { renderGrid } = await import(`./views/view_4_projects/grid.js${cb}`);
+             // await renderGrid(context, navRuntime);
+             app.innerHTML = `<p style="text-align:center;">Projects module is being rebuilt.</p>`;
         }
         else if (view === 'view_5_issues') {
             const { renderFacilityIssues } = await import(`/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_grid.js${cb}`);
