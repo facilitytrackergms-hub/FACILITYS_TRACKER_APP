@@ -64,6 +64,17 @@ export async function renderFacilityContacts(data) {
             .contact-history-item { background:white; border:1px solid #e5e7eb; padding:10px; border-radius:6px; font-size:13px; }
             .contact-history-title { font-weight:bold; color:#00264d; }
             .contact-history-meta { font-size:11px; color:#6b7280; margin-top:2px; }
+
+#contactIssuesHistoryList {
+    position: relative;
+    z-index: 1;
+}
+
+.contacts-card-wrapper button {
+    position: relative;
+    z-index: 5;
+}
+           
         </style>
     `;
 
