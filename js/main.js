@@ -41,16 +41,11 @@ window.navigateTo = async (view, context = {}) => {
             const { renderFacilityControls } = await import(`/FACILITYS_TRACKER_APP/views/view_2_controls/view_2_grid.js${cb}`);
             await renderFacilityControls(context);
         }
-    else if (view === 'view_3_contacts') {
-            // Point directly to the LOGIC file since that is where your function lives
-            const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid_logic.js${cb}`);
-            
-            // Rename initializeGridLogic to renderFacilityContacts so your router works
-            if (module.initializeGridLogic) {
-                await module.initializeGridLogic(context);
-            } else {
-                console.error("initializeGridLogic not found in:", module);
-            }
+        else if (view === 'view_3_contacts') {
+            // STEP 1: Load the UI Builder
+            const ui = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
+            // STEP 2: Execute the render function which builds HTML + triggers logic
+            await ui.renderFacilityContacts(context);
         }
         else if (view === 'view_4_projects') {
             const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_core/view_4_grid.js${cb}`);
