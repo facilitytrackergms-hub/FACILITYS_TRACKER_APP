@@ -1,19 +1,12 @@
-/********************************************************************
-FILE: view_3_grid_logic.js
-LAYER: BUSINESS LOGIC ONLY
-PURPOSE: Clicks, DB, actions, maintenance requests
-********************************************************************/
+import { supabase } from '../supabaseClient.js';
 
 let activeContact = null;
 
 /********************************************************************
-INITIALIZE LOGIC
+INIT
 ********************************************************************/
 export function initializeGridLogic(data) {
 
-    /***********************
-    ELEMENTS
-    ***********************/
     const gridView = document.getElementById('gridView');
     const detailView = document.getElementById('detailView');
 
@@ -25,67 +18,30 @@ export function initializeGridLogic(data) {
     const infoEl = document.getElementById('contactInfo');
     const historyBox = document.getElementById('historyBox');
 
-    /***********************
-    MODAL CONTROLS
-    ***********************/
-    document.getElementById('openAddContact').onclick = () => {
-        modal.style.display = 'flex';
-    };
+    const openAdd = document.getElementById('openAddContact');
+    const saveBtn = document.getElementById('saveContact');
+    const cancelBtn = document.getElementById('cancelModal');
 
-    document.getElementById('cancelModal').onclick = () => {
-        modal.style.display = 'none';
-    };
+    const backBtn = document.getElementById('backBtn');
 
-    /***********************
-    SAVE CONTACT (DB READY)
-    ***********************/
-    document.getElementById('saveContact').onclick = async () => {
+    const editBtn = document.getElementById('editBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const issueBtn = document.getElementById('addIssueBtn');
 
-        const name = document.getElementById('nameInput').value;
-        const role = document.getElementById('roleInput').value;
-        const phone = document.getElementById('phoneInput').value;
-        const email = document.getElementById('emailInput').value;
-        const imageFile = document.getElementById('imageInput').files[0];
+    /****************************************************************
+    LOAD CONTACTS
+    ****************************************************************/
+    async function loadContacts() {
 
-        let imageUrl = null;
+        const { data: contacts, error } = await supabase
+            .from('contacts')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-        /****************************************************
-        IMAGE HANDLING HOOK (READY FOR SUPABASE STORAGE)
-        ****************************************************/
-        if (imageFile) {
-            const formData = new FormData();
-            formData.append('file', imageFile);
-
-            // PLACEHOLDER: replace with your storage upload function
-            // imageUrl = await uploadToSupabase(formData);
+        if (error) {
+            console.error(error);
+            return;
         }
-
-        const newContact = {
-            name,
-            role,
-            phone,
-            email,
-            image: imageUrl,
-            created_at: new Date()
-        };
-
-        console.log("SAVE CONTACT:", newContact);
-
-        modal.style.display = 'none';
-
-        renderContacts(); // refresh UI
-    };
-
-    /***********************
-    LOAD CONTACTS (DB READY HOOK)
-    ***********************/
-    async function renderContacts() {
-
-        // PLACEHOLDER DATA (replace with Supabase fetch)
-        const contacts = [
-            { id: 1, name: "John Smith", role: "Manager" },
-            { id: 2, name: "Sarah Lee", role: "Tech" }
-        ];
 
         grid.innerHTML = '';
 
@@ -100,64 +56,146 @@ export function initializeGridLogic(data) {
         });
     }
 
-    /***********************
-    OPEN CONTACT DETAIL
-    ***********************/
+    /****************************************************************
+    OPEN CONTACT
+    ****************************************************************/
     function openContact(contact) {
+
         activeContact = contact;
 
         gridView.style.display = 'none';
         detailView.style.display = 'block';
 
         nameEl.textContent = contact.name;
-        infoEl.textContent = contact.role;
+        infoEl.textContent = contact.role || '';
 
         loadHistory(contact.id);
     }
 
-    /***********************
-    LOAD MAINTENANCE HISTORY (DB READY)
-    ***********************/
+    /****************************************************************
+    LOAD MAINTENANCE HISTORY
+    ****************************************************************/
     async function loadHistory(contactId) {
 
-        // PLACEHOLDER: replace with DB call
-        const fakeHistory = [
-            { title: "AC Issue", status: "Open" },
-            { title: "Door Repair", status: "Closed" }
-        ];
+        const { data, error } = await supabase
+            .from('facility_issues')
+            .select('*')
+            .eq('reported_by', contactId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error(error);
+            return;
+        }
 
         historyBox.innerHTML = '';
 
-        fakeHistory.forEach(h => {
+        data.forEach(item => {
             const div = document.createElement('div');
-            div.innerHTML = `<b>${h.title}</b> - ${h.status}`;
+            div.innerHTML = `
+                <b>${item.issue_title || 'Issue'}</b><br>
+                <small>${item.status || 'open'}</small>
+            `;
             historyBox.appendChild(div);
         });
     }
 
-    /***********************
-    ADD MAINTENANCE REQUEST
-    ***********************/
-    document.getElementById('addIssueBtn').onclick = () => {
+    /****************************************************************
+    CREATE CONTACT (WITH IMAGE UPLOAD)
+    ****************************************************************/
+    saveBtn.onclick = async () => {
+
+        const name = document.getElementById('nameInput').value;
+        const role = document.getElementById('roleInput').value;
+        const phone = document.getElementById('phoneInput').value;
+        const email = document.getElementById('emailInput').value;
+        const file = document.getElementById('imageInput').files[0];
+
+        let image_url = null;
+
+        /***********************
+        IMAGE UPLOAD
+        ***********************/
+        if (file) {
+
+            const fileName = `${Date.now()}_${file.name}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('contact-images')
+                .upload(fileName, file);
+
+            if (!uploadError) {
+                const { data } = supabase.storage
+                    .from('contact-images')
+                    .getPublicUrl(fileName);
+
+                image_url = data.publicUrl;
+            }
+        }
+
+        /***********************
+        INSERT CONTACT
+        ***********************/
+        const { error } = await supabase
+            .from('contacts')
+            .insert([{
+                name,
+                role,
+                phone,
+                email,
+                image_url,
+                created_at: new Date()
+            }]);
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        modal.style.display = 'none';
+        loadContacts();
+    };
+
+    /****************************************************************
+    ADD ISSUE (MAINTENANCE REQUEST)
+    ****************************************************************/
+    issueBtn.onclick = async () => {
 
         if (!activeContact) return;
 
-        console.log("Create issue for:", activeContact);
+        const title = prompt("Issue title?");
+        if (!title) return;
 
-        // PLACEHOLDER: connect to issue system
-        alert("Create Maintenance Request for " + activeContact.name);
+        const { error } = await supabase
+            .from('facility_issues')
+            .insert([{
+                issue_title: title,
+                reported_by: activeContact.id,
+                open_issue: true,
+                created_at: new Date()
+            }]);
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        loadHistory(activeContact.id);
     };
 
-    /***********************
-    CLOSE DETAIL
-    ***********************/
-    document.getElementById('closeDetail').onclick = () => {
+    /****************************************************************
+    NAV + UI EVENTS
+    ****************************************************************/
+    openAdd.onclick = () => modal.style.display = 'flex';
+    cancelBtn.onclick = () => modal.style.display = 'none';
+
+    backBtn.onclick = () => {
         detailView.style.display = 'none';
         gridView.style.display = 'block';
     };
 
-    /***********************
+    /****************************************************************
     INIT
-    ***********************/
-    renderContacts();
+    ****************************************************************/
+    loadContacts();
 }
