@@ -1,6 +1,7 @@
 /*================================================================
    FILE NAME   : view_3_grid.js
-   PURPOSE     : Contact Directory UI Shell (Updated with Event Delegation)
+   PURPOSE     : Contact Directory UI Shell
+   VERSION     : 1.0.1
    LOCATION    : /views/view_3_contacts/view_3_grid_components/
 ================================================================*/
 
@@ -64,7 +65,6 @@ export async function renderFacilityContacts(viewContext) {
             document.getElementById('manualContactModal').style.display = 'none';
         }
         else if (target.id === 'saveContactBtn') {
-            // Trigger your specific save logic here
             console.log("Save Contact action initiated");
         }
         else if (target.id === 'cameraTriggerBtn') {
@@ -72,6 +72,6 @@ export async function renderFacilityContacts(viewContext) {
         }
     };
 
-    // 3. Initialize other Logic (if needed)
+    // 3. Initialize other Logic
     await initializeGridLogic(viewContext);
 }
