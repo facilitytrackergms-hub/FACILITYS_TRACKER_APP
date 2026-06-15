@@ -34,7 +34,7 @@ window.navigateTo = async (view, context = {}) => {
         renderAddAction: (ctx) => alert('Add Action module coming soon!')
     };
 
-    try {
+   try {
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility' || view === 'view_1_dashboard') {
             const { renderFacilities } = await import(`/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_grid.js${cb}`);
             await renderFacilities(context);
@@ -42,17 +42,15 @@ window.navigateTo = async (view, context = {}) => {
         else if (view === 'view_2_controls') {
             const { renderFacilityControls } = await import(`/FACILITYS_TRACKER_APP/views/view_2_controls/view_2_grid.js${cb}`);
             await renderFacilityControls(context);
-                
-     else if (view === 'view_3_contacts') {
-            // Import the UI file that exports renderFacilityContacts
+        }
+        else if (view === 'view_3_contacts') {
             const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
-            
             if (module.renderFacilityContacts) {
                 await module.renderFacilityContacts(context);
             } else {
-                console.error("renderFacilityContacts not found in:", module);
+                console.error("renderFacilityContacts not found in module:", module);
             }
-        
+        }
         else if (view === 'view_4_projects') {
             const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_core/view_4_grid.js${cb}`);
             await renderPendingProjects(context, navRuntime);
@@ -90,7 +88,6 @@ window.navigateTo = async (view, context = {}) => {
         console.error("Navigation error:", err);
         app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}<br><small>${err.message || err}</small></p>`;
     }
-}; // <--- THIS CLOSES THE NAVIGATE TO FUNCTION
 
 window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
