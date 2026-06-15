@@ -80,7 +80,7 @@ export async function renderFacilityContacts(data) {
                     <div id="contactsGridElement" class="contacts-grid-layout">Loading...</div>
                 </div>
                 
-                <div id="contactDetailPane" class="detail-view-card">
+                <div id="contactDetailPane" class="detail-view-card" style="pointer-events:auto;">
                     <div style="display:flex; justify-content:center; margin-bottom:15px;">
                         <img id="detailAvatar" src="" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid #e5e7eb;" />
                     </div>
