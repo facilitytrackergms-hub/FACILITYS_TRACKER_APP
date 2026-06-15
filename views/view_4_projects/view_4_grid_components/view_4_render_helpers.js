@@ -5,7 +5,7 @@ FILE NAME    : view_4_render_helpers.js
 SUPABASE TBL : facility_projects, project_actions, vendors, vendor_files, project_vendor_jobs, project_vendor_job_files, project_vendor_job_followups
 VIEW NAME    : View 4 Shared Render Helpers
 POP-UP TITLE : Shared Render Helpers
-LAST UPDATED : 2026-06-12 @ 11:20 PM
+LAST UPDATED : 2026-06-15 @ 06:45 PM
 ================================================================
 AI CODING RULES & CONSTRAINTS (Read before making any changes)
 ================================================================
