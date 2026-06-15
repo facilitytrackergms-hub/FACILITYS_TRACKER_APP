@@ -84,6 +84,8 @@ export async function initializeGridLogic(viewContext) {
             document.getElementById('detailNotes').textContent = contact.notes || contact.operational_notes || 'No operational notes provided.';
 
             directorySelectionLayout.style.display = 'none';
+            document.querySelector('.contacts-card-wrapper').style.pointerEvents = 'auto';
+document.getElementById('contactDetailPane').style.pointerEvents = 'auto';
             profilePane.style.display = 'block';
 
             if (backBtn) backBtn.style.display = 'none';
