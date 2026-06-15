@@ -45,26 +45,23 @@ window.navigateTo = async (view, context = {}) => {
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_contacts') {
-            // UPDATED ROUTE LAYER: Points directly down into the view_3_grid_components folder structure
-            const { renderFacilityContacts } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
-            await renderFacilityContacts(context);
+            const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
+            if (module.renderFacilityContacts) {
+                await module.renderFacilityContacts(context);
+            } else {
+                console.error("renderFacilityContacts not found in module:", module);
+            }
         }
         else if (view === 'view_4_projects') {
             const { renderPendingProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_core/view_4_grid.js${cb}`);
             await renderPendingProjects(context, navRuntime);
         }
         else if (view === 'view_4_project_dashboard') {
-            // UPDATED ROUTE LAYER: Directed straight to the sub folder path configuration
             const { renderSingleProjectDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_project_dashboard.js${cb}`);
             await renderSingleProjectDashboard(context, navRuntime);
         }
         else if (view === 'view_4_photo_dashboard') {
-            // Normalize context parameters passed dynamically from project dashboard click triggers
-            if (!context.photoType && context.type) {
-                context.photoType = context.type;
-            }
-            
-            // FIXED PATH REPAIR: Now points accurately to the view_4_grid_components sub-folder structure
+            if (!context.photoType && context.type) context.photoType = context.type;
             const { renderPhotoDashboard } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/view_4_grid_components/view_4_photo_dashboard.js${cb}`);
             await renderPhotoDashboard(context, navRuntime);
         }
@@ -92,8 +89,8 @@ window.navigateTo = async (view, context = {}) => {
         console.error("Navigation error:", err);
         app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}<br><small>${err.message || err}</small></p>`;
     }
-};
 
+   }; 
 window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
     window.navigateTo('view_1_facility');
