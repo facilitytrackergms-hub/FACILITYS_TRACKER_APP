@@ -1,3 +1,7 @@
+
+import { renderFacilityContacts } from './view_3_grid.js';
+export { renderFacilityContacts };
+
 import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
 import { fetchFacilityIssues, insertFacilityIssue } from '../../view_5_issues/view_5_data.js';
