@@ -34,7 +34,7 @@ window.navigateTo = async (view, context = {}) => {
         renderAddAction: (ctx) => alert('Add Action module coming soon!')
     };
 
-  try {
+try {
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility' || view === 'view_1_dashboard') {
             const { renderFacilities } = await import(`/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_grid.js${cb}`);
             await renderFacilities(context);
@@ -44,12 +44,11 @@ window.navigateTo = async (view, context = {}) => {
             await renderFacilityControls(context);
         }
         else if (view === 'view_3_contacts') {
-            // Import the UI file that exports renderFacilityContacts
             const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
             if (module.renderFacilityContacts) {
                 await module.renderFacilityContacts(context);
             } else {
-                console.error("renderFacilityContacts not found in:", module);
+                console.error("renderFacilityContacts not found in module:", module);
             }
         }
         else if (view === 'view_4_projects') {
