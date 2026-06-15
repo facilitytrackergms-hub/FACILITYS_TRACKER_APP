@@ -1,44 +1,49 @@
 /*================================================================
 FILE NAME    : data.js
-FILE PATH    : views/view_4_projects/data.js
-LAST UPDATED : 2026-06-15 @ 08:00 PM
+SUPABASE TBL : facility_projects
+VIEW NAME    : Projects Data Manager
+LAST UPDATED : 2026-06-15 @ 08:15 PM
 ================================================================*/
 
-// Import the client directly from your config file
-import { supabase } from '../../supabaseClient.js'; 
+// Matches the exact import path style of your working view 3
+import { supabase } from '../../js/supabaseClient.js';
 
 export async function fetchProjects(facilityId) {
-    if (!supabase || typeof supabase.from !== 'function') {
-        console.error("Supabase client is not imported correctly.");
-        return [];
-    }
-
     try {
+        if (!facilityId) return [];
         const { data, error } = await supabase
             .from('facility_projects')
             .select('*')
-            .eq('facility_id', facilityId);
-            
+            .eq('facility_id', facilityId)
+            .order('created_at', { ascending: false });
+
         if (error) {
-            console.error('Supabase fetch error:', error);
+            console.error("Error retrieving project dataset context:", error.message);
             return [];
         }
         return data || [];
     } catch (err) {
-        console.error('Fetch execution error:', err);
+        console.error("Unexpected exception inside fetchProjects matrix handler:", err);
         return [];
     }
 }
 
 export async function saveProject(projectData) {
-    if (!supabase || typeof supabase.from !== 'function') return null;
-    
-    const { data, error } = await supabase
-        .from('facility_projects')
-        .insert([projectData])
-        .select();
-        
-    return error ? null : data[0];
+    try {
+        const { data, error } = await supabase
+            .from('facility_projects')
+            .insert([projectData])
+            .select();
+
+        if (error) {
+            console.error("Error saving new project entry:", error.message);
+            return null;
+        }
+        return data ? data[0] : null;
+    } catch (err) {
+        console.error("Unexpected exception inside saveProject handler:", err);
+        return null;
+    }
 }
 
 /*================================================================
