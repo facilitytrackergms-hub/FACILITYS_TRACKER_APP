@@ -95,7 +95,4 @@ window.addEventListener('DOMContentLoaded', () => {
     window.navigateTo('view_1_facility');
 });
 
-/* =================================================
-END FILE: main.js
-UPDATED: 2026-06-15 06:55:00 AM
-================================================= */
+
