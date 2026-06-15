@@ -61,7 +61,7 @@ window.navigateTo = async (view, context = {}) => {
 
         else if (view === 'view_3_contacts') {
             // FIXED IMPORT PATH (FINAL)
-            const { renderFacilityContacts } = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
+            const { renderFacilityContacts } = await import(`FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
             await renderFacilityContacts(context);
         }
 
