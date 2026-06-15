@@ -41,16 +41,14 @@ window.navigateTo = async (view, context = {}) => {
             const { renderFacilityControls } = await import(`/FACILITYS_TRACKER_APP/views/view_2_controls/view_2_grid.js${cb}`);
             await renderFacilityControls(context);
         }
-        else if (view === 'view_3_contacts') {
-            // DEBUG PATH: Verify this file exists exactly at this location
+       else if (view === 'view_3_contacts') {
+            // FIX: Pointing to the UI file where renderFacilityContacts is defined
             const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
-            
-            console.log("DEBUG: Module contents found:", Object.keys(module));
             
             if (module.renderFacilityContacts) {
                 await module.renderFacilityContacts(context);
             } else {
-                throw new Error("renderFacilityContacts export missing in view_3_grid.js");
+                console.error("renderFacilityContacts not found in:", module);
             }
         }
         else if (view === 'view_4_projects') {
