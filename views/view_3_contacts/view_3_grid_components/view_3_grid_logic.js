@@ -21,7 +21,7 @@ export async function initializeGridLogic(viewContext) {
         renderGrid(localContactsList);
     }
 
-    function renderGrid(contacts) {
+function renderGrid(contacts) {
         if (!gridContainer) return;
         gridContainer.innerHTML = '';
 
@@ -34,7 +34,7 @@ export async function initializeGridLogic(viewContext) {
             const card = document.createElement('div');
             card.className = 'contact-thumbnail';
             
-                     const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+            const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
             const displayPhoto = item.image_url || item.profile_photo_url || fallbackAvatar;
 
             card.innerHTML = `
@@ -42,10 +42,23 @@ export async function initializeGridLogic(viewContext) {
                 <div class="thumbnail-name">${item.contact_name || 'Unnamed Contact'}</div>
                 <div class="thumbnail-role">${item.role || item.role_title || 'No Title'}</div>
             `;
-            card.onclick = () => showContactProfile(item);
+
+            // --- UPDATED: Navigation logic to Issue View ---
+            card.onclick = () => {
+                if (window.navigateTo) {
+                    window.navigateTo('view_5_issues', { 
+                        facility: viewContext.facility,
+                        openFormInstantly: true,
+                        prefilledReporterName: item.contact_name
+                    });
+                }
+            };
+            // ------------------------------------------------
+
             gridContainer.appendChild(card);
         });
     }
+    
 
     async function showContactProfile(contact) {
         activeSelectedContact = contact;
