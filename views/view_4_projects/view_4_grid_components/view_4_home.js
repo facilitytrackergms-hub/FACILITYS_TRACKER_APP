@@ -28,7 +28,7 @@ import {
 import {
     renderStyles
 } from './view_4_styles.js';
-// ... (rest of file remains unchanged)
+
 async function getSupabaseClientForView4Home() {
     const possiblePaths = [
         '../../../js/supabaseClient.js',
@@ -383,24 +383,25 @@ export async function renderProjectsHome(data, nav) {
     });
 
     // 2. Context-Safe BACK BUTTON EVENT LISTENER 
+    // [REPLACED START]
     let backBtn = document.getElementById('cabinetBackBtn');
     if (backBtn) {
-        backBtn.onclick = () => {
+        backBtn.addEventListener('click', (e) => {
+            console.log('[DEBUG] Back Button clicked');
             if (window.navigateTo) {
-                window.navigateTo('view_1_facility'); // Always go to Facilities Dashboard
+                window.navigateTo('view_1_facility');
             }
-        };
+        });
     }
 
     // 3. Bind CREATE NEW PROJECT button safely
-    // UI Logic Fix: Changed the button click handler to bypass immediate page reloading and delegate to view_4_modal.js listener instead
     let addProjectBtn = document.getElementById('cabinetAddProjectBtn');
     if (addProjectBtn) {
-        addProjectBtn.onclick = (e) => {
+        addProjectBtn.addEventListener('click', (e) => {
+            console.log('[DEBUG] Create Project clicked');
             if (e) e.preventDefault();
             const projectModal = document.getElementById('cabinetProjectModal');
             if (projectModal) {
-                // Clear any leftover field values before showing
                 const titleInput = document.getElementById('cabinetProjectTitleInput');
                 const notesInput = document.getElementById('cabinetProjectNotesInput');
                 const noticeDiv = document.getElementById('cabinetProjectModalNotice');
@@ -412,8 +413,9 @@ export async function renderProjectsHome(data, nav) {
             } else {
                 console.warn('[view_4_home.js] cabinetProjectModal layout structural element not found in DOM context.');
             }
-        };
+        });
     }
+    // [REPLACED END]
 
     // 4. Bind existing project tile list items
     document.querySelectorAll('[data-open-project]').forEach(button => {
