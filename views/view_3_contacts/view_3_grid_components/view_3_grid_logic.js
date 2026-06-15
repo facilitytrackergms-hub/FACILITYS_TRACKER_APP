@@ -10,7 +10,69 @@ export async function renderFacilityContacts(data) {
     if (!app) return;
 
     const facility = data?.facility || {};
+/*================================================================
+FILE: view_3_grid_logic.js (REBUILT)
+PURPOSE: Clean interaction layer only (NO CSS, NO layout hacks)
+================================================================*/
 
+export async function initializeGridLogic({ facility }) {
+
+    const grid = document.getElementById('contactsGridElement');
+    const detailPane = document.getElementById('contactDetailPane');
+    const directory = document.getElementById('directorySelectionLayout');
+
+    const nameEl = document.getElementById('detailName');
+    const roleEl = document.getElementById('detailRole');
+    const phoneEl = document.getElementById('detailPhone');
+    const emailEl = document.getElementById('detailEmail');
+    const historyBox = document.getElementById('historyBox');
+
+    const closeBtn = document.getElementById('closeBtn');
+
+    let activeContact = null;
+
+    // MOCK DATA LOAD (replace later with Supabase)
+    const contacts = facility?.contacts || [];
+
+    function renderGrid() {
+        grid.innerHTML = '';
+
+        contacts.forEach(c => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerText = c.name;
+
+            card.onclick = () => openProfile(c);
+
+            grid.appendChild(card);
+        });
+    }
+
+    function openProfile(contact) {
+        activeContact = contact;
+
+        nameEl.textContent = contact.name || '';
+        roleEl.textContent = contact.role || '';
+        phoneEl.textContent = contact.phone || '';
+        emailEl.textContent = contact.email || '';
+
+        historyBox.innerHTML = contact.history || 'No history';
+
+        directory.style.display = 'none';
+        detailPane.style.display = 'block';
+    }
+
+    function closeProfile() {
+        activeContact = null;
+
+        detailPane.style.display = 'none';
+        directory.style.display = 'block';
+    }
+
+    closeBtn.onclick = closeProfile;
+
+    renderGrid();
+}
     const styles = `
     <style>
         .contacts-view-container {
