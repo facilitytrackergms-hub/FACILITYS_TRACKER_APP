@@ -42,16 +42,22 @@ function renderGrid(contacts) {
                 <div class="thumbnail-name">${item.contact_name || 'Unnamed Contact'}</div>
                 <div class="thumbnail-role">${item.role || item.role_title || 'No Title'}</div>
             `;
-
-            // --- FIXED: Now calls the internal profile view instead of navigating away ---
-            card.onclick = () => showContactProfile(item);
-            // ---------------------------------------------------------------------------
+            
+            // --- FIXED: This now opens the Follow-Up Issue View ---
+            card.onclick = () => {
+                if (window.navigateTo) {
+                    window.navigateTo('view_5_issues', { 
+                        facility: viewContext.facility,
+                        openFormInstantly: true,
+                        prefilledReporterName: item.contact_name
+                    });
+                }
+            };
+            // ------------------------------------------------------
 
             gridContainer.appendChild(card);
         });
     }
-    
-
     async function showContactProfile(contact) {
         activeSelectedContact = contact;
         if (!profilePane || !directorySelectionLayout) return;
