@@ -87,6 +87,19 @@ export async function renderFacilityContacts(data) {
     position: relative;
     z-index: 5;
 }
+
+#contactDetailPane {
+    position: relative;
+    z-index: 10;
+}
+
+#directorySelectionLayout,
+#contactsGridElement {
+    position: relative;
+    z-index: 1;
+}
+
+
            
         </style>
     `;
