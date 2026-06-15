@@ -1,16 +1,20 @@
 /*================================================================
 FILE NAME    : data.js
-SUPABASE TBL : facility_projects
-VIEW NAME    : Projects Data Manager
-LAST UPDATED : 2026-06-15 @ 08:15 PM
+PURPOSE      : Database "Kitchen" - Handles all data retrieval/saving
 ================================================================*/
 
-// Matches the exact import path style of your working view 3
 import { supabase } from '../../js/supabaseClient.js';
 
+// ===============================================================
+// SECTION: FETCHING PROJECTS (The Handover)
+// ===============================================================
 export async function fetchProjects(facilityId) {
     try {
-        if (!facilityId) return [];
+        if (!facilityId) {
+            console.warn("No Facility ID provided to fetchProjects.");
+            return []; // HANDOVER: Empty list if no ID
+        }
+
         const { data, error } = await supabase
             .from('facility_projects')
             .select('*')
@@ -18,16 +22,28 @@ export async function fetchProjects(facilityId) {
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error("Error retrieving project dataset context:", error.message);
-            return [];
+            console.error("Supabase Error (Kitchen Problem):", error.message);
+            return []; // HANDOVER: Error occurred, returning empty
         }
-        return data || [];
+
+        // --- DEBUGGER LABEL ---
+        // This log lets you see the "plate" before we hand it over.
+        console.log("DEBUGGER: Handing back this list of projects:", data);
+
+        // --- THE HANDOVER ---
+        // This 'return' statement is the literal act of giving 
+        // the 'data' to the calling function in main.js
+        return data || []; 
+
     } catch (err) {
-        console.error("Unexpected exception inside fetchProjects matrix handler:", err);
-        return [];
+        console.error("Unexpected system crash in fetchProjects:", err);
+        return []; // HANDOVER: System failure, returning empty
     }
 }
 
+// ===============================================================
+// SECTION: SAVING PROJECTS
+// ===============================================================
 export async function saveProject(projectData) {
     try {
         const { data, error } = await supabase
@@ -36,13 +52,17 @@ export async function saveProject(projectData) {
             .select();
 
         if (error) {
-            console.error("Error saving new project entry:", error.message);
-            return null;
+            console.error("Error saving new project:", error.message);
+            return null; // HANDOVER: Save failed
         }
-        return data ? data[0] : null;
+        
+        // --- THE HANDOVER ---
+        // We return the newly created project object so the UI can update
+        return data ? data[0] : null; 
+        
     } catch (err) {
-        console.error("Unexpected exception inside saveProject handler:", err);
-        return null;
+        console.error("Unexpected system crash in saveProject:", err);
+        return null; // HANDOVER: Save failed
     }
 }
 
