@@ -68,6 +68,10 @@ export async function renderFacilityContacts(data) {
     `;
 
     app.innerHTML = `
+document.querySelector('.contacts-card-wrapper').style.pointerEvents = 'auto';
+document.querySelector('.contacts-view-container').style.pointerEvents = 'auto';
+
+    
         ${styles}
         <div class="contacts-view-container" id="mainContactsContainer">
             <div class="contacts-card-wrapper">
