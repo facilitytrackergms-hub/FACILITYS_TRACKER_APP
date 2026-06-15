@@ -5,7 +5,7 @@ window.navigateTo = async (view, context = {}) => {
         return;
     }
 
-    // DEFENSIVE REPAIR: preserve UUID/string IDs. Do not force Number().
+    // DEFENSIVE REPAIR: preserve UUID/string IDs.
     const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups', 'view_4_photo_dashboard'];
     if (facilityViews.includes(view)) {
         const facilityId = context?.facility?.id || context?.id || context?.facilityId;
@@ -22,7 +22,6 @@ window.navigateTo = async (view, context = {}) => {
 
     const cb = "?v=2026_vendor_jobs_v1";
 
-    // Reusable runtime navigation object passed down to individual view render functions
     const navRuntime = {
         renderPendingProjects: (ctx) => window.navigateTo('view_4_projects', ctx),
         renderPhotoDashboard: (ctx) => window.navigateTo('view_4_photo_dashboard', ctx),
@@ -89,8 +88,8 @@ window.navigateTo = async (view, context = {}) => {
         console.error("Navigation error:", err);
         app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}<br><small>${err.message || err}</small></p>`;
     }
+}; // <--- THIS CLOSES THE NAVIGATE TO FUNCTION
 
-   }; 
 window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
     window.navigateTo('view_1_facility');
@@ -98,5 +97,5 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* =================================================
 END FILE: main.js
-UPDATED: 2026-06-12 05:20:00 PM
+UPDATED: 2026-06-15 06:45:00 AM
 ================================================= */
