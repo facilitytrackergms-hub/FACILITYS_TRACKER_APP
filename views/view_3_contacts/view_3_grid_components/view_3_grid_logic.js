@@ -1,213 +1,61 @@
-/*================================================================
-FILE: view_3_grid.js (REBUILT)
-PURPOSE: Clean UI layer only (NO logic, NO pointer hacks)
-================================================================*/
+let activeContact = null;
 
-import { initializeGridLogic } from './view_3_grid_logic.js';
+export function initializeGridLogic(data) {
+    const gridView = document.getElementById('gridView');
+    const detailView = document.getElementById('detailView');
 
-export async function renderFacilityContacts(data) {
-    const app = document.getElementById('app');
-    if (!app) return;
+    const contactsGrid = document.getElementById('contactsGrid');
 
-    const facility = data?.facility || {};
-/*================================================================
-FILE: view_3_grid_logic.js (REBUILT)
-PURPOSE: Clean interaction layer only (NO CSS, NO layout hacks)
-================================================================*/
+    const addContactBtn = document.getElementById('addContactBtn');
+    const closeDetailBtn = document.getElementById('closeDetailBtn');
 
-export async function initializeGridLogic({ facility }) {
-
-    const grid = document.getElementById('contactsGridElement');
-    const detailPane = document.getElementById('contactDetailPane');
-    const directory = document.getElementById('directorySelectionLayout');
-
-    const nameEl = document.getElementById('detailName');
-    const roleEl = document.getElementById('detailRole');
-    const phoneEl = document.getElementById('detailPhone');
-    const emailEl = document.getElementById('detailEmail');
+    const contactName = document.getElementById('contactName');
+    const contactInfo = document.getElementById('contactInfo');
     const historyBox = document.getElementById('historyBox');
 
-    const closeBtn = document.getElementById('closeBtn');
+    function showGrid() {
+        detailView.style.display = 'none';
+        gridView.style.display = 'block';
+    }
 
-    let activeContact = null;
+    function showDetail(contact) {
+        activeContact = contact;
 
-    // MOCK DATA LOAD (replace later with Supabase)
-    const contacts = facility?.contacts || [];
+        gridView.style.display = 'none';
+        detailView.style.display = 'block';
 
-    function renderGrid() {
-        grid.innerHTML = '';
+        contactName.textContent = contact.name || 'Contact';
+        contactInfo.textContent = contact.role || '';
 
-        contacts.forEach(c => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerText = c.name;
+        historyBox.textContent = 'No history loaded';
+    }
 
-            card.onclick = () => openProfile(c);
+    function renderContacts() {
+        const fakeData = [
+            { id:1, name:'John Smith', role:'Manager' },
+            { id:2, name:'Sarah Lee', role:'Tech' }
+        ];
 
-            grid.appendChild(card);
+        contactsGrid.innerHTML = '';
+
+        fakeData.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.textContent = c.name;
+
+            div.onclick = () => showDetail(c);
+
+            contactsGrid.appendChild(div);
         });
     }
 
-    function openProfile(contact) {
-        activeContact = contact;
+    addContactBtn.onclick = () => {
+        alert('Add Contact');
+    };
 
-        nameEl.textContent = contact.name || '';
-        roleEl.textContent = contact.role || '';
-        phoneEl.textContent = contact.phone || '';
-        emailEl.textContent = contact.email || '';
+    closeDetailBtn.onclick = () => {
+        showGrid();
+    };
 
-        historyBox.innerHTML = contact.history || 'No history';
-
-        directory.style.display = 'none';
-        detailPane.style.display = 'block';
-    }
-
-    function closeProfile() {
-        activeContact = null;
-
-        detailPane.style.display = 'none';
-        directory.style.display = 'block';
-    }
-
-    closeBtn.onclick = closeProfile;
-
-    renderGrid();
-}
-    const styles = `
-    <style>
-        .contacts-view-container {
-            padding:20px;
-            font-family:Arial;
-            min-height:100vh;
-            background:#f3f4f6;
-            box-sizing:border-box;
-        }
-
-        .contacts-card-wrapper {
-            max-width:520px;
-            margin:0 auto;
-            background:white;
-            border-radius:12px;
-            padding:20px;
-            box-shadow:0 4px 10px rgba(0,0,0,0.08);
-        }
-
-        .contacts-view-title {
-            font-size:22px;
-            font-weight:bold;
-            color:#00264d;
-            text-transform:uppercase;
-            margin-bottom:5px;
-        }
-
-        .contacts-view-subtitle {
-            font-size:13px;
-            color:#6b7280;
-            margin-bottom:15px;
-        }
-
-        .btn {
-            width:100%;
-            padding:12px;
-            border:none;
-            border-radius:8px;
-            cursor:pointer;
-            font-weight:bold;
-            margin-bottom:10px;
-        }
-
-        .btn-primary { background:#00264d; color:white; }
-        .btn-green { background:#10b981; color:white; }
-        .btn-red { background:#dc2626; color:white; }
-        .btn-gray { background:#9ca3af; color:white; }
-
-        .grid {
-            display:grid;
-            grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
-            gap:10px;
-        }
-
-        .card {
-            padding:10px;
-            border:1px solid #e5e7eb;
-            border-radius:8px;
-            text-align:center;
-            cursor:pointer;
-        }
-
-        .detail-pane {
-            display:none;
-            margin-top:15px;
-            padding:15px;
-            border:1px solid #e5e7eb;
-            border-radius:8px;
-        }
-
-        .actions {
-            display:flex;
-            gap:8px;
-            margin-bottom:10px;
-        }
-
-        .actions button {
-            flex:1;
-        }
-
-        .history {
-            margin-top:10px;
-            padding:10px;
-            border:1px solid #e5e7eb;
-            border-radius:6px;
-            max-height:160px;
-            overflow:auto;
-        }
-    </style>
-    `;
-
-    app.innerHTML = `
-        ${styles}
-
-        <div class="contacts-view-container">
-            <div class="contacts-card-wrapper">
-
-                <div class="contacts-view-title">Facility Directory</div>
-                <div class="contacts-view-subtitle">${facility.name || ''}</div>
-
-                <!-- GRID -->
-                <div id="directorySelectionLayout">
-                    <button id="addContactBtn" class="btn btn-green">Add Contact</button>
-                    <div id="contactsGridElement" class="grid"></div>
-                </div>
-
-                <!-- DETAIL -->
-                <div id="contactDetailPane" class="detail-pane">
-
-                    <div id="detailName" style="font-weight:bold; margin-bottom:10px;"></div>
-
-                    <div class="actions">
-                        <button id="editBtn" class="btn btn-gray">Edit</button>
-                        <button id="deleteBtn" class="btn btn-red">Delete</button>
-                        <button id="addIssueBtn" class="btn btn-green">Add Issue</button>
-                    </div>
-
-                    <div>Role: <span id="detailRole"></span></div>
-                    <div>Phone: <span id="detailPhone"></span></div>
-                    <div>Email: <span id="detailEmail"></span></div>
-
-                    <div class="history" id="historyBox">
-                        Loading history...
-                    </div>
-
-                    <button id="closeBtn" class="btn btn-primary">Back</button>
-
-                </div>
-
-                <button id="backBtn" class="btn btn-primary">Back to Controls</button>
-
-            </div>
-        </div>
-    `;
-
-    // initialize logic AFTER DOM is clean
-    await initializeGridLogic({ facility });
+    renderContacts();
 }
