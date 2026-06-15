@@ -1,5 +1,5 @@
 /*================================================================
-UPDATED: Navigation Controller (Cleaned of View 4 Ghost Imports)
+UPDATED: Navigation Controller (Fixed View 4 Data Fetching)
 ================================================================*/
 window.navigateTo = async (view, context = {}) => {
     const app = document.getElementById('app');
@@ -25,7 +25,6 @@ window.navigateTo = async (view, context = {}) => {
 
     const navRuntime = {
         renderPendingProjects: (ctx) => window.navigateTo('view_4_projects', ctx),
-        // Other dashboard renderers are currently disabled until re-connected
         renderPhotoDashboard: (ctx) => alert('Module pending reconnection'),
         renderSingleProjectDashboard: (ctx) => alert('Module pending reconnection')
     };
@@ -44,11 +43,19 @@ window.navigateTo = async (view, context = {}) => {
             await ui.renderFacilityContacts(context);
         }
         // ==========================================================
-        // VIEW 4: CONSOLIDATED (Pending Reconnection)
+        // VIEW 4: CONSOLIDATED (Fixed)
         // ==========================================================
-else if (view === 'view_4_projects') {
+        else if (view === 'view_4_projects') {
+            // Import data and grid logic
+            const { fetchProjects } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/data.js${cb}`);
             const { renderGrid } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/grid.js${cb}`);
-            await renderGrid(context);
+            
+            // Get ID and fetch the project list
+            const facilityId = context.facility?.id || context?.id;
+            const projects = await fetchProjects(facilityId);
+            
+            // Render the grid with the list of projects
+            app.innerHTML = renderGrid(projects);
         }
         else if (view === 'view_5_issues') {
             const { renderFacilityIssues } = await import(`/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_grid.js${cb}`);
