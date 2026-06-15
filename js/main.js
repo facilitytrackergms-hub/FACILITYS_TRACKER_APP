@@ -34,7 +34,7 @@ window.navigateTo = async (view, context = {}) => {
         renderAddAction: (ctx) => alert('Add Action module coming soon!')
     };
 
-try {
+    try {
         if (view === 'view_1_facility' || view === 'dashboard' || view === 'facility' || view === 'view_1_dashboard') {
             const { renderFacilities } = await import(`/FACILITYS_TRACKER_APP/views/view_1_facility/view_1_grid.js${cb}`);
             await renderFacilities(context);
@@ -88,6 +88,7 @@ try {
         console.error("Navigation error:", err);
         app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading view: ${view}<br><small>${err.message || err}</small></p>`;
     }
+};
 
 window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
@@ -96,5 +97,5 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* =================================================
 END FILE: main.js
-UPDATED: 2026-06-15 06:45:00 AM
+UPDATED: 2026-06-15 06:55:00 AM
 ================================================= */
