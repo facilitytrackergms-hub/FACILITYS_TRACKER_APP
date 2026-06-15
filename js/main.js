@@ -46,12 +46,9 @@ window.navigateTo = async (view, context = {}) => {
         // ==========================================================
         // VIEW 4: CONSOLIDATED (Pending Reconnection)
         // ==========================================================
-        else if (view === 'view_4_projects') {
-             // Broken imports removed to stop crashing. 
-             // Once you create your new grid.js, uncomment and update path below:
-             // const { renderGrid } = await import(`./views/view_4_projects/grid.js${cb}`);
-             // await renderGrid(context, navRuntime);
-             app.innerHTML = `<p style="text-align:center;">Projects module is being rebuilt.</p>`;
+else if (view === 'view_4_projects') {
+            const { renderGrid } = await import(`/FACILITYS_TRACKER_APP/views/view_4_projects/grid.js${cb}`);
+            await renderGrid(context);
         }
         else if (view === 'view_5_issues') {
             const { renderFacilityIssues } = await import(`/FACILITYS_TRACKER_APP/views/view_5_issues/view_5_grid.js${cb}`);
