@@ -43,17 +43,9 @@ function renderGrid(contacts) {
                 <div class="thumbnail-role">${item.role || item.role_title || 'No Title'}</div>
             `;
 
-            // --- UPDATED: Navigation logic to Issue View ---
-            card.onclick = () => {
-                if (window.navigateTo) {
-                    window.navigateTo('view_5_issues', { 
-                        facility: viewContext.facility,
-                        openFormInstantly: true,
-                        prefilledReporterName: item.contact_name
-                    });
-                }
-            };
-            // ------------------------------------------------
+            // --- FIXED: Now calls the internal profile view instead of navigating away ---
+            card.onclick = () => showContactProfile(item);
+            // ---------------------------------------------------------------------------
 
             gridContainer.appendChild(card);
         });
