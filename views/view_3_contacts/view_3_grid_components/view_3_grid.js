@@ -13,10 +13,11 @@ export async function renderFacilityContacts(data) {
             font-family:Arial;
             min-height:100vh;
             background:#f3f4f6;
+            box-sizing:border-box;
         }
 
         .contacts-card-wrapper {
-            max-width:500px;
+            max-width:520px;
             margin:0 auto;
             background:white;
             border-radius:12px;
@@ -26,23 +27,23 @@ export async function renderFacilityContacts(data) {
 
         .header {
             text-align:center;
-            margin-bottom:20px;
+            margin-bottom:15px;
         }
 
-        .contacts-view-btn {
+        .btn {
             width:100%;
             padding:12px;
             margin-top:8px;
             border:none;
             border-radius:8px;
             cursor:pointer;
-            font-weight:bold;
+            font-weight:600;
         }
 
-        .btn-primary { background:#00264d; color:white; }
-        .btn-green { background:#10b981; color:white; }
-        .btn-red { background:#dc2626; color:white; }
-        .btn-gray { background:#9ca3af; color:white; }
+        .primary { background:#00264d; color:#fff; }
+        .green { background:#10b981; color:#fff; }
+        .red { background:#dc2626; color:#fff; }
+        .gray { background:#9ca3af; color:#fff; }
 
         .grid {
             display:grid;
@@ -52,13 +53,14 @@ export async function renderFacilityContacts(data) {
         }
 
         .card {
-            padding:10px;
             border:1px solid #e5e7eb;
             border-radius:8px;
+            padding:10px;
             cursor:pointer;
+            background:#fff;
         }
 
-        .detail-pane {
+        .detail {
             display:none;
             margin-top:15px;
             padding:15px;
@@ -71,8 +73,9 @@ export async function renderFacilityContacts(data) {
             padding:10px;
             border:1px solid #e5e7eb;
             border-radius:8px;
-            max-height:150px;
+            max-height:160px;
             overflow-y:auto;
+            background:#fafafa;
         }
     </style>
     `;
@@ -84,33 +87,26 @@ export async function renderFacilityContacts(data) {
             <div class="contacts-card-wrapper">
 
                 <div class="header">
-                    <h2>${facility?.name || 'Facility'}</h2>
+                    <h2>${facility?.name || 'Facility Contacts'}</h2>
                 </div>
 
                 <div id="gridView">
-                    <button id="addContactBtn" class="contacts-view-btn btn-green">Add Contact</button>
-
-                    <div id="contactsGrid" class="grid">
-                        Loading...
-                    </div>
+                    <button id="addContactBtn" class="btn green">Add Contact</button>
+                    <div id="contactsGrid" class="grid">Loading...</div>
                 </div>
 
-                <div id="detailView" class="detail-pane">
-                    <h3 id="contactName"></h3>
+                <div id="detailView" class="detail">
+                    <h3 id="name"></h3>
 
-                    <button id="editBtn" class="contacts-view-btn btn-primary">Edit</button>
-                    <button id="deleteBtn" class="contacts-view-btn btn-red">Delete</button>
-                    <button id="addIssueBtn" class="contacts-view-btn btn-green">Add Issue</button>
+                    <button id="editBtn" class="btn primary">Edit</button>
+                    <button id="deleteBtn" class="btn red">Delete</button>
+                    <button id="issueBtn" class="btn green">Add Issue</button>
 
-                    <div id="contactInfo"></div>
+                    <div id="info"></div>
 
-                    <div class="history" id="historyBox">
-                        Loading history...
-                    </div>
+                    <div class="history" id="history">Loading...</div>
 
-                    <button id="closeDetailBtn" class="contacts-view-btn btn-gray">
-                        Back
-                    </button>
+                    <button id="backBtn" class="btn gray">Back</button>
                 </div>
 
             </div>
