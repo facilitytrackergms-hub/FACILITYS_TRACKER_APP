@@ -5,7 +5,6 @@ window.navigateTo = async (view, context = {}) => {
         return;
     }
 
-    // DEFENSIVE REPAIR: preserve UUID/string IDs.
     const facilityViews = ['view_2_controls', 'view_3_contacts', 'view_4_projects', 'view_5_issues', 'view_6_images', 'view_7_followups', 'view_4_photo_dashboard'];
     if (facilityViews.includes(view)) {
         const facilityId = context?.facility?.id || context?.id || context?.facilityId;
@@ -19,7 +18,6 @@ window.navigateTo = async (view, context = {}) => {
     }
 
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
-
     const cb = "?v=2026_vendor_jobs_v1";
 
     const navRuntime = {
@@ -43,14 +41,16 @@ window.navigateTo = async (view, context = {}) => {
             const { renderFacilityControls } = await import(`/FACILITYS_TRACKER_APP/views/view_2_controls/view_2_grid.js${cb}`);
             await renderFacilityControls(context);
         }
-       else if (view === 'view_3_contacts') {
-            // Point to the UI file where the function actually lives
+        else if (view === 'view_3_contacts') {
+            // DEBUG PATH: Verify this file exists exactly at this location
             const module = await import(`/FACILITYS_TRACKER_APP/views/view_3_contacts/view_3_grid_components/view_3_grid.js${cb}`);
+            
+            console.log("DEBUG: Module contents found:", Object.keys(module));
             
             if (module.renderFacilityContacts) {
                 await module.renderFacilityContacts(context);
             } else {
-                console.error("renderFacilityContacts not found in:", module);
+                throw new Error("renderFacilityContacts export missing in view_3_grid.js");
             }
         }
         else if (view === 'view_4_projects') {
@@ -96,5 +96,3 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("App loaded, navigating to default view...");
     window.navigateTo('view_1_facility');
 });
-
-
