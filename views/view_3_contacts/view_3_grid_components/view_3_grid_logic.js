@@ -1,10 +1,13 @@
-
-import { renderFacilityContacts } from './view_3_grid.js';
-export { renderFacilityContacts };
+/*================================================================
+FILE NAME    : view_3_grid_logic.js
+PURPOSE      : Contact Directory Logic & Grid Management
+LOCATION     : /views/view_3_contacts/view_3_grid_components/
+================================================================*/
 
 import { openIssueModal } from '../../view_5_issues/view_5_modal.js';
 import { fetchContacts, insertContact as createContact, updateContact, deleteContact } from '../view_3_data.js';
 import { fetchFacilityIssues, insertFacilityIssue } from '../../view_5_issues/view_5_data.js';
+
 export async function initializeGridLogic(viewContext) {
     let localContactsList = [];
     let activeSelectedContact = null;
@@ -25,7 +28,7 @@ export async function initializeGridLogic(viewContext) {
         renderGrid(localContactsList);
     }
 
-function renderGrid(contacts) {
+    function renderGrid(contacts) {
         if (!gridContainer) return;
         gridContainer.innerHTML = '';
 
@@ -47,7 +50,7 @@ function renderGrid(contacts) {
                 <div class="thumbnail-role">${item.role || item.role_title || 'No Title'}</div>
             `;
             
-            // --- FIXED: This now opens the Follow-Up Issue View ---
+            // --- UPDATED: Direct navigation to Issue View ---
             card.onclick = () => {
                 if (window.navigateTo) {
                     window.navigateTo('view_5_issues', { 
@@ -57,18 +60,18 @@ function renderGrid(contacts) {
                     });
                 }
             };
-            // ------------------------------------------------------
 
             gridContainer.appendChild(card);
         });
     }
+
     async function showContactProfile(contact) {
         activeSelectedContact = contact;
         if (!profilePane || !directorySelectionLayout) return;
 
         const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
         
-             document.getElementById('detailAvatar').src = contact.image_url || contact.profile_photo_url || fallbackAvatar;
+        document.getElementById('detailAvatar').src = contact.image_url || contact.profile_photo_url || fallbackAvatar;
         document.getElementById('detailName').textContent = contact.contact_name || 'Unnamed Contact';
         document.getElementById('detailRole').textContent = contact.role || contact.role_title || 'N/A';
         
@@ -82,16 +85,13 @@ function renderGrid(contacts) {
         emailLink.textContent = emailValue || 'N/A';
         emailLink.href = emailValue ? `mailto:${emailValue}` : '#';
 
-         document.getElementById('detailNotes').textContent = contact.notes || contact.operational_notes || 'No operational notes provided.';
+        document.getElementById('detailNotes').textContent = contact.notes || contact.operational_notes || 'No operational notes provided.';
 
         directorySelectionLayout.style.display = 'none';
         profilePane.style.display = 'block';
 
-        if (backBtn) {
-            backBtn.style.display = 'none';
-        }
+        if (backBtn) backBtn.style.display = 'none';
 
-        // Load contextual history reports matching this contact's name verbatim
         const targetHistoryContainer = document.getElementById('contactIssuesHistoryList');
         if (targetHistoryContainer && viewContext.facility?.id) {
             targetHistoryContainer.innerHTML = '<div style="font-size:12px; color:#6b7280; font-style:italic;">Querying reported issues...</div>';
@@ -116,7 +116,6 @@ function renderGrid(contacts) {
                             <div style="font-size:11px; color:#6b7280; margin-top:2px;">Status: <b style="color:#10b981;">${issue.status || 'Open'}</b></div>
                         `;
 
-                        // Opens dashboard overlay module matching target issue payload directly
                         issueActionBtn.onclick = () => {
                             if (typeof openIssueModal === 'function') {
                                 openIssueModal(viewContext.facility, issue, contact);
@@ -151,8 +150,6 @@ function renderGrid(contacts) {
         };
     }
 
-    // Modal Control Workflows
-    // Modal Control Workflows
     function openCreateDirectoryEntry(prefilledName = "") {
         if (!modalShell) return;
 
@@ -193,7 +190,6 @@ function renderGrid(contacts) {
     if (saveContactBtn && modalShell) {
         saveContactBtn.onclick = async () => {
             const contactId = document.getElementById('editingContactId').value;
-
             const payload = {
                 facility_id: viewContext.facility?.id,
                 contact_name: document.getElementById('manualContactName').value.trim(),
@@ -210,7 +206,6 @@ function renderGrid(contacts) {
             }
 
             let savedContact;
-
             if (contactId) {
                 await updateContact(contactId, payload);
                 savedContact = { id: contactId };
@@ -218,7 +213,6 @@ function renderGrid(contacts) {
                 savedContact = await createContact(payload);
             }
 
-            // POST-CREATE BRIDGE: If there was a pending maintenance issue
             if (viewContext.pendingIssueData && savedContact?.id) {
                 await insertFacilityIssue({
                     ...viewContext.pendingIssueData,
@@ -237,14 +231,12 @@ function renderGrid(contacts) {
             hideContactProfile();
         };
     }
-// ... [Rest of file]
 
-    // Edit and Delete Profiles Toolbar
     if (document.getElementById('profileEditBtn')) {
         document.getElementById('profileEditBtn').onclick = () => {
             if (!activeSelectedContact || !modalShell) return;
 
-                      document.getElementById('manualContactImage').value = activeSelectedContact.image_url || activeSelectedContact.profile_photo_url || "";
+            document.getElementById('manualContactImage').value = activeSelectedContact.image_url || activeSelectedContact.profile_photo_url || "";
             document.getElementById('manualContactName').value = activeSelectedContact.contact_name || "";
             document.getElementById('manualContactRole').value = activeSelectedContact.role || activeSelectedContact.role_title || "";
             document.getElementById('manualContactPhone').value = activeSelectedContact.phone || activeSelectedContact.phone_number || "";
@@ -314,10 +306,6 @@ function renderGrid(contacts) {
     });
 }
 
-/**
- * Custom event listener initializer invoked by main app engine routes
- */
 export function setupContactsEvents(config) {
     console.log("Contacts module telemetry events loaded.", config);
-    // Custom workflow configurations can be structuralized here if needed downstream
 }
